@@ -1,0 +1,85 @@
+# The exchange path alone: 100% POST /exchange.
+#
+#   mise run scenario exchange ramp
+#   mise run scenario exchange steady
+#
+# In baseline.yaml the exchange shares the run with three cheap reads, and its
+# own cost hides in the mix. This is where most tactics act (the two
+# sequential transfer calls, the log append, the account rewrite), so it gets
+# its own knee. A separate file rather than an environment: environments
+# change the phases, not the scenario weights.
+#
+# The ramp steps match baseline.yaml's, so the two knees can be set side by
+# side.
+#
+# Every exchange appends to the log, and nothing here resets it between steps:
+# by step-300 the service is serialising tens of thousands of entries every
+# second. A later step carries the log the earlier ones grew. Read the State
+# dashboard's serialize time beside the latency before blaming the rate alone.
+#
+# Traffic reaches the service through nginx on 5555, never api:3000.
+config:
+  target: 'https://localhost:5555'
+
+  # H-38: nginx serves a self-signed lab certificate (`mise run certs`).
+  tls:
+    rejectUnauthorized: false
+
+  environments:
+    # Declared inside the environment: at the top level Artillery ignores
+    # `plugins` once -e selects one, and the run sends nothing to Graphite.
+    # The prefix matches baseline.yaml's, which the dashboards' $server expects.
+    ramp:
+      plugins: &statsd
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+      phases:
+        - { name: "step-010", duration: 60, arrivalRate: 10 }
+        - { name: "step-025", duration: 60, arrivalRate: 25 }
+        - { name: "step-050", duration: 60, arrivalRate: 50 }
+        - { name: "step-075", duration: 60, arrivalRate: 75 }
+        - { name: "step-100", duration: 60, arrivalRate: 100 }
+        - { name: "step-150", duration: 60, arrivalRate: 150 }
+        - { name: "step-200", duration: 60, arrivalRate: 200 }
+        - { name: "step-300", duration: 60, arrivalRate: 300 }
+
+    # baseline.yaml's steady shape and rate, so the exchange path alone can be
+    # set beside the mix at the same arrival rate. Here every arrival is an
+    # exchange, not 40% of them: the log grows 120 entries a second, not 48,
+    # and ends the hold at about 43,000.
+    steady:
+      plugins: *statsd
+      phases:
+        - { name: "warmup", duration: 60, arrivalRate: 120 }
+        - { name: "hold", duration: 300, arrivalRate: 120 }
+
+# Both directions, equally weighted, for the same reason as in baseline.yaml:
+# ARS->USD alone drains the internal USD account (60,000 at 0.66 per exchange)
+# within the run, and every exchange after that returns
+# insufficient_internal_funds -- a different code path from mid-run on.
+scenarios:
+  - name: exchange_ars_usd
+    weight: 50
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: 'ARS'
+            counterCurrency: 'USD'
+            baseAccountId: 101
+            counterAccountId: 102
+            baseAmount: 1000
+
+  - name: exchange_usd_ars
+    weight: 50
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: 'USD'
+            counterCurrency: 'ARS'
+            baseAccountId: 102
+            counterAccountId: 101
+            baseAmount: 0.66

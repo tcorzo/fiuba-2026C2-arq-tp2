@@ -1,0 +1,146 @@
+# The measurement suite. One traffic mix, three phase shapes.
+#
+# `rates.yaml` is the smoke test; this is what a case runs. Keeping the three
+# shapes in one file means the traffic mix cannot drift between the ramp that
+# finds the knee and the steady run measured at it.
+#
+#   mise run scenario baseline ramp
+#   mise run scenario baseline steady
+#   mise run scenario baseline spike
+#
+# Traffic reaches the service through nginx on 5555, never api:3000.
+config:
+  # Inherited by every environment below.
+  target: 'https://localhost:5555'
+
+  # H-38: nginx serves a self-signed lab certificate (`mise run certs`).
+  tls:
+    rejectUnauthorized: false
+
+  # No connection pool, on purpose: each virtual user opens its own connection,
+  # like an independent client, and concurrency is not capped by the
+  # generator. A pool is `http.pool` -- Artillery 2.0.22 ignores a top-level
+  # `pool` without a word -- and a small one would queue requests inside the
+  # client once exchanges hold connections for 400+ ms, so the run would
+  # measure the generator's queue.
+
+  environments:
+    # `plugins` is the one config key an environment does NOT inherit from the
+    # top level. Declared up there it is silently ignored: the run succeeds,
+    # reports every request, exits 0, and sends nothing to Graphite. So it is
+    # anchored here and aliased into the other two environments -- one
+    # definition, three uses.
+    #
+    # If you add a fourth environment, alias `*statsd` into it or it will
+    # measure nothing while looking healthy.
+
+    # Stepped, not continuous: each arrival rate gets its own stable window,
+    # so the knee is read off a table rather than eyeballed off a slope.
+    # Eight minutes total.
+    ramp:
+      plugins: &statsd
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+      phases:
+        - { name: "step-010", duration: 60, arrivalRate: 10 }
+        - { name: "step-025", duration: 60, arrivalRate: 25 }
+        - { name: "step-050", duration: 60, arrivalRate: 50 }
+        - { name: "step-075", duration: 60, arrivalRate: 75 }
+        - { name: "step-100", duration: 60, arrivalRate: 100 }
+        - { name: "step-150", duration: 60, arrivalRate: 150 }
+        - { name: "step-200", duration: 60, arrivalRate: 200 }
+        - { name: "step-300", duration: 60, arrivalRate: 300 }
+
+    # Meant to sit at 60% of the knee the ramp reads, so the percentiles are
+    # stable rather than marginal.
+    #
+    # The knee is 200 rps, read off `ramp` on the measuring machine at 1d9c32a:
+    # the last step served in full (199.2 ok/s, no timeouts), while at 300 the
+    # api sat at 97% of its CPU limit and served 175. 120 rps is 60% of it.
+    #
+    # The log still grows during the hold -- 48 exchanges a second -- so
+    # "steady" is the arrival rate, not the service's state.
+    steady:
+      plugins: *statsd
+      phases:
+        - { name: "warmup", duration: 60, arrivalRate: 120 }
+        - { name: "hold", duration: 300, arrivalRate: 120 }
+
+    # Idle -> well above capacity -> back. Answers whether it recovers.
+    #
+    # Twice the knee `steady` is set from. Whatever the peak, if the generator
+    # host saturates during it, the peak latency measures the generator and
+    # must not be quoted as the service's. The
+    # question this scenario exists to answer -- does it come back -- is still
+    # readable, because recovery happens in calm-after with the machine idle.
+    spike:
+      plugins: *statsd
+      phases:
+        - { name: "calm-before", duration: 60, arrivalRate: 15 }
+        - { name: "spike", duration: 60, arrivalRate: 400 }
+        - { name: "calm-after", duration: 120, arrivalRate: 15 }
+
+# Weights are the mix, not a probability the report has to explain:
+# 40 exchange / 30 rates / 20 accounts / 10 log out of every 100 virtual users.
+#
+# The two exchange directions are equally weighted on purpose. ARS->USD credits
+# the internal ARS account and debits the internal USD one, so a one-way load
+# drains USD 60,000 at 0.66 per exchange and every exchange after that returns
+# insufficient_internal_funds -- a latency profile that changes mid-run without
+# saying so. Alternating holds the USD account flat.
+#
+# /log is kept at 10%: it serialises the whole log on every request, so a
+# heavier weight would turn the ramp into a measurement of GET /log alone.
+#
+# Every /exchange awaits two sequential 200-400 ms transfer calls (the
+# assignment's stub), so a mixed-traffic percentile is bimodal: read latency
+# per route off the HTTP dashboard, not off the client's aggregate.
+#
+# /accounts and /log are admin operations (H-15/H-16): they go to nginx's
+# admin listener, published on loopback only. An absolute url overrides
+# `target` for that request alone; the traffic is the same, only the nginx
+# server that takes it changes.
+scenarios:
+  - name: exchange_ars_usd
+    weight: 20
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: 'ARS'
+            counterCurrency: 'USD'
+            baseAccountId: 101
+            counterAccountId: 102
+            baseAmount: 1000
+
+  - name: exchange_usd_ars
+    weight: 20
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: 'USD'
+            counterCurrency: 'ARS'
+            baseAccountId: 102
+            counterAccountId: 101
+            baseAmount: 0.66
+
+  - name: rates_read
+    weight: 30
+    flow:
+      - get:
+          url: '/rates'
+
+  - name: accounts_read
+    weight: 20
+    flow:
+      - get:
+          url: 'https://127.0.0.1:5561/accounts'
+
+  - name: log_read
+    weight: 10
+    flow:
+      - get:
+          url: 'https://127.0.0.1:5561/log'

@@ -1,0 +1,55 @@
+# H-35: a cheap route under constant load while three routes read the log.
+#
+#   perf/repro/H-35.sh <label>
+#
+# The rig grows the log first; this file only sends the traffic. Run on its
+# own it reads whatever log the store holds.
+#
+# The victim is GET /rates: cheap, constant, 20 rps. The readers are one
+# request per second each, on average:
+#   - GET /log, on the admin listener (H-15), so its URL names that port;
+#   - GET /exchanges?accountId=101 and GET /exchanges/:id, on the public one.
+# Every request is named, so metrics-by-endpoint reports each one apart.
+#
+# Traffic reaches the service through nginx: 5555 public, 5561 admin.
+config:
+  target: 'https://localhost:5555'
+
+  # H-38: nginx serves a self-signed lab certificate (`mise run certs`).
+  tls:
+    rejectUnauthorized: false
+
+  environments:
+    # `plugins` is not inherited from the top level (see baseline.yaml).
+    read:
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+        metrics-by-endpoint:
+          useOnlyRequestNames: true
+      phases:
+        - { name: "read", duration: 60, arrivalRate: 23 }
+
+scenarios:
+  - name: rates
+    weight: 20
+    flow:
+      - get: { url: '/rates', name: 'rates' }
+
+  - name: log
+    weight: 1
+    flow:
+      - get: { url: 'https://localhost:5561/log', name: 'log' }
+
+  - name: exchanges_by_account
+    weight: 1
+    flow:
+      - get: { url: '/exchanges?accountId=101', name: 'exchanges_by_account' }
+
+  - name: exchange_by_id
+    weight: 1
+    flow:
+      # The rig seeds this id in the middle of the log.
+      - get: { url: '/exchanges/h35-middle', name: 'exchange_by_id' }

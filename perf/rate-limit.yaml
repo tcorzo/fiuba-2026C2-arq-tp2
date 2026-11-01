@@ -1,0 +1,78 @@
+# H-02: one client on the public listener, and nothing else.
+#
+# baseline.yaml sends 30% of its traffic to the admin listener, which has no
+# per-client limit and is published on loopback only, so no outside client
+# reaches it. Here every request goes to the public listener, in baseline's
+# proportion between its two public operations: 40 exchange to 30 rates.
+#
+# Artillery is a single client: nginx sees one address for all of it. Run it
+# through perf/repro/H-02.sh, which records the output as evidence.
+config:
+  target: 'https://localhost:5555'
+
+  # H-38: nginx serves a self-signed lab certificate (`mise run certs`).
+  tls:
+    rejectUnauthorized: false
+
+  environments:
+    # baseline.yaml's spike shape: idle, 400 rps for 60 s, idle again. With
+    # the limit on, it shows what happens to a client above 50 rps.
+    #
+    # `plugins` is not inherited from the top level (see baseline.yaml), so it
+    # is anchored here and aliased into the other environments.
+    spike:
+      plugins: &statsd
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+      phases:
+        - { name: "calm-before", duration: 60, arrivalRate: 15 }
+        - { name: "spike", duration: 60, arrivalRate: 400 }
+        - { name: "calm-after", duration: 120, arrivalRate: 15 }
+
+    # A client below the limit: 40 rps must see no 429, burst included.
+    under:
+      plugins: *statsd
+      phases:
+        - { name: "under", duration: 60, arrivalRate: 40 }
+
+    # Far above the limit, for 40 s, while a second client sends from another
+    # address (perf/repro/H-02.sh).
+    flood:
+      plugins: *statsd
+      phases:
+        - { name: "flood", duration: 40, arrivalRate: 200 }
+
+# The two exchange directions alternate so the internal USD account stays flat
+# (see baseline.yaml).
+scenarios:
+  - name: exchange_ars_usd
+    weight: 20
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: 'ARS'
+            counterCurrency: 'USD'
+            baseAccountId: 101
+            counterAccountId: 102
+            baseAmount: 1000
+
+  - name: exchange_usd_ars
+    weight: 20
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: 'USD'
+            counterCurrency: 'ARS'
+            baseAccountId: 102
+            counterAccountId: 101
+            baseAmount: 0.66
+
+  - name: rates_read
+    weight: 30
+    flow:
+      - get:
+          url: '/rates'
