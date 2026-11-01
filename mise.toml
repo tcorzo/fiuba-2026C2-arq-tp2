@@ -113,9 +113,7 @@ az login || exit 1
 
 for stack in foundation platform; do
   echo "##### Applying $stack #####"
-  if [ ! -d "infra/envs/prd/$stack/.terraform" ]; then
-    terraform -chdir="infra/envs/prd/$stack" init || exit 1
-  fi
+  terraform -chdir="infra/envs/prd/$stack" init -input=false || exit 1
   terraform -chdir="infra/envs/prd/$stack" apply -auto-approve || exit 1
 done
 
@@ -131,6 +129,8 @@ echo "##### Finished #####"
 [tasks.down]
 description = "Destroys platform, then foundation. Asks before each"
 run = '''
-terraform -chdir=infra/envs/prd/platform destroy || exit 1
-terraform -chdir=infra/envs/prd/foundation destroy
+for stack in platform foundation; do
+  terraform -chdir="infra/envs/prd/$stack" init -input=false || exit 1
+  terraform -chdir="infra/envs/prd/$stack" destroy || exit 1
+done
 '''
