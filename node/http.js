@@ -23,6 +23,7 @@ import { assertNonNegativeNumber, assertPositiveNumber } from "./validation.js";
 // would let any caller create new series. Express sets req.route only after
 // routing, so a 404 has none.
 const ROUTE_BY_METHOD_AND_PATH = new Map([
+  ["GET /", "root_get"],
   ["GET /accounts", "accounts_get"],
   ["PUT /accounts/:id/balance", "accounts_balance_put"],
   ["GET /rates", "rates_get"],
@@ -90,6 +91,16 @@ export function createApp(exchange) {
   });
 
   app.use(express.json());
+
+  // The baseline-latency target: the TP measures the network round trip
+  // against `/` with no load, without reaching ARCA or the database. It
+  // touches neither, so it stays cheap even when they are slow or down.
+  app.get(
+    "/",
+    asyncHandler(async (req, res) => {
+      res.status(200).send("Server is up.");
+    }),
+  );
 
   // ACCOUNT endpoints
 
