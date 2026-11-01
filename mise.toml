@@ -9,7 +9,6 @@ node = "24.22.2"
 
 # Backend for the pypi: tools above (azure-cli, ansible-core)
 uv = "0.13.6"
-python = "3.10.11"
 
 [settings]
 pipx.uvx = true
