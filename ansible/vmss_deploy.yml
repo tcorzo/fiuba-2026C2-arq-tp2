@@ -3,7 +3,7 @@
   gather_facts: yes
   tasks:
     - name: Stop old version
-      command: pm2 stop app.js
+      command: pm2 stop server.js
       ignore_errors: yes
     - name: Extract new version
       unarchive:
@@ -12,6 +12,6 @@
         owner: azureuser
         group: azureuser
     - name: Install dependencies
-      command: npm install
+      command: npm ci
     - name: Start new version
-      command: pm2 start app.js
+      command: pm2 start server.js

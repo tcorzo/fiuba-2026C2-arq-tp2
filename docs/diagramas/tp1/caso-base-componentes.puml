@@ -1,0 +1,152 @@
+@startuml caso-base-componentes
+' arVault - TP1 Arquitectura del Software (75.73/TB034) 2026C2
+' Diagrama de Componentes (UML) del CASO BASE (arquitectura recibida)
+' Render: mise run diagrams
+'
+' Las firmas de cada interfaz y la justificación de cada decisión están
+' en doc/diagramas/README.md (tablas de componentes e interfaces).
+
+title arVault — Caso base: diagrama de componentes (UML)
+
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam nodesep 40
+skinparam ranksep 40
+skinparam ArrowColor #37474F
+skinparam ArrowFontSize 11
+skinparam component {
+  BackgroundColor #ECEFF1
+  BorderColor #546E7A
+}
+skinparam interface {
+  BackgroundColor #FFFFFF
+  BorderColor #546E7A
+  FontSize 11
+}
+skinparam package {
+  BackgroundColor #FAFAFA
+  BorderColor #90A4AE
+  FontStyle bold
+}
+skinparam artifact {
+  BackgroundColor #FFF8E1
+  BorderColor #B0883B
+}
+skinparam database {
+  BackgroundColor #FFF8E1
+  BorderColor #B0883B
+}
+
+' ═════════════════════════════════════════════════════════════
+' 1. Clientes y generador de carga
+' ═════════════════════════════════════════════════════════════
+package "Clientes" <<boundary>> #F5F5F5 {
+  component "Apps móviles\n(tercerizadas)" <<client>> as MobileApp
+  component "vaultSec\nAuthN / AuthZ" <<fuera de alcance>> as VaultSec
+  component "Artillery\n+ plugin StatsD" <<load generator>> as Artillery
+
+  MobileApp -[hidden]right- VaultSec
+  VaultSec -[hidden]right- Artillery
+}
+
+' ═════════════════════════════════════════════════════════════
+' 2. Servidor único (Docker Compose, proyecto `exchange`)
+' ═════════════════════════════════════════════════════════════
+package "Servidor único — Docker Compose (proyecto `exchange`)" <<device>> {
+
+  interface "IPublicHTTP" as IPublicHTTP
+  component "nginx 1.29.8" <<reverse proxy>> as Nginx
+  interface "IExchangeREST" as IExchangeREST
+
+  package "exchange-api-1 <<container node:24>>" as ApiContainer {
+    component "app.js\nExpress HTTP API" <<presentación>> as App
+    interface "IExchangeCore" as IExchangeCore
+    component "exchange.js\nLógica de negocio" <<dominio>> as Exchange
+    interface "ITransfer" as ITransfer
+    component "Servicio de\ntransferencia de fondos\n//stub en exchange.js//\n200–400 ms · siempre OK\n**2 llamadas secuenciales**\n**por POST /exchange**" <<external>> as TransferSvc #FFE0B2
+    interface "IState" as IState
+    component "state.js\nEstado en memoria\n+ persistencia diferida" <<persistencia>> as State
+    interface "IFileSystem" as IFileSystem
+    artifact "accounts.json\nrates.json\nlog.json" as StateFiles
+  }
+
+  component "Docker Engine" <<runtime>> as Docker
+
+  package "Observabilidad" {
+    component "cAdvisor v0.51\nlee /var/run/docker.sock\n--docker_only=true" <<agente>> as Cadvisor
+    interface "IStatsD" as IStatsD
+    component "StatsD\nagregador (flush 1 s)" as StatsD
+    component "Graphite\nCarbon + web API" <<TSDB>> as Graphite
+    database "Whisper" as Whisper
+    interface "IGraphiteQuery" as IGraphiteQuery
+    component "Grafana 11.5\ndashboard · host :80" as Grafana
+  }
+}
+
+' ═════════════════════════════════════════════════════════════
+' Conectores — cadena de request (arriba -> abajo)
+' ═════════════════════════════════════════════════════════════
+MobileApp ..> VaultSec : <<HTTP>>
+MobileApp ..> IPublicHTTP : <<HTTP>>\nrequest / response
+Artillery ..> IPublicHTTP : <<HTTP>>\ncarga sintética
+IPublicHTTP -down- Nginx : host :5555
+
+Nginx ..> IExchangeREST : <<HTTP proxy_pass>>\nupstream exchange-api-1:3000
+IExchangeREST -down- App
+
+App ..> IExchangeCore : <<llamada local>>
+IExchangeCore -down- Exchange
+
+Exchange ..> ITransfer : <<async>>
+ITransfer -right- TransferSvc
+
+Exchange ..> IState : <<llamada local>>
+IState -down- State
+
+State ..> IFileSystem : <<escritura periódica>>\naccounts 1 s · log 1 s · rates 5 s
+IFileSystem -down- StateFiles
+
+' ═════════════════════════════════════════════════════════════
+' Conectores — observabilidad
+' ═════════════════════════════════════════════════════════════
+Docker -down-> Cadvisor
+Cadvisor ..> IStatsD : <<UDP>>\nprefix `cadvisor`
+Artillery ..> IStatsD : <<UDP>>\nprefix `artillery-api`
+IStatsD -down- StatsD : :8125
+StatsD -down-> Graphite : <<TCP :2003>>
+Graphite -down-> Whisper : <<escribe/lee>>
+Graphite -down- IGraphiteQuery : :8090
+IGraphiteQuery ..> Grafana : <<datasource>>
+
+' ═════════════════════════════════════════════════════════════
+' Notas (cortas, ancladas a nodos del borde para no cruzar el dibujo)
+' ═════════════════════════════════════════════════════════════
+note right of VaultSec #EEEEEE
+  Fuera del alcance: el request
+  llega a nginx ya autenticado
+  y autorizado.
+end note
+
+note bottom of StateFiles #FFF3E0
+  **Componente stateful, instancia única**
+  El estado vive en memoria del proceso y se
+  vuelca a disco por `setInterval` ⇒ ventana de
+  pérdida de 1–5 s. `log` crece sin límite y se
+  reescribe entero en cada flush.
+  Leer tasa → validar saldo → actualizar
+  **no es atómico** ⇒ condición de carrera.
+end note
+
+legend bottom
+  |= Notación |= Significado |
+  | ——○ | interfaz **provista** por el componente |
+  | ┄┄▷ ○ | interfaz **requerida** (dependencia) |
+  | ——▶ | conector; el protocolo va en el «estereotipo» |
+  | paquete | límite de despliegue (host / contenedor) |
+  Las firmas de cada interfaz están en `doc/diagramas/README.md`.
+endlegend
+
+@enduml

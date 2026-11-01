@@ -1,0 +1,169 @@
+@startuml final-componentes
+' arVault - TP1 Arquitectura del Software (75.73/TB034) 2026C2
+' Diagrama de Componentes (UML) de la arquitectura FINAL: main con todas las
+' tácticas aplicadas. Parte del diagrama del caso base; lo que cambia va en
+' verde, con el hallazgo que lo motivó.
+' Render: mise run diagrams
+'
+' Las firmas de cada interfaz y la justificación de cada decisión están
+' en doc/diagramas/README.md (tablas de componentes e interfaces).
+
+title arVault — Arquitectura final: diagrama de componentes (UML)
+
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam nodesep 40
+skinparam ranksep 40
+skinparam ArrowColor #37474F
+skinparam ArrowFontSize 11
+skinparam component {
+  BackgroundColor #ECEFF1
+  BorderColor #546E7A
+}
+skinparam interface {
+  BackgroundColor #FFFFFF
+  BorderColor #546E7A
+  FontSize 11
+}
+skinparam package {
+  BackgroundColor #FAFAFA
+  BorderColor #90A4AE
+  FontStyle bold
+}
+skinparam artifact {
+  BackgroundColor #FFF8E1
+  BorderColor #B0883B
+}
+skinparam database {
+  BackgroundColor #FFF8E1
+  BorderColor #B0883B
+}
+
+' ═════════════════════════════════════════════════════════════
+' 1. Clientes y generador de carga
+' ═════════════════════════════════════════════════════════════
+package "Clientes" <<boundary>> #F5F5F5 {
+  component "Apps móviles\n(tercerizadas)" <<client>> as MobileApp
+  component "vaultSec\nAuthN / AuthZ" <<fuera de alcance>> as VaultSec
+  component "Artillery\n+ plugin StatsD" <<load generator>> as Artillery
+  component "Operador\n(sólo desde el host)\n/accounts · /log · PUT" <<admin>> as Operator #C8E6C9
+
+  Operator -[hidden]right- MobileApp
+  MobileApp -[hidden]right- VaultSec
+  VaultSec -[hidden]right- Artillery
+}
+
+' ═════════════════════════════════════════════════════════════
+' 2. Servidor único (Docker Compose, proyecto `exchange`)
+' ═════════════════════════════════════════════════════════════
+package "Servidor único — Docker Compose (proyecto `exchange`)" <<device>> {
+
+  interface "IPublicHTTPS" as IPublicHTTPS #C8E6C9
+  interface "IRedirectHTTP" as IRedirectHTTP #C8E6C9
+  interface "IAdminHTTPS" as IAdminHTTPS #C8E6C9
+  component "nginx 1.29.8 · 0,5 CPU\n**terminación TLS** (H-38)\n**rate limit** 50 r/s por cliente (H-02)\n**lista de rutas públicas** (H-15, H-16)\n**upstream de 3 réplicas** (H-13, H-36)" <<reverse proxy>> as Nginx #C8E6C9
+  interface "IExchangeREST" as IExchangeREST
+
+  package "exchange-api-{1,2,3} <<container node:24>> × 3 réplicas (H-13)\n0,25 CPU · 128M cada una · usuario `node` (H-40)\nrestart: on-failure + healthcheck (H-03)" as ApiContainer #E8F5E9 {
+    component "http.js\nExpress HTTP API\n+ validación (H-07, H-31)\n+ error-handler.js (H-01)" <<presentación>> as App #C8E6C9
+    interface "IExchangeCore" as IExchangeCore
+    component "exchange.js\nLógica de negocio\n//sin estado propio (H-14)//" <<dominio>> as Exchange #C8E6C9
+    interface "ITransfer" as ITransfer
+    component "transfer.js\nServicio de\ntransferencia de fondos\n//stub//\n200–400 ms · siempre OK\n**2 llamadas en paralelo**\n**por POST /exchange** (H-12)" <<external>> as TransferSvc #FFE0B2
+    interface "Repositories\n//ports.js//" as IRepositories #C8E6C9
+    component "pg-repositories.js\nAdaptador Postgres\n`pg` 8.23.1 · Pool" <<persistencia>> as PgRepos #C8E6C9
+    component "compose.js\nRaíz de composición\n(H-22, H-23)" <<wiring>> as Compose #C8E6C9
+  }
+
+  interface "ISQL" as ISQL #C8E6C9
+
+  package "exchange-db-1 <<container postgres:18>> (H-09)\n0,25 CPU · 128M" as DbContainer #C8E6C9 {
+    component "PostgreSQL 18" <<RDBMS>> as Postgres #C8E6C9
+    database "accounts\nrates\nexchanges\n+ WAL\n//volumen dbdata (H-10)//" as Tables #C8E6C9
+  }
+
+  component "Docker Engine" <<runtime>> as Docker
+
+  package "Observabilidad — sólo en 127.0.0.1 (H-39)" #E8F5E9 {
+    component "cAdvisor v0.60.5\nlee /var/run/docker.sock\n--docker_only=true\n//sin puerto publicado//" <<agente>> as Cadvisor
+    interface "IStatsD" as IStatsD
+    component "StatsD\nagregador (flush 1 s)" as StatsD
+    component "Graphite\nCarbon + web API" <<TSDB>> as Graphite
+    database "Whisper" as Whisper
+    interface "IGraphiteQuery" as IGraphiteQuery
+    component "Grafana 11.5\ndashboard" as Grafana
+  }
+}
+
+' ═════════════════════════════════════════════════════════════
+' Conectores — cadena de request (arriba -> abajo)
+' ═════════════════════════════════════════════════════════════
+MobileApp ..> VaultSec : <<HTTP>>
+MobileApp ..> IPublicHTTPS : <<HTTPS>>\nrequest / response
+Artillery ..> IPublicHTTPS : <<HTTPS>>\ncarga sintética
+Operator ..> IAdminHTTPS : <<HTTPS>>
+IPublicHTTPS -down- Nginx : host :5555 → :443
+IRedirectHTTP -down- Nginx : host :5560 → :80\nsólo 308 → HTTPS
+IAdminHTTPS -down- Nginx : 127.0.0.1:5561 → :8443
+
+Nginx ..> IExchangeREST : <<HTTP proxy_pass>>\nen claro, red interna\nround robin entre 3 réplicas
+IExchangeREST -down- App
+
+Compose ..> App : <<arma>>
+App ..> IExchangeCore : <<llamada local>>
+IExchangeCore -down- Exchange
+
+Exchange ..> ITransfer : <<async>>\nPromise.all
+ITransfer -right- TransferSvc
+
+Exchange ..> IRepositories : <<llamada local>>\nawait por cada escritura
+IRepositories -down- PgRepos
+
+PgRepos ..> ISQL : <<TCP db:5432>>\nreserva atómica: un UPDATE (H-06)\ncrédito + log: BEGIN … COMMIT
+ISQL -down- Postgres
+Postgres -down-> Tables : <<escribe/lee>>\nfsync del WAL en cada COMMIT
+
+' ═════════════════════════════════════════════════════════════
+' Conectores — observabilidad
+' ═════════════════════════════════════════════════════════════
+Docker -down-> Cadvisor
+Cadvisor ..> IStatsD : <<UDP>>\nprefix `cadvisor`
+Artillery ..> IStatsD : <<UDP>>\nprefix `artillery-api`
+IStatsD -down- StatsD : 127.0.0.1:8125
+StatsD -down-> Graphite : <<TCP :2003>>
+Graphite -down-> Whisper : <<escribe/lee>>
+Graphite -down- IGraphiteQuery : 127.0.0.1:5557
+IGraphiteQuery ..> Grafana : <<datasource>>
+
+' ═════════════════════════════════════════════════════════════
+' Notas (cortas, ancladas a nodos del borde para no cruzar el dibujo)
+' ═════════════════════════════════════════════════════════════
+note right of VaultSec #EEEEEE
+  Fuera del alcance: el request
+  llega a nginx ya autenticado
+  y autorizado.
+end note
+
+note bottom of Tables #E8F5E9
+  **El estado vive en Postgres, no en la api**
+  Las réplicas no guardan estado: cualquiera
+  atiende cualquier request.
+  La api responde `200` después del `COMMIT`:
+  un cambio respondido ya está en disco.
+end note
+
+legend bottom
+  |= Notación |= Significado |
+  | ——○ | interfaz **provista** por el componente |
+  | ┄┄▷ ○ | interfaz **requerida** (dependencia) |
+  | ——▶ | conector; el protocolo va en el «estereotipo» |
+  | paquete | límite de despliegue (host / contenedor) |
+  | verde | elemento agregado o modificado respecto del caso base, con su hallazgo |
+  El presupuesto total no cambia: 1 CPU y 512M, repartidos entre 3 réplicas de api y db.
+  Las firmas de cada interfaz están en `doc/diagramas/README.md`.
+endlegend
+
+@enduml

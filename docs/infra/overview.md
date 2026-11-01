@@ -12,7 +12,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | External dependency | **ARCA** mock, `arqsoft/arca:1.0.0` on **Azure Container Instances**, private IP, port 8080 |
 | Admin access | **Jumpbox** VM with a public IP. It is the only SSH entry point into the VNet |
 | Observability | Datadog agent on every VMSS instance (installed by Ansible) |
-| Storage | **None yet.** The TP asks for Redis or another managed (PaaS) database |
+| Storage | **None yet.** The TP asks for Redis or another managed (PaaS) database. We chose **Azure Database for PostgreSQL Flexible Server**, so the service keeps tp1's Postgres repositories (H-09) |
 
 ## Resource inventory
 
@@ -111,6 +111,8 @@ sequenceDiagram
     LB-->>C: response
 ```
 
+This is the path of the course's example app, which `node/` no longer holds: it now holds tp1's exchange service (`node/server.js`), which does not call ARCA yet. The `dni` → `/validar` step comes back with the ARCA integration.
+
 `GET /` returns `Server is up.` without calling ARCA. The TP asks you to use it to measure baseline latency.
 
 The probe is **TCP-only**. The LB marks an instance healthy as soon as something is listening on port 3000, even if the app cannot reach ARCA or its storage.
@@ -147,7 +149,7 @@ flowchart TD
     pbsetup[vmss_setup.yml<br/>Datadog agent, unzip, Node 24, pm2]
     deploy[mise run app:deploy<br/>ansible/deploy.sh]
     zip[node/zip → node/src.zip]
-    pbdeploy[vmss_deploy.yml<br/>unzip, npm install, pm2 start app.js]
+    pbdeploy[vmss_deploy.yml<br/>unzip, npm ci, pm2 start server.js]
 
     apply --> setup --> inv --> pbsetup
     jbdns --> inv
@@ -171,6 +173,6 @@ Some consequences of this design:
 
 According to the assignment (`README.md`), groups will typically:
 
-1. **Add a managed storage resource**, for example `azurerm_managed_redis`, and wire its connection data into the app the same way ARCA's URI is wired (a provisioner or generated config).
+1. **Add a managed storage resource**, for example `azurerm_managed_redis`, and wire its connection data into the app the same way ARCA's URI is wired (a provisioner or generated config). We use `azurerm_postgresql_flexible_server`: the service's `DATABASE_URL` points at it.
 2. **Scale the app tier horizontally.** Make `instances` a variable or add autoscale (`azurerm_monitor_autoscale_setting`). Keep in mind the "no bootstrap on new instances" caveat above.
 3. **Reconsider tactics that depended on nginx in TP 1**, because the Azure Standard LB is a layer-4 balancer. It has no HTTP caching, no rate limiting, no HTTP-aware health checks, and no request routing.

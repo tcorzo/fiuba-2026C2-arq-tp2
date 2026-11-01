@@ -1,0 +1,73 @@
+# Rejected and accepted exchanges side by side (H-34).
+#
+#   mise run scenario insufficient-funds mix
+#
+# Half the exchanges ask for more EUR than the internal EUR account holds and
+# are rejected by the business rules; the other half are small USD->ARS
+# exchanges that succeed. On the HTTP dashboard's "Requests/s by status code"
+# the rejected half is what moves between the before and the after: 500 on
+# main, 409 on the tactic's branch. The accepted half stays 200 on both.
+#
+# 20 rps is a tenth of the base case's 200 rps knee (baseline.yaml): the point
+# is the status code, not the service's capacity.
+#
+# Traffic reaches the service through nginx on 5555, never api:3000.
+config:
+  target: 'https://localhost:5555'
+  # H-38: nginx serves a self-signed lab certificate (`mise run certs`).
+  tls:
+    rejectUnauthorized: false
+
+  environments:
+    # Declared inside the environment: at the top level Artillery ignores
+    # `plugins` once -e selects one, and the run sends nothing to Graphite.
+    # The prefix matches baseline.yaml's, which the dashboards' $server expects.
+    mix:
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+      phases:
+        - { name: "hold", duration: 180, arrivalRate: 20 }
+
+# Runs once, before any virtual user. The shipped EUR balance (40000) would
+# take tens of thousands of ARS->EUR exchanges to drain, so it is set to 1 and
+# every ARS->EUR exchange below is rejected from the first request. 1, not 0:
+# the handler rejects a falsy balance as malformed. Rejected exchanges move no
+# money, and USD->ARS does not touch EUR, so the balance stays at 1.
+# The treasury is an admin operation (H-15/H-16): it goes to nginx's admin
+# listener, published on loopback only. An absolute url overrides `target`.
+before:
+  flow:
+    - put:
+        url: 'https://127.0.0.1:5561/accounts/3/balance'
+        json:
+          balance: 1
+
+scenarios:
+  # 10000 ARS at 1/1761 is 5.7 EUR, more than the internal account holds.
+  - name: exchange_ars_eur_rejected
+    weight: 50
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: 'ARS'
+            counterCurrency: 'EUR'
+            baseAccountId: 101
+            counterAccountId: 103
+            baseAmount: 10000
+
+  # 0.66 USD at 1513 is about 1000 ARS; the internal ARS account holds 120M.
+  - name: exchange_usd_ars_accepted
+    weight: 50
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: 'USD'
+            counterCurrency: 'ARS'
+            baseAccountId: 102
+            counterAccountId: 101
+            baseAmount: 0.66
