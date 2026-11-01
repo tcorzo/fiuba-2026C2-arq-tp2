@@ -11,9 +11,11 @@ evidencia/
   arca/        extractos del log con validaciones aprobadas y rechazadas
 ```
 
-`mise run evidence:infra <caso>` guarda el estado de la infraestructura
-desplegada en `evidencia/<caso>/`. Se corre con la infraestructura de ese caso
-levantada, antes o después de la prueba de carga y en la misma sesión.
+Para cada configuración medida va la evidencia de que estaba desplegada así:
+la salida de `terraform state list` y `terraform output` de cada stack, y la de
+`az vmss list-instances` (solo columnas que no identifiquen la suscripción). Se
+toma con la infraestructura de ese caso levantada, en la misma sesión que la
+prueba de carga.
 
 Cada archivo se declara en `docs/informe/evidencia.yml` con su ID.
 

@@ -60,7 +60,7 @@ Domain and statistics terms stay Spanish: mediana, latencia, escenario, réplica
 | Declare every ID | `docs/informe/evidencia.yml`: `id`, `descripcion`, `ubicacion` (path from the repo root) and optional `lineas`. The template renders the evidence index from it. An ID is never reused or renumbered. |
 | Cite in prose | Write the ID in brackets, as the assignment does: `La p95 sube a 410 ms [E-07].` The template links it to its index row. An undeclared ID renders red. |
 | Evidence lives in the repo | The infrastructure is destroyed at the end. Raw Artillery reports in `perf/results/<case>/` next to the scenario that produced them (`perf/run.sh` writes them with `--output`); Datadog screenshots that show the test's time range, plus the exported dashboard JSON; infra outputs and log extracts in `evidencia/<case>/`. Links to Datadog or Azure are never the only evidence. |
-| Infra evidence per configuration | For every measured configuration: `mise run evidence:infra <case>` (`terraform state list`, `terraform output`, `az vmss list-instances`), plus the Terraform/Ansible change in the commit history. |
+| Infra evidence per configuration | For every measured configuration, while it is deployed: the output of `terraform state list` and `terraform output` of each stack, and `az vmss list-instances` (only non-identifying columns), saved under `evidencia/<case>/`. Plus the Terraform/Ansible change in the commit history. |
 | Code claims | A reproducible execution, request and response, that shows the behaviour. A code citation alone is not enough. |
 | ARCA | A log extract with approved validations (with their authorisation code) and rejected ones. |
 | Raw is raw | Evidence files are committed exactly as the command wrote them. The pre-commit whitespace fixers skip `perf/results/` and `evidencia/` for this reason. Never edit, trim or "clean up" an output. If a number was not observed in a run, it does not go in the report. |
@@ -84,18 +84,18 @@ Before **each** load test (1 node, scaled, and each tactic) the group records a 
 | Every test runs from outside Azure, and **every test that is compared with another runs from the same location** (same machine, same network). The report states where the load generator ran, its connection type and bandwidth. | Latency includes the internet round trip; a different location changes it. |
 | Measure the **baseline network latency** against `/` (no load, no ARCA, no Redis) before the tests, and use it when interpreting every latency. | A latency delta smaller than the baseline's variation is noise. |
 | Every infrastructure change goes through `infra/` (Terraform) or `ansible/`. | Changes made in the Azure portal or over SSH are **not implemented** for the assignment: they are not reproducible. |
-| Scaling means changing `instances` in the VMSS in `infra/node.tf`, then `mise run provision` and `mise run deploy`. | A new instance without the app is a backend the load balancer probes and then routes to. |
-| Record `mise run evidence:infra <case>` for every configuration while it is deployed. | Once destroyed, there is no way to prove what ran. |
+| Scaling means changing `instances` on the VMSS in Terraform, applying it, then running the Ansible setup and deploy again. | A new instance without the app is a backend the load balancer probes and then routes to. |
+| Record the infra evidence (see *Evidence*) for every configuration while it is deployed. | Once destroyed, there is no way to prove what ran. |
 | There is no nginx in this deployment: the Azure Load Balancer takes its place in the request path. A TP 1 tactic that lived in nginx is reconsidered explicitly in section 3, not silently dropped. | The report must say what happened to each TP 1 tactic and why. |
 
 ## Infrastructure
 
 | Path | What it is |
 |---|---|
-| `infra/` | Terraform (azurerm `~>4.80`). Described resource by resource in `docs/infra/overview.md`. `terraform.tfvars` holds the secrets (Docker Hub, Azure subscription, Datadog key) and is never committed. `terraform.tfstate` stays on each member's machine. |
+| `infra/` | Terraform. Its layout, the order to apply it and its tasks are documented in `docs/infra/overview.md`; read that instead of assuming a structure. `terraform.tfvars` files hold the secrets (Docker Hub, Azure subscription, Datadog key) and are never committed. `terraform.tfstate` stays on each member's machine. |
 | `ansible/` | `setup.sh` refreshes the VMSS inventory and installs Node, pm2 and the Datadog agent; `deploy.sh` zips `node/` and deploys it. Both go through the jumpbox. |
 | `node/` | The service. Starts as the course's sample app (`GET /:dni` → ARCA); gets replaced by our TP 1 service with the `dni` field and the ARCA call. |
-| `node/config.js` | `terraform apply` rewrites `arcaUri` with ARCA's private IP (`infra/arca.tf`, `sed -i.bak`). That rewrite is per deployment: do not commit it. `git checkout -- node/config.js` before committing, unless the change to the file is deliberate. |
+| `node/config.js` | `terraform apply` rewrites `arcaUri` with ARCA's private IP (a `local-exec` with `sed -i.bak`). That rewrite is per deployment: do not commit it. `git checkout -- node/config.js` before committing, unless the change to the file is deliberate. |
 | `perf/` | Artillery. `run.sh <scenario> <output>` runs `<scenario>.yaml` against the load balancer and writes the raw report. `DATADOG_API_KEY` comes from the environment, never from a file in the repo. |
 | `perf/predicciones.md` | The predictions, see above. |
 | `perf/results/<case>/` | Raw Artillery reports. Tracked on purpose. |
@@ -104,7 +104,7 @@ Before **each** load test (1 node, scaled, and each tactic) the group records a 
 | `docs/diagramas/` | PlantUML sources and their committed renders. |
 | `scripts/check-report.mjs` | The checks behind `mise run report:check`. |
 
-Secrets live in `infra/terraform.tfvars` (gitignored) and in the `DATADOG_API_KEY` environment variable. Terraform's `local-exec` provisioners write `ansible/ddog_api_key`, `ansible/jumpbox_dns` and `node/lb_dns`; all three are gitignored.
+Secrets live in the `terraform.tfvars` files (gitignored) and in the `DATADOG_API_KEY` environment variable. Terraform's `local-exec` provisioners write `ansible/ddog_api_key`, `ansible/jumpbox_dns` and `node/lb_dns`; all three are gitignored.
 
 ## The report
 
@@ -139,25 +139,14 @@ Two things cannot be pinned in `mise.toml` and are installed once per machine: *
 On a fresh clone:
 
 ```sh
-mise trust     # needed once per clone
-mise install   # terraform, azure-cli, ansible-core, node, prek, gitleaks, typst, typstyle, java
-mise run setup # npm deps for perf/ and node/, the Datadog Ansible collection, git hooks
+mise trust                 # needed once per clone
+mise install               # every pinned tool
+mise run hooks:install     # wire the pre-commit hooks
 ```
 
-Infrastructure:
+The infrastructure, Ansible, app and load-test tasks are documented with the infrastructure (`docs/infra/overview.md`); `mise tasks` lists them.
 
-```sh
-mise run infra:init              # terraform init in infra/
-mise run infra:plan              # what apply would change
-mise run up                      # start.sh: az login, terraform apply, provision, deploy
-mise run provision               # after changing the instance count
-mise run deploy                  # after changing node/
-mise run evidence:infra <case>   # record the deployed configuration in evidencia/<case>/
-mise run infra:fmt               # terraform fmt
-mise run infra:validate          # terraform validate
-```
-
-The report:
+The report and repo hygiene:
 
 ```sh
 mise run report                  # compile docs/informe/informe.typ to PDF
@@ -165,12 +154,12 @@ mise run report:watch            # re-compile on every save
 mise run report:open             # compile and open the PDF
 mise run report:check [--final]  # page limit, citations, evidence paths
 mise run diagrams                # render docs/diagramas/*.puml to SVG and PNG
-mise run lint                    # all pre-commit hooks over the repo
+mise run lint                    # all pre-commit hooks over what this branch changed
 ```
 
 `mise run report` deliberately does not depend on `diagrams`: PlantUML's layout changes with the Graphviz version. Re-render on purpose and look at the PNG before committing it.
 
-CI (`.github/workflows/checks.yml`) runs the hooks, a full-history `gitleaks` scan, `terraform fmt -check` and `validate`, and `report` + `report:check` on every PR.
+CI (`.github/workflows/checks.yml`) runs the hooks over the PR's changed files, a full-history `gitleaks` scan, and `report` + `report:check` on every PR.
 
 ## Git commits
 

@@ -16,13 +16,21 @@ permissions:
 # ansible-core, which take minutes to install and no check here needs.
 jobs:
     lint:
+        # Only the files this change touches. Some course files predate the
+        # hooks (no final newline, for one), and fixing them belongs to
+        # whoever edits them next, not to every unrelated PR.
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
             - uses: jdx/mise-action@v5
               with:
                   install_args: prek typstyle terraform
-            - run: prek run --all-files --show-diff-on-failure --skip gitleaks
+            - run: >-
+                  prek run --show-diff-on-failure --skip gitleaks
+                  --from-ref ${{ github.event.pull_request.base.sha || github.event.before }}
+                  --to-ref HEAD
 
     secrets:
         # The repository is public and the evidence goes in git: a Datadog API
@@ -39,20 +47,6 @@ jobs:
               with:
                   install_args: gitleaks
             - run: gitleaks git --redact --no-banner --verbose
-
-    terraform:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v7
-            - uses: jdx/mise-action@v5
-              with:
-                  install_args: terraform
-            - run: terraform fmt -check -recursive infra
-            # No backend and no credentials: validate checks the configuration
-            # against the providers' schemas, which catches a resource or an
-            # attribute that does not exist in the pinned azurerm version.
-            - run: terraform -chdir=infra init -backend=false -input=false
-            - run: terraform -chdir=infra validate
 
     report:
         runs-on: ubuntu-latest

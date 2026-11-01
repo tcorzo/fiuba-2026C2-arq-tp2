@@ -2,7 +2,7 @@
 # (.github/workflows/pr-title.yml), on the PR title that becomes the merge
 # commit subject — individual commit messages are not checked here.
 #
-# Install once:  mise run setup   (runs `prek install`)
+# Install once:  mise run hooks:install
 # Run manually:  mise run lint
 #
 # The whitespace fixers skip, on purpose:

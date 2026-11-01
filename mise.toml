@@ -1,11 +1,3 @@
-# Toolchain and task runner for the TP. There is no Makefile and no justfile:
-# `mise install` provisions the tools, `mise tasks` lists what can be run.
-#
-# Everything the repo needs is pinned in [tools], with two exceptions that
-# cannot be, both installed once per machine:
-#   - Graphviz, which PlantUML shells out to for layout (apt/dnf install graphviz)
-#   - the PlantUML jar itself, fetched by `mise run diagrams:fetch`
-
 [tools]
 # Infra: versions.tf requires terraform ~>1.3
 terraform = "1.17.1"
@@ -23,129 +15,69 @@ prek = "0.5.9"
 # The evidence goes in git, and Terraform and Artillery outputs are where an
 # API key leaks from. The pre-commit hook scans every staged change.
 gitleaks = "8.30.1"
-
 # The report is written in Typst; `typstyle` formats it from the lint hook, so
 # the .typ sources never diverge on whitespace between authors.
 typst = "0.15.1"
 typstyle = "0.15.1"
-# PlantUML is a jar and needs a JVM.
+# PlantUML is a jar and needs a JVM. PlantUML also shells out to Graphviz,
+# which has no mise registry entry: apt/dnf install graphviz, once per machine.
 java = "temurin-21"
 
-[settings]
-pipx.uvx = true
+# Paths for the report and diagram tasks. Kept in [vars], not [env], so they do
+# not leak into the environment of every other task.
+[vars]
+plantuml_version = "1.2025.4"
+plantuml_jar = "{{env.HOME}}/.local/share/plantuml/plantuml.jar"
+diagrams_dir = "{{config_root}}/docs/diagramas"
+report_dir = "{{config_root}}/docs/informe"
 
-[env]
-# PlantUML ships as a jar with no mise registry entry, so it is cached per-user
-# outside the repo instead of being pinned in [tools].
-PLANTUML_VERSION = "1.2025.4"
-PLANTUML_JAR = "{{env.HOME}}/.local/share/plantuml/plantuml.jar"
-DIAGRAMS_DIR = "{{config_root}}/docs/diagramas"
-REPORT_DIR = "{{config_root}}/docs/informe"
-INFRA_DIR = "{{config_root}}/infra"
+###############################################################################
+# Repo hygiene, diagrams and the report.
+#
+#   hooks:install   wire the git hooks (once per clone)
+#   lint            every pre-commit hook over what this branch changed
+#   diagrams:*      PlantUML sources in docs/diagramas/
+#   report:*        the Typst report in docs/informe/
+###############################################################################
 
-[tasks.setup]
-description = "Install Node and Ansible dependencies and wire the git hooks (run once)"
-run = [
-    "npm ci --prefix perf",
-    "npm ci --prefix node",
-    "ansible-galaxy collection install -r ansible/requirements.yml",
-    "prek install",
-]
+[tasks."hooks:install"]
+description = "Wires the pre-commit hooks into git (once per clone)"
+run = "prek install"
 
 [tasks.lint]
-description = "Run all pre-commit hooks over the whole repo"
-run = "prek run --all-files"
-
-# ───────────────────────────────────────────────────────────────────────────
-#  Infrastructure
-#
-#  Every change to the infrastructure goes through infra/ and ansible/: the
-#  assignment does not count changes made in the Azure portal or over SSH.
-# ───────────────────────────────────────────────────────────────────────────
-
-[tasks."infra:init"]
-description = "Initialise Terraform in infra/ (providers, lock file)"
-run = 'terraform -chdir="$INFRA_DIR" init'
-
-[tasks."infra:plan"]
-description = "Show what `terraform apply` would change, without applying it"
-run = 'terraform -chdir="$INFRA_DIR" plan'
-
-[tasks."infra:fmt"]
-description = "Format the Terraform sources in place"
-run = 'terraform fmt -recursive "$INFRA_DIR"'
-
-[tasks."infra:validate"]
-description = "Validate the Terraform sources (needs `mise run infra:init` once)"
-run = 'terraform -chdir="$INFRA_DIR" validate'
-
-[tasks.up]
-description = "Create the infrastructure, provision the VMSS and deploy the app (start.sh)"
-run = "./start.sh"
-
-[tasks.provision]
-description = "Refresh the VMSS inventory and install the tooling on every instance"
-# Run after changing the instance count: new instances need Node, pm2 and the
-# Datadog agent before a deploy can reach them.
-run = "ansible/setup.sh"
-
-[tasks.deploy]
-description = "Zip node/ and deploy it to every VMSS instance"
-run = "ansible/deploy.sh"
-
-[tasks."evidence:infra"]
-description = "Record how the infrastructure is deployed right now: `mise run evidence:infra escalado`"
-# The assignment asks, for every measured configuration, for evidence that it
-# was deployed that way; the infrastructure is destroyed at the end, so the
-# evidence has to be in the repo. `terraform output` prints sensitive values
-# as <sensitive>; the VMSS listing keeps only non-identifying columns, so no
-# subscription ID ends up in git. Read the files before committing them.
-usage = """
-arg "<case>" help="Directory under evidencia/ for this configuration, e.g. 1-nodo, escalado"
-"""
-run = '''
-set -eu
-out="{{config_root}}/evidencia/$usage_case"
-mkdir -p "$out"
-terraform -chdir="$INFRA_DIR" state list > "$out/terraform-state-list.txt"
-terraform -chdir="$INFRA_DIR" output > "$out/terraform-output.txt"
-az vmss list-instances \
-    --resource-group tp2_resource_group --name tp2vmss \
-    --query "[].{name:name, state:provisioningState, sku:sku.name, zone:zones[0]}" \
-    -o table > "$out/vmss-instances.txt"
-date -u +"%Y-%m-%dT%H:%M:%SZ" > "$out/recorded-at.txt"
-echo "Recorded in $out:"
-ls -1 "$out"
-'''
-
-# ───────────────────────────────────────────────────────────────────────────
-#  Diagrams
-# ───────────────────────────────────────────────────────────────────────────
+description = "Runs every pre-commit hook over the files this branch changed against origin/main"
+# Not --all-files: some course files predate the hooks (no final newline, for
+# one), and the fix belongs to whoever edits them, not to an unrelated branch.
+# CI runs the same range.
+run = "prek run --from-ref origin/main --to-ref HEAD"
 
 [tasks."diagrams:fetch"]
-description = "Download plantuml.jar into ~/.local/share/plantuml (once per machine)"
+description = "Downloads plantuml.jar into ~/.local/share/plantuml (once per machine)"
 run = '''
 set -eu
+jar="{{vars.plantuml_jar}}"
+version="{{vars.plantuml_version}}"
 
-if [ -f "$PLANTUML_JAR" ]; then
-    echo "PlantUML already at $PLANTUML_JAR"
+if [ -f "$jar" ]; then
+    echo "PlantUML already at $jar"
     exit 0
 fi
 
-echo "Downloading PlantUML $PLANTUML_VERSION..."
-mkdir -p "$(dirname "$PLANTUML_JAR")"
-curl -fsSL -o "$PLANTUML_JAR" \
-    "https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
-echo "OK: $PLANTUML_JAR"
+echo "Downloading PlantUML $version..."
+mkdir -p "$(dirname "$jar")"
+curl -fsSL -o "$jar" \
+    "https://github.com/plantuml/plantuml/releases/download/v${version}/plantuml-${version}.jar"
+echo "OK: $jar"
 '''
 
 [tasks.diagrams]
-description = "Render the .puml sources to SVG (for the report) and PNG"
+description = "Renders the .puml sources to SVG (for the report) and PNG"
 depends = ["diagrams:fetch"]
 sources = ["docs/diagramas/*.puml"]
 outputs = ["docs/diagramas/*.svg", "docs/diagramas/*.png"]
 run = '''
 set -eu
+dir="{{vars.diagrams_dir}}"
 
 # PlantUML lays out everything except sequence diagrams through Graphviz.
 # Without `dot` it still writes both output files — each containing a picture
@@ -158,31 +90,31 @@ if ! command -v dot >/dev/null 2>&1; then
     exit 1
 fi
 
-set -- "$DIAGRAMS_DIR"/*.puml
+set -- "$dir"/*.puml
 if [ ! -e "$1" ]; then
-    echo "No .puml sources in $DIAGRAMS_DIR"
+    echo "No .puml sources in $dir"
     exit 0
 fi
 
 # PlantUML honours a single -t<format> per invocation: hence two passes.
-java -jar "$PLANTUML_JAR" -tsvg "$@"
-java -jar "$PLANTUML_JAR" -tpng "$@"
+java -jar "{{vars.plantuml_jar}}" -tsvg "$@"
+java -jar "{{vars.plantuml_jar}}" -tpng "$@"
 
 echo "Generated files:"
-for f in "$DIAGRAMS_DIR"/*.svg "$DIAGRAMS_DIR"/*.png; do
+for f in "$dir"/*.svg "$dir"/*.png; do
     [ -f "$f" ] || continue
     echo "  $f"
 done
 '''
 
 [tasks."diagrams:open"]
-description = "Render the diagrams and open the SVGs in the browser"
+description = "Renders the diagrams and opens the SVGs in the browser"
 depends = ["diagrams"]
 run = '''
 set -eu
 
 opener="${BROWSER:-xdg-open}"
-for svg in "$DIAGRAMS_DIR"/*.svg; do
+for svg in "{{vars.diagrams_dir}}"/*.svg; do
     [ -f "$svg" ] || continue
     echo "Opening $svg"
     "$opener" "file://$svg" >/dev/null 2>&1 &
@@ -190,12 +122,8 @@ done
 wait
 '''
 
-# ───────────────────────────────────────────────────────────────────────────
-#  Report
-# ───────────────────────────────────────────────────────────────────────────
-
 [tasks.report]
-description = "Compile the report to PDF from the committed diagram renders"
+description = "Compiles the report to PDF from the committed diagram renders"
 # Deliberately does NOT depend on `diagrams`: PlantUML's layout changes with
 # the Graphviz version, so re-rendering as a side effect of building the PDF
 # could quietly swap a worse figure into the deliverable. Edit a .puml, run
@@ -208,28 +136,28 @@ outputs = ["docs/informe/informe.pdf"]
 run = '''
 set -eu
 
-typst compile --root "{{config_root}}" "$REPORT_DIR/informe.typ" "$REPORT_DIR/informe.pdf"
+typst compile --root "{{config_root}}" "{{vars.report_dir}}/informe.typ" "{{vars.report_dir}}/informe.pdf"
 echo "Generated file:"
-echo "  $REPORT_DIR/informe.pdf"
+echo "  {{vars.report_dir}}/informe.pdf"
 '''
 
 [tasks."report:watch"]
-description = "Re-render the report on every save"
-run = 'typst watch --root "{{config_root}}" "$REPORT_DIR/informe.typ" "$REPORT_DIR/informe.pdf"'
+description = "Re-renders the report on every save"
+run = 'typst watch --root "{{config_root}}" "{{vars.report_dir}}/informe.typ" "{{vars.report_dir}}/informe.pdf"'
 
 [tasks."report:open"]
-description = "Compile the report and open the PDF"
+description = "Compiles the report and opens the PDF"
 depends = ["report"]
 run = '''
 set -eu
 
 opener="${BROWSER:-xdg-open}"
-echo "Opening $REPORT_DIR/informe.pdf"
-"$opener" "file://$REPORT_DIR/informe.pdf" >/dev/null 2>&1 &
+echo "Opening {{vars.report_dir}}/informe.pdf"
+"$opener" "file://{{vars.report_dir}}/informe.pdf" >/dev/null 2>&1 &
 '''
 
 [tasks."report:check"]
-description = "Check the page limit and every [E-NN] citation; `--final` also fails on #pendiente and uncited IDs"
+description = "Checks the page limit and every [E-NN] citation; `--final` also fails on #pendiente and uncited IDs"
 # The checks the assignment grades on and nobody notices until it is late: a
 # body over 30 pages is cut where it overflows, and a citation that points to
 # nothing makes its whole section unsupported. See scripts/check-report.mjs.
@@ -239,7 +167,7 @@ flag "--final" help="Treat #pendiente blocks and uncited evidence IDs as errors 
 run = '''
 set -eu
 
-typst eval --root "{{config_root}}" --in "$REPORT_DIR/informe.typ" --format json '(
+typst eval --root "{{config_root}}" --in "{{vars.report_dir}}/informe.typ" --format json '(
     evidencia: query(<evidencia>).first().value,
     citas: query(<cita-evidencia>).map(m => m.value),
     paginas: query(<paginas-cuerpo>).first().value,
@@ -247,3 +175,6 @@ typst eval --root "{{config_root}}" --in "$REPORT_DIR/informe.typ" --format json
 )' | REPO_ROOT="{{config_root}}" node "{{config_root}}/scripts/check-report.mjs" \
     $( [ "${usage_final:-false}" = true ] && echo --final )
 '''
+
+[settings]
+pipx.uvx = true
