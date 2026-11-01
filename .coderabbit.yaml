@@ -1,0 +1,231 @@
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+#
+# CodeRabbit is fully disabled for this repository.
+# Every feature is turned off explicitly so that new defaults introduced
+# upstream do not silently re-enable anything.
+
+early_access: false
+inheritance: false
+
+reviews:
+  profile: quiet
+
+  # No automatic reviews of any kind
+  auto_review:
+    enabled: false
+    auto_incremental_review: false
+    drafts: false
+
+  # No PR comments, summaries, statuses or checks
+  high_level_summary: false
+  high_level_summary_in_walkthrough: false
+  review_status: false
+  review_details: false
+  review_progress: false
+  commit_status: false
+  fail_commit_status: false
+  changed_files_summary: false
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  assess_linked_issues: false
+  related_issues: false
+  related_prs: false
+  in_progress_fortune: false
+  poem: false
+  enable_prompt_for_ai_agents: false
+
+  # No labels or reviewer suggestions
+  suggested_labels: false
+  auto_apply_labels: false
+  suggested_reviewers: false
+  auto_assign_reviewers: false
+
+  # Nothing to review even if a review is triggered manually
+  path_filters:
+    - "!**"
+
+  slop_detection:
+    enabled: false
+
+  # No automated code changes
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
+    simplify:
+      enabled: false
+    autofix:
+      enabled: false
+    fix_ci:
+      enabled: false
+    resolve_merge_conflict:
+      enabled: false
+
+  # No pre-merge gates
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+    title:
+      mode: "off"
+    description:
+      mode: "off"
+    issue_assessment:
+      mode: "off"
+    custom_checks: []
+
+  post_merge_actions: []
+
+  # No linters / static analysis tools
+  tools:
+    ast-grep:
+      essential_rules: false
+    shellcheck:
+      enabled: false
+    ruff:
+      enabled: false
+    markdownlint:
+      enabled: false
+    github-checks:
+      enabled: false
+    languagetool:
+      enabled: false
+    biome:
+      enabled: false
+    hadolint:
+      enabled: false
+    swiftlint:
+      enabled: false
+    phpstan:
+      enabled: false
+    phpmd:
+      enabled: false
+    phpcs:
+      enabled: false
+    golangci-lint:
+      enabled: false
+    yamllint:
+      enabled: false
+    gitleaks:
+      enabled: false
+    trufflehog:
+      enabled: false
+    checkov:
+      enabled: false
+    tflint:
+      enabled: false
+    detekt:
+      enabled: false
+    eslint:
+      enabled: false
+    flake8:
+      enabled: false
+    fbinfer:
+      enabled: false
+    fortitudeLint:
+      enabled: false
+    rubocop:
+      enabled: false
+    buf:
+      enabled: false
+    regal:
+      enabled: false
+    actionlint:
+      enabled: false
+    zizmor:
+      enabled: false
+    pmd:
+      enabled: false
+    clang:
+      enabled: false
+    cppcheck:
+      enabled: false
+    vale:
+      enabled: false
+    verilator:
+      enabled: false
+    opengrep:
+      enabled: false
+    semgrep:
+      enabled: false
+    circleci:
+      enabled: false
+    clippy:
+      enabled: false
+    sqlfluff:
+      enabled: false
+    squawk:
+      enabled: false
+    trivy:
+      enabled: false
+    prismaLint:
+      enabled: false
+    pylint:
+      enabled: false
+    oxc:
+      enabled: false
+    shopifyThemeCheck:
+      enabled: false
+    luacheck:
+      enabled: false
+    brakeman:
+      enabled: false
+    dotenvLint:
+      enabled: false
+    htmlhint:
+      enabled: false
+    stylelint:
+      enabled: false
+    checkmake:
+      enabled: false
+    osvScanner:
+      enabled: false
+    oasdiff:
+      enabled: false
+    reactDoctor:
+      enabled: false
+    presidio:
+      enabled: false
+    blinter:
+      enabled: false
+    smartyLint:
+      enabled: false
+    emberTemplateLint:
+      enabled: false
+    skillspector:
+      enabled: false
+    psscriptanalyzer:
+      enabled: false
+
+# No chat interaction
+chat:
+  art: false
+  auto_reply: false
+  integrations:
+    jira:
+      usage: disabled
+    linear:
+      usage: disabled
+
+# No data collection or knowledge base usage
+knowledge_base:
+  opt_out: true
+  web_search:
+    enabled: false
+  code_guidelines:
+    enabled: false
+  learnings:
+    scope: local
+  issues:
+    scope: local
+  pull_requests:
+    scope: local
+  jira:
+    usage: disabled
+  linear:
+    usage: disabled
+  mcp:
+    usage: disabled
+  automatic_linking_mode: disabled
+  automatic_repository_linking: false
+  linked_repositories: []

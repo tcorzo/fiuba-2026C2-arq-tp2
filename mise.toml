@@ -1,3 +1,11 @@
+# Toolchain and task runner for the TP. There is no Makefile and no justfile:
+# `mise install` provisions the tools, `mise tasks` lists what can be run.
+#
+# Everything the repo needs is pinned in [tools], with two exceptions that
+# cannot be, both installed once per machine:
+#   - Graphviz, which PlantUML shells out to for layout (apt/dnf install graphviz)
+#   - the PlantUML jar itself, fetched by `mise run diagrams:fetch`
+
 [tools]
 # Infra: versions.tf requires terraform ~>1.3
 terraform = "1.17.1"
@@ -10,5 +18,232 @@ node = "24.22.2"
 # Backend for the pypi: tools above (azure-cli, ansible-core)
 uv = "0.13.6"
 
+# Pre-commit hook manager (drop-in for pre-commit, no Python install needed).
+prek = "0.5.9"
+# The evidence goes in git, and Terraform and Artillery outputs are where an
+# API key leaks from. The pre-commit hook scans every staged change.
+gitleaks = "8.30.1"
+
+# The report is written in Typst; `typstyle` formats it from the lint hook, so
+# the .typ sources never diverge on whitespace between authors.
+typst = "0.15.1"
+typstyle = "0.15.1"
+# PlantUML is a jar and needs a JVM.
+java = "temurin-21"
+
 [settings]
 pipx.uvx = true
+
+[env]
+# PlantUML ships as a jar with no mise registry entry, so it is cached per-user
+# outside the repo instead of being pinned in [tools].
+PLANTUML_VERSION = "1.2025.4"
+PLANTUML_JAR = "{{env.HOME}}/.local/share/plantuml/plantuml.jar"
+DIAGRAMS_DIR = "{{config_root}}/docs/diagramas"
+REPORT_DIR = "{{config_root}}/docs/informe"
+INFRA_DIR = "{{config_root}}/infra"
+
+[tasks.setup]
+description = "Install Node and Ansible dependencies and wire the git hooks (run once)"
+run = [
+    "npm ci --prefix perf",
+    "npm ci --prefix node",
+    "ansible-galaxy collection install -r ansible/requirements.yml",
+    "prek install",
+]
+
+[tasks.lint]
+description = "Run all pre-commit hooks over the whole repo"
+run = "prek run --all-files"
+
+# ───────────────────────────────────────────────────────────────────────────
+#  Infrastructure
+#
+#  Every change to the infrastructure goes through infra/ and ansible/: the
+#  assignment does not count changes made in the Azure portal or over SSH.
+# ───────────────────────────────────────────────────────────────────────────
+
+[tasks."infra:init"]
+description = "Initialise Terraform in infra/ (providers, lock file)"
+run = 'terraform -chdir="$INFRA_DIR" init'
+
+[tasks."infra:plan"]
+description = "Show what `terraform apply` would change, without applying it"
+run = 'terraform -chdir="$INFRA_DIR" plan'
+
+[tasks."infra:fmt"]
+description = "Format the Terraform sources in place"
+run = 'terraform fmt -recursive "$INFRA_DIR"'
+
+[tasks."infra:validate"]
+description = "Validate the Terraform sources (needs `mise run infra:init` once)"
+run = 'terraform -chdir="$INFRA_DIR" validate'
+
+[tasks.up]
+description = "Create the infrastructure, provision the VMSS and deploy the app (start.sh)"
+run = "./start.sh"
+
+[tasks.provision]
+description = "Refresh the VMSS inventory and install the tooling on every instance"
+# Run after changing the instance count: new instances need Node, pm2 and the
+# Datadog agent before a deploy can reach them.
+run = "ansible/setup.sh"
+
+[tasks.deploy]
+description = "Zip node/ and deploy it to every VMSS instance"
+run = "ansible/deploy.sh"
+
+[tasks."evidence:infra"]
+description = "Record how the infrastructure is deployed right now: `mise run evidence:infra escalado`"
+# The assignment asks, for every measured configuration, for evidence that it
+# was deployed that way; the infrastructure is destroyed at the end, so the
+# evidence has to be in the repo. `terraform output` prints sensitive values
+# as <sensitive>; the VMSS listing keeps only non-identifying columns, so no
+# subscription ID ends up in git. Read the files before committing them.
+usage = """
+arg "<case>" help="Directory under evidencia/ for this configuration, e.g. 1-nodo, escalado"
+"""
+run = '''
+set -eu
+out="{{config_root}}/evidencia/$usage_case"
+mkdir -p "$out"
+terraform -chdir="$INFRA_DIR" state list > "$out/terraform-state-list.txt"
+terraform -chdir="$INFRA_DIR" output > "$out/terraform-output.txt"
+az vmss list-instances \
+    --resource-group tp2_resource_group --name tp2vmss \
+    --query "[].{name:name, state:provisioningState, sku:sku.name, zone:zones[0]}" \
+    -o table > "$out/vmss-instances.txt"
+date -u +"%Y-%m-%dT%H:%M:%SZ" > "$out/recorded-at.txt"
+echo "Recorded in $out:"
+ls -1 "$out"
+'''
+
+# ───────────────────────────────────────────────────────────────────────────
+#  Diagrams
+# ───────────────────────────────────────────────────────────────────────────
+
+[tasks."diagrams:fetch"]
+description = "Download plantuml.jar into ~/.local/share/plantuml (once per machine)"
+run = '''
+set -eu
+
+if [ -f "$PLANTUML_JAR" ]; then
+    echo "PlantUML already at $PLANTUML_JAR"
+    exit 0
+fi
+
+echo "Downloading PlantUML $PLANTUML_VERSION..."
+mkdir -p "$(dirname "$PLANTUML_JAR")"
+curl -fsSL -o "$PLANTUML_JAR" \
+    "https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
+echo "OK: $PLANTUML_JAR"
+'''
+
+[tasks.diagrams]
+description = "Render the .puml sources to SVG (for the report) and PNG"
+depends = ["diagrams:fetch"]
+sources = ["docs/diagramas/*.puml"]
+outputs = ["docs/diagramas/*.svg", "docs/diagramas/*.png"]
+run = '''
+set -eu
+
+# PlantUML lays out everything except sequence diagrams through Graphviz.
+# Without `dot` it still writes both output files — each containing a picture
+# of a Java stack trace — and still exits 0, so a committed diagram is
+# replaced by an error image and nothing says so. Refuse to run instead.
+if ! command -v dot >/dev/null 2>&1; then
+    echo "Graphviz is missing. PlantUML would overwrite the diagrams with an" >&2
+    echo "error image and report success." >&2
+    echo "Install it from the system package manager (apt/dnf install graphviz)." >&2
+    exit 1
+fi
+
+set -- "$DIAGRAMS_DIR"/*.puml
+if [ ! -e "$1" ]; then
+    echo "No .puml sources in $DIAGRAMS_DIR"
+    exit 0
+fi
+
+# PlantUML honours a single -t<format> per invocation: hence two passes.
+java -jar "$PLANTUML_JAR" -tsvg "$@"
+java -jar "$PLANTUML_JAR" -tpng "$@"
+
+echo "Generated files:"
+for f in "$DIAGRAMS_DIR"/*.svg "$DIAGRAMS_DIR"/*.png; do
+    [ -f "$f" ] || continue
+    echo "  $f"
+done
+'''
+
+[tasks."diagrams:open"]
+description = "Render the diagrams and open the SVGs in the browser"
+depends = ["diagrams"]
+run = '''
+set -eu
+
+opener="${BROWSER:-xdg-open}"
+for svg in "$DIAGRAMS_DIR"/*.svg; do
+    [ -f "$svg" ] || continue
+    echo "Opening $svg"
+    "$opener" "file://$svg" >/dev/null 2>&1 &
+done
+wait
+'''
+
+# ───────────────────────────────────────────────────────────────────────────
+#  Report
+# ───────────────────────────────────────────────────────────────────────────
+
+[tasks.report]
+description = "Compile the report to PDF from the committed diagram renders"
+# Deliberately does NOT depend on `diagrams`: PlantUML's layout changes with
+# the Graphviz version, so re-rendering as a side effect of building the PDF
+# could quietly swap a worse figure into the deliverable. Edit a .puml, run
+# `mise run diagrams` yourself, and look at the result before committing it.
+#
+# `--root` is the repo so a section can reference a figure, a raw report or a
+# piece of evidence by its path from the repo root.
+sources = ["docs/informe/**/*.typ", "docs/informe/evidencia.yml", "docs/diagramas/*.svg"]
+outputs = ["docs/informe/informe.pdf"]
+run = '''
+set -eu
+
+typst compile --root "{{config_root}}" "$REPORT_DIR/informe.typ" "$REPORT_DIR/informe.pdf"
+echo "Generated file:"
+echo "  $REPORT_DIR/informe.pdf"
+'''
+
+[tasks."report:watch"]
+description = "Re-render the report on every save"
+run = 'typst watch --root "{{config_root}}" "$REPORT_DIR/informe.typ" "$REPORT_DIR/informe.pdf"'
+
+[tasks."report:open"]
+description = "Compile the report and open the PDF"
+depends = ["report"]
+run = '''
+set -eu
+
+opener="${BROWSER:-xdg-open}"
+echo "Opening $REPORT_DIR/informe.pdf"
+"$opener" "file://$REPORT_DIR/informe.pdf" >/dev/null 2>&1 &
+'''
+
+[tasks."report:check"]
+description = "Check the page limit and every [E-NN] citation; `--final` also fails on #pendiente and uncited IDs"
+# The checks the assignment grades on and nobody notices until it is late: a
+# body over 30 pages is cut where it overflows, and a citation that points to
+# nothing makes its whole section unsupported. See scripts/check-report.mjs.
+usage = """
+flag "--final" help="Treat #pendiente blocks and uncited evidence IDs as errors (run before delivery)"
+"""
+run = '''
+set -eu
+
+typst eval --root "{{config_root}}" --in "$REPORT_DIR/informe.typ" --format json '(
+    evidencia: query(<evidencia>).first().value,
+    citas: query(<cita-evidencia>).map(m => m.value),
+    paginas: query(<paginas-cuerpo>).first().value,
+    pendientes: query(<pendiente>).len(),
+)' | REPO_ROOT="{{config_root}}" node "{{config_root}}/scripts/check-report.mjs" \
+    $( [ "${usage_final:-false}" = true ] && echo --final )
+'''
