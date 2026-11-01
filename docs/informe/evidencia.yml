@@ -1,0 +1,17 @@
+# Índice de evidencia del informe. Una entrada por ID, en orden.
+#
+#   - id: E-01
+#     descripcion: Reporte de Artillery, 1 nodo, escenario `exchange-ramp`
+#     ubicacion: perf/results/1-nodo/exchange-ramp.json
+#   - id: E-04
+#     descripcion: Fragmento de código que muestra el timeout hacia ARCA
+#     ubicacion: node/app.js
+#     lineas: "40-55"
+#
+# `ubicacion` es una ruta desde la raíz del repositorio, y tiene que existir:
+# `mise run report:check` falla si no. `descripcion` admite markup de Typst.
+# Un ID no se reutiliza ni se renumera: la prosa y la defensa lo citan.
+#
+# Antes de commitear evidencia, revisar que no tenga secretos: API keys,
+# claves privadas, terraform.tfvars, terraform.tfstate.
+[]
