@@ -31,4 +31,3 @@
     - name: Install pm2
       command: npm install pm2@latest -g
       become: yes
-      
