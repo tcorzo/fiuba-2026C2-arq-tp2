@@ -11,21 +11,6 @@
 # Node
 node_modules/
 
-# Local files
-ip
-public_ip
-lb_dns
-jumpbox_dns
-redis_dns
-ddog_api_key
-vmss_hosts
-base_url
-src.zip
-pubkey
-*.pem
-*.bak
-.vscode
-
 # Rendered report. The PDF is a build product of `mise run report`, so during
 # the TP it stays out of git: tracking it turns every edit into a binary
 # conflict. The assignment wants it in the repo at delivery: the delivery PR
@@ -53,3 +38,19 @@ mise.local.toml
 # perf/results/  The raw Artillery reports. The assignment requires them in
 #                the repo, next to the scenario that produced them.
 # evidencia/     Terraform, az and log outputs cited as [E-NN] in the report.
+
+
+# Local files
+ip
+public_ip
+lb_dns
+jumpbox_dns
+redis_dns
+ddog_api_key
+vmss_hosts
+base_url
+src.zip
+pubkey
+*.pem
+*.bak
+.vscode
