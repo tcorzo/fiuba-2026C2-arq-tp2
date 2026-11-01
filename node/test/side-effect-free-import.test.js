@@ -60,7 +60,7 @@ describe("H-21", () => {
         effects.push(`started a server: "${result.stdout.trim()}"`);
       }
       if (stateDigest() !== before) {
-        effects.push("rewrote app/state/");
+        effects.push("rewrote node/state/");
       }
 
       assert.deepEqual(effects, []);

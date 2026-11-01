@@ -1,4 +1,4 @@
-// The Postgres schema. A .js file so that app/Dockerfile's `COPY *.js` ships it.
+// The Postgres schema. A .js file so that node/zip (`zip src.zip *.js *.json`) ships it.
 // Money is numeric: exact decimals, computed in SQL. No CHECK (balance >= 0):
 // refusing a negative balance is H-07's tactic, not this one.
 export const SCHEMA = `

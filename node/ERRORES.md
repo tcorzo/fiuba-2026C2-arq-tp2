@@ -74,9 +74,9 @@ cuentan por `code`.
 
 ## Cómo se verifica que se cumplan las reglas
 
-- `app/test/error-handling.test.js` recorre el router y falla si alguna ruta no está
+- `node/test/error-handling.test.js` recorre el router y falla si alguna ruta no está
   envuelta en `asyncHandler`, o si `errorHandler` deja de ser el último
-  middleware. `npm test --prefix app` lo corre sin docker.
+  middleware. `mise run app:test` lo corre sin levantar nada.
 
 ## Qué no cubre
 

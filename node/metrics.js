@@ -1,4 +1,4 @@
-// The only module in app/ that talks to statsd. The rest of the service calls
+// The only module in node/ that talks to statsd. The rest of the service calls
 // the functions below, so every metric name is decided in this file.
 //
 // Counters and gauges carry the worker segment (`w0.`); timers do not. statsd
@@ -15,9 +15,9 @@ export const metricsEnabled = process.env.METRICS_ENABLED !== "false";
 // other's gauges: counters would still add up across replicas sharing one
 // value, but a gauge is last-write-wins per segment. METRICS_WORKER lets a
 // single, non-replicated run pin a stable name (e.g. "w0"); every replica of
-// a scaled service gets the same environment, so docker-compose.perf.yml
-// leaves it unset there and this falls back to the container's hostname,
-// which Docker gives a distinct value per replica.
+// a scaled service gets the same environment, so it stays unset there and
+// this falls back to the hostname: one per VMSS instance here, one per
+// container in tp1's docker-compose.perf.yml.
 const worker = process.env.METRICS_WORKER ?? hostname();
 
 const client = metricsEnabled

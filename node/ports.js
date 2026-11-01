@@ -1,5 +1,5 @@
 // The ports exchange.js depends on. JSDoc only: an adapter is any object with
-// these methods, and app/test/repositories.contract.js is what checks that two
+// these methods, and node/test/repositories.contract.js is what checks that two
 // adapters behave the same.
 
 /**

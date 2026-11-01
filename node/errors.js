@@ -5,7 +5,7 @@
 // answers 500.
 //
 // To add a new kind of error: subclass AppError here, throw it from the
-// handler or the domain code, and stop. See app/ERRORES.md.
+// handler or the domain code, and stop. See node/ERRORES.md.
 export class AppError extends Error {
   constructor(status, code, message, details) {
     super(message);

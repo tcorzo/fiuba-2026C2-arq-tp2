@@ -19,10 +19,10 @@ function lagAboveResolution(nanoseconds) {
   return Math.max(0, nanoseconds / 1e6 - LOOP_RESOLUTION_MS);
 }
 
-// cgroup v2, as mounted inside the container: the same files
-// `mise run verify-limits` reads. "max" means no limit, which is how the
-// received docker-compose.yml runs; the gauge is then left out rather than
-// sent as a number no percentage can be taken against.
+// cgroup v2, as tp1 read it inside its containers. "max" means no limit,
+// which is how tp1's received docker-compose.yml ran, and pm2 on a VMSS
+// instance sets none either; the gauge is then left out rather than sent as
+// a number no percentage can be taken against.
 function readCgroup(file) {
   try {
     return readFileSync(`/sys/fs/cgroup/${file}`, "utf8").trim();

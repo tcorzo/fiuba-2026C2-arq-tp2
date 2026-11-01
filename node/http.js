@@ -167,9 +167,10 @@ export function createApp(exchange) {
   );
 
   // CLIENT view of the log (H-15): one operation, or the operations of one
-  // account. The whole log stays behind the admin listener; nginx only
-  // publishes these. The collection is never returned whole, even if nginx
-  // let it through.
+  // account. In tp1 the whole log stayed behind nginx's admin listener and
+  // nginx published only these. Behind Azure's L4 load balancer nothing
+  // filters routes, so GET /log is public too. The collection is never
+  // returned whole through these two routes.
 
   app.get(
     "/exchanges",
