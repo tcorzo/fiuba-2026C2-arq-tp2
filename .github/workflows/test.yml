@@ -1,0 +1,33 @@
+name: Tests
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+
+concurrency:
+    group: tests-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    unit:
+        # H-20: the unit tests run on every PR, so one that breaks a test shows
+        # up red before it merges. They need no stack: every suite builds the
+        # service from an in-memory store and a scripted transfer double.
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: node
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-node@v7
+              with:
+                  # Same major as mise.toml and NODE_MAJOR in ansible/vmss_setup.yml.
+                  node-version: "24"
+                  cache: npm
+                  cache-dependency-path: node/package-lock.json
+            - run: npm ci
+            - run: npm test -- --test-reporter=spec
