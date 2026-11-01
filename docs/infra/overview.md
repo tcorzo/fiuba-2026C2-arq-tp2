@@ -1,6 +1,6 @@
 # Infrastructure overview
 
-This document describes the Azure infrastructure in `infra/`, how the pieces connect, and how Terraform and Ansible hand off to each other. It describes the baseline the course provides, before any group changes (Redis, scaling, etc.).
+This document describes the Azure infrastructure in `infra/` (stacks in `infra/envs/prd/`, modules in `infra/modules/`), how the pieces connect, and how Terraform and Ansible hand off to each other. It describes the baseline the course provides, before any group changes (Redis, scaling, etc.).
 
 ## At a glance
 
@@ -16,35 +16,37 @@ This document describes the Azure infrastructure in `infra/`, how the pieces con
 
 ## Resource inventory
 
-22 managed resources and 1 data source, all in the resource group `tp2_resource_group`.
+22 managed resources and 1 data source, all in the resource group `tp2_resource_group`, split into two stacks under `infra/envs/prd/` (see its [README](../../infra/envs/prd/README.md)). Each stack calls modules from `infra/modules/`.
 
-| File | Terraform address | Azure resource | Notes |
+| Stack → module | Terraform address (in the stack) | Azure resource | Notes |
 |---|---|---|---|
-| `resource_group.tf` | `azurerm_resource_group.tp2_resource_group` | Resource group | Everything below lives here |
-| `ssh.tf` | `data.azurerm_ssh_public_key.ssh_key` | *(data source)* | Reads a pre-existing SSH key from the `keys` RG. It is **not** managed here |
-| `network.tf` | `azurerm_virtual_network.tp2_vn` | VNet `10.0.0.0/16` | |
-| | `azurerm_subnet.tp2_sn_vmss` | Subnet `10.0.2.0/24` | App instances |
-| | `azurerm_subnet.tp2_sn_jumpbox` | Subnet `10.0.3.0/24` | Jumpbox |
-| | `azurerm_subnet.tp2_sn_container` | Subnet `10.0.4.0/24` | Delegated to `Microsoft.ContainerInstance/containerGroups` |
-| | `azurerm_subnet_network_security_group_association.sn_vmss_nsg_assoc` | NSG ↔ subnet | Attaches `vmss_http_sg` to the VMSS subnet |
-| `network_security_groups.tf` | `azurerm_network_security_group.ssh_sg` | NSG | Allows TCP 22 from `*` |
-| | `azurerm_network_security_group.vmss_http_sg` | NSG | Allows TCP 3000 from `*` |
-| `jumpbox.tf` | `random_string.jumpbox_name` | — | DNS label |
-| | `azurerm_public_ip.jumpbox_public_ip` | Public IP (Standard, static) | `<random>.eastus2.cloudapp.azure.com` |
-| | `azurerm_network_interface.jumpbox_nic` | NIC | |
-| | `azurerm_network_interface_security_group_association.jumpbox_nic_nsg` | NSG ↔ NIC | Attaches `ssh_sg` to the jumpbox NIC |
-| | `azurerm_linux_virtual_machine.jumpbox` | VM | `Standard_B1s`, `Standard_LRS` disk |
-| `node.tf` | `azurerm_linux_virtual_machine_scale_set.tp2_vmss` | VMSS | `instances = 1` (hard-coded), `upgrade_mode = Automatic`, `StandardSSD_LRS` |
-| | `random_string.lb_name` | — | DNS label |
-| | `azurerm_public_ip.lb_public_ip` | Public IP (Standard, static) | The public URL of the service |
-| | `azurerm_lb.tp2_lb` | Load Balancer (Standard) | |
-| | `azurerm_lb_backend_address_pool.lb_backend_address_pool` | Backend pool | VMSS NICs join it |
-| | `azurerm_lb_probe.lb_probe` | Health probe | TCP on port 3000 |
-| | `azurerm_lb_rule.lb_rule` | LB rule `HTTPFwd` | TCP 80 → 3000 |
-| `arca.tf` | `random_string.container_name` | — | Container group name |
-| | `azurerm_container_group.tp2_container` | Container Instances group | 0.5 vCPU / 0.5 GiB, private IP, `restart_policy = Always` |
+| `foundation` | `azurerm_resource_group.this` | Resource group `tp2_resource_group` | Everything below lives here |
+| `foundation` | `data.azurerm_ssh_public_key.this` | *(data source)* | Reads a pre-existing SSH key from the `keys` RG. It is **not** managed here |
+| `foundation` → `network` | `module.network.azurerm_virtual_network.this` | VNet `10.0.0.0/16` | |
+| | `module.network.azurerm_subnet.vmss` | Subnet `10.0.2.0/24` | App instances |
+| | `module.network.azurerm_subnet.jumpbox` | Subnet `10.0.3.0/24` | Jumpbox |
+| | `module.network.azurerm_subnet.container` | Subnet `10.0.4.0/24` | Delegated to `Microsoft.ContainerInstance/containerGroups` |
+| | `module.network.azurerm_subnet_network_security_group_association.vmss` | NSG ↔ subnet | Attaches `vmss_http_sg` to the VMSS subnet |
+| | `module.network.azurerm_network_security_group.ssh` | NSG `ssh_sg` | Allows TCP 22 from `*` |
+| | `module.network.azurerm_network_security_group.vmss_http` | NSG `vmss_http_sg` | Allows TCP 3000 from `*` |
+| `foundation` → `jumpbox` | `module.jumpbox.random_string.dns_label` | — | DNS label |
+| | `module.jumpbox.azurerm_public_ip.this` | Public IP (Standard, static) | `<random>.eastus2.cloudapp.azure.com` |
+| | `module.jumpbox.azurerm_network_interface.this` | NIC | |
+| | `module.jumpbox.azurerm_network_interface_security_group_association.this` | NSG ↔ NIC | Attaches `ssh_sg` to the jumpbox NIC |
+| | `module.jumpbox.azurerm_linux_virtual_machine.this` | VM `jumpbox` | `Standard_B1s`, `Standard_LRS` disk |
+| `foundation` → `arca` | `module.arca.random_string.name` | — | Container group name |
+| | `module.arca.azurerm_container_group.this` | Container Instances group | 0.5 vCPU / 0.5 GiB, private IP, `restart_policy = Always` |
+| `platform` → `app` | `module.app.azurerm_linux_virtual_machine_scale_set.this` | VMSS `tp2vmss` | `instances = 1` (hard-coded), `upgrade_mode = Automatic`, `StandardSSD_LRS` |
+| | `module.app.random_string.lb_dns_label` | — | DNS label |
+| | `module.app.azurerm_public_ip.lb` | Public IP (Standard, static) | The public URL of the service |
+| | `module.app.azurerm_lb.this` | Load Balancer `tp2_lb` (Standard) | |
+| | `module.app.azurerm_lb_backend_address_pool.this` | Backend pool | VMSS NICs join it |
+| | `module.app.azurerm_lb_probe.this` | Health probe | TCP on port 3000 |
+| | `module.app.azurerm_lb_rule.http` | LB rule `HTTPFwd` | TCP 80 → 3000 |
 
-Providers (`versions.tf`): `azurerm ~>4.80`, `random ~>3.0`, and `local ~>2.2`. The `local` provider is declared but nothing uses it. The `local-exec` blocks are provisioners built into Terraform, not part of that provider.
+Providers (each stack's `terraform.tf`): `azurerm ~>4.80` and `random ~>3.0`. The `local-exec` blocks are provisioners built into Terraform, not part of any provider.
+
+tflint notes that `Standard_B1s` is a retired or announced-for-retirement VM size.
 
 ## Network topology
 
@@ -115,31 +117,35 @@ The probe is **TCP-only**. The LB marks an instance healthy as soon as something
 
 ## Provisioning pipeline
 
-`start.sh` runs everything in this order. Terraform and Ansible do not share state directly. Terraform's `local-exec` provisioners write small files into the repo, and the scripts and the app read those files later.
+`mise run up` runs everything in this order. Terraform and Ansible do not share state directly. Terraform's `local-exec` provisioners write small files into the repo, and the scripts and the app read those files later.
 
 ```mermaid
 flowchart TD
-    tfvars[/infra/terraform.tfvars<br/>azure_sid, datadog_key,<br/>dockerhub_username, dockerhub_token/]
-    start[start.sh]
+    tfvarsf[/foundation/terraform.tfvars<br/>azure_sid, dockerhub_username,<br/>dockerhub_token/]
+    tfvarsp[/platform/terraform.tfvars<br/>azure_sid, datadog_key/]
+    start[mise run up]
     login[az login]
-    apply[terraform -chdir=infra apply]
+    applyf[mise run infra:apply foundation]
+    apply[mise run infra:apply platform]
 
-    start --> login --> apply
-    tfvars --> apply
+    start --> login --> applyf --> apply
+    tfvarsf --> applyf
+    tfvarsp --> apply
 
-    subgraph files["Files written by local-exec (all gitignored)"]
+    subgraph files["Files written by local-exec (gitignored, except node/config.js)"]
         cfg[node/config.js<br/>arcaUri = ACI private IP]
         lbdns[node/lb_dns<br/>LB FQDN]
         jbdns[ansible/jumpbox_dns<br/>jumpbox FQDN]
         ddkey[ansible/ddog_api_key<br/>Datadog API key]
     end
 
-    apply --> cfg & lbdns & jbdns & ddkey
+    applyf --> cfg & jbdns
+    apply --> lbdns & ddkey
 
-    setup[ansible/setup.sh]
+    setup[mise run ansible:setup<br/>ansible/setup.sh]
     inv[ansible/update_vmss_inventory.sh<br/>az vmss nic list → vmss_hosts]
     pbsetup[vmss_setup.yml<br/>Datadog agent, unzip, Node 24, pm2]
-    deploy[ansible/deploy.sh]
+    deploy[mise run app:deploy<br/>ansible/deploy.sh]
     zip[node/zip → node/src.zip]
     pbdeploy[vmss_deploy.yml<br/>unzip, npm install, pm2 start app.js]
 
@@ -149,7 +155,7 @@ flowchart TD
     pbsetup --> deploy --> zip --> pbdeploy
     cfg --> zip
 
-    perf[perf/run.sh → Artillery]
+    perf[mise run perf:run → perf/run.sh → Artillery]
     lbdns --> perf
 ```
 
@@ -157,7 +163,7 @@ Some consequences of this design:
 
 - **`node/config.js` is a tracked file that Terraform edits in place.** Terraform substitutes the ARCA IP with `sed`, leaving a `config.js.bak` behind. Expect a dirty working tree after `apply`, and don't commit the IP.
 - **Provisioners run only at creation time.** If ACI gets a new private IP (for example, after the container group is recreated), `config.js` is only updated when Terraform recreates that resource. The same applies to the DNS files.
-- **The VMSS instance count is set in two places.** Terraform's `instances` sets the count, but Ansible configures whatever `az vmss nic list` returns. Re-run `ansible/setup.sh` and `ansible/deploy.sh` after scaling (the README says so too).
+- **The VMSS instance count is set in two places.** Terraform's `instances` sets the count, but Ansible configures whatever `az vmss nic list` returns. Re-run `mise run ansible:setup` and `mise run app:deploy` after scaling (the README says so too).
 - **The VMSS has no custom image or cloud-init.** If Azure replaces an instance (automatic upgrade or autoscale), the new instance boots without Node or the app until Ansible runs again. This matters for any autoscaling design.
 - **Secrets reach disk.** The Datadog key is written to `ansible/ddog_api_key`, and the Terraform state stores the key and the Docker Hub token in plain text. Both files are gitignored. Keep them out of evidence files.
 

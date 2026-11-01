@@ -1,0 +1,33 @@
+# `app` module
+
+The Node app's tier: a VM Scale Set behind a public Standard Load Balancer.
+
+- **Load balancer** `tp2_lb`: a public IP with a random DNS label, one backend pool, a TCP
+  probe on port 3000, and the rule `HTTPFwd` (TCP 80 → 3000).
+- **Scale set** `tp2vmss`: 1 instance, `upgrade_mode = Automatic`, `StandardSSD_LRS`
+  disk. Its NICs join the backend pool. The image is plain Ubuntu: Ansible installs Node,
+  pm2, the Datadog agent and the app afterwards, so a new instance boots empty.
+
+The scale set and the load balancer share a module because the scale set can't join the
+pool until the rule exists (`depends_on`), and scaling the TP changes this unit.
+
+Two `local-exec` provisioners write files under `repo_root`: the LB FQDN to
+`node/lb_dns` and the Datadog key to `ansible/ddog_api_key`. Issue #1 tracks replacing
+them.
+
+## Usage
+
+```hcl
+module "app" {
+  source = "../../../modules/app"
+
+  resource_group_name = local.foundation.resource_group_name
+  location            = local.foundation.location
+  subnet_id           = local.foundation.vmss_subnet_id
+  ssh_public_key      = local.foundation.ssh_public_key
+  vm_size             = var.machine_sku
+  image               = local.image
+  datadog_key         = var.datadog_key
+  repo_root           = local.repo_root
+}
+```

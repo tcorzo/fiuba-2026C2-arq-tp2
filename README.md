@@ -164,7 +164,7 @@ Cada integrante es responsable de entender la totalidad del trabajo entregado po
 
 ### Archivo de variables
 
-- Crear dentro del directorio `infra/` de este repositorio un archivo `terraform.tfvars`
+- Crear un archivo `terraform.tfvars` en cada stack de Terraform (`infra/envs/prd/foundation/` e `infra/envs/prd/platform/`), copiando el `terraform.tfvars.example` que hay en cada uno. Ver [`infra/envs/prd/README.md`](infra/envs/prd/README.md).
 
     > __ATENCIÓN: EVITEN COMMITEAR ESTE ARCHIVO AL REPOSITORIO. LAS API KEYS EN GENERAL NO DEBEN COMMITEARSE. DE HACERLO DEBEN ELIMINARLAS Y CREAR NUEVAS__
     _
@@ -173,7 +173,7 @@ Cada integrante es responsable de entender la totalidad del trabajo entregado po
 
 - Crear una cuenta gratuita en [Docker Hub](https://hub.docker.com/)
 - Ir a `<Usuario> -> Personal access tokens` y crear un token de acceso con permiso *Repo Public Read-only*
-- Agregar la información a `terraform.tfvars`:
+- Agregar la información a `infra/envs/prd/foundation/terraform.tfvars`:
 
 ```properties
 dockerhub_username="<Nombre de usuario>"
@@ -185,7 +185,7 @@ dockerhub_token="<Token>"
 - Crear una cuenta en [Azure](https://azure.microsoft.com/).
 - Desde SSH Keys, generar un par de claves (key/secret). Dejar la clave privada en el directorio raíz del TP (o referenciarla con un link simbólico). Llamarla `key.pem`. Tomar nota del nombre que se le asignó al par de claves.
 - Instalar [`Azure CLI`](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Ejecutar `az login` e iniciar sesión en Azure. Pegar la __subscription ID__ (que se muestra luego del login exitoso) en una variable llamada __azure_sid__ en `terraform.tfvars`, debe quedar de esta manera:
+- Ejecutar `az login` e iniciar sesión en Azure. Pegar la __subscription ID__ (que se muestra luego del login exitoso) en una variable llamada __azure_sid__ en el `terraform.tfvars` de ambos stacks, debe quedar de esta manera:
 
 ```properties
 azure_sid = "<Subscription ID de Azure>"
@@ -195,7 +195,7 @@ azure_sid = "<Subscription ID de Azure>"
 
 - Crear una cuenta con el [pack estudiantil de GitHub](https://education.github.com/pack) en [Datadog](https://www.datadoghq.com/)
 - Ir a `<Usuario> -> Organization Settings -> API Keys` y obtener la API Key.
-  - En `terraform.tfvars`, asignar el valor de la API key a una variable llamada __datadog_key__, debe quedar de esta manera:
+  - En `infra/envs/prd/platform/terraform.tfvars`, asignar el valor de la API key a una variable llamada __datadog_key__, debe quedar de esta manera:
 
 ```properties
 datadog_key = "<API key de Datadog>"
@@ -207,16 +207,16 @@ datadog_key = "<API key de Datadog>"
 
 ### Terraform
 
-- Instalar [Terraform](https://developer.hashicorp.com/terraform) utilizando el package manager de la distribución de Linux que se utilice (recomendado), o descargándolo desde [aquí](https://developer.hashicorp.com/terraform/install).
-- Revisar el archivo `infra/variables.tf` y actualizar los valores default de las variables que corresponda. Este archivo sí será commiteado, así que solo poner aquí valores default que puedan exponerse (para los demás, deben estar las variables declaradas aquí pero los valores deben estar en `terraform.tfvars`, que nunca hay que commitearlo)
+- Instalar las herramientas con [mise](https://mise.jdx.dev/): `mise install` instala Terraform, Azure CLI, Ansible y Node en las versiones fijadas en `mise.toml`. `mise tasks` lista las tareas disponibles.
+- Revisar los archivos `variables.tf` de cada stack en `infra/envs/prd/` y actualizar los valores default de las variables que corresponda. Este archivo sí será commiteado, así que solo poner aquí valores default que puedan exponerse (para los demás, deben estar las variables declaradas aquí pero los valores deben estar en `terraform.tfvars`, que nunca hay que commitearlo)
   - Para "location" (region), recomendamos utilizar "eastus2" o "westus2".
   - Verificar que el nombre del par de claves creado en Azure coincida con el de la variable "ssh_key_name" y que su resource group coincida con "ssh_key_group_name".
-- Ejecutar `terraform -chdir=infra init`. Esto inicializa la configuración que requiere terraform, e instala los providers necesarios.
+- Ejecutar `mise run infra:init foundation` y `mise run infra:init platform`. Esto inicializa la configuración que requiere terraform, e instala los providers necesarios.
 
 ### Ansible
 
-- Instalar [Ansible](https://docs.ansible.com/), ver [aquí](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) información para el SO que se tenga.
-- Instalar la colección de Datadog para Ansible ejecutando: `ansible-galaxy collection install datadog.dd` o también: `ansible-galaxy collection install -r ansible/requirements.yml`
+- Ansible se instala con `mise install`.
+- La colección de Datadog para Ansible (`ansible/requirements.yml`) se instala sola al ejecutar `mise run ansible:setup`.
 
 #### Configuración adicional
 
@@ -224,22 +224,17 @@ Si en la verificación de Datadog encuentran que el host comienza con un string 
 
 ## Correr los servidores
 
-> __IMPORTANTE:__ En el script se utiliza el binario de `terraform`, asumiendo que se encuentra agregado a la variable `$PATH` (si lo instalan con un package manager, ya estará en el path).
->
-
-Existe el script `start.sh` en la raíz del proyecto para crear la infraestructura y correr los servidores correspondientes.
+La tarea `mise run up` crea la infraestructura y corre los servidores correspondientes.
 
 ```bash
-# Inicializo terraform
-terraform -chdir=infra init
 # Seteo los permisos apropiados para que la key sea válida
 chmod 400 key.pem
 
-# Script que inicia sesión en Azure, crea la infraestructura, la inicializa y provisiona la app
-./start.sh
+# Inicia sesión en Azure, aplica los stacks foundation y platform, instala el software en el VMSS y despliega la app
+mise run up
 ```
 
-Terraform crea un archivo local llamado `infra/terraform.tfstate` que tiene el resultado de la aplicación del plan. Usa ese archivo luego para detectar diferencias y definir un nuevo plan si hay modificaciones a la infraestructura. Ese archivo __no debe perderse__, pero como [puede contener información sensible en texto plano](https://www.terraform.io/docs/state/sensitive-data.html) no es recomendable commitearlo sin tomar algunas precauciones. Además, si se destruye y regenera la infraestructura, cambiará mucho, con lo que es muy propenso a conflictos en git.
+Terraform crea, en el directorio de cada stack, un archivo local llamado `terraform.tfstate` que tiene el resultado de la aplicación del plan. Usa ese archivo luego para detectar diferencias y definir un nuevo plan si hay modificaciones a la infraestructura. Ese archivo __no debe perderse__, pero como [puede contener información sensible en texto plano](https://www.terraform.io/docs/state/sensitive-data.html) no es recomendable commitearlo sin tomar algunas precauciones. Además, si se destruye y regenera la infraestructura, cambiará mucho, con lo que es muy propenso a conflictos en git.
 
 La recomendación, por lo tanto, es que cada cual tenga su propia cuenta de Azure y de Datadog, y mantenga su propio `terraform.tfstate` en su computadora sin necesidad de compartirlo. [Acá](https://www.terraform.io/docs/state/remote.html) tienen más información e instrucciones sobre qué hacer si quieren operar todos los integrantes del grupo sobre una misma cuenta de Azure y compartir su tfstate.
 
@@ -258,18 +253,18 @@ Con esto pueden verificar que la aplicación Node de ejemplo levantó correctame
 Al cambiar la cantidad de instancias en el VMSS, una vez aplicados los cambios en la infraestructura, pueden ejecutar:
 
 ```sh
-ansible/setup.sh
-ansible/deploy.sh
+mise run ansible:setup
+mise run app:deploy
 ```
 
 Estos scripts actualizan el inventario con las direcciones IP de los nodos del VMSS y luego instalan la aplicación Node en cada uno. Puede ejecutarse todas las veces que sea necesario (si hay nodos que ya tienen las herramientas necesarias, para éstos la ejecución será más rápida).
 
 ### Re-deploy de la aplicación Node por modificaciones en el código
 
-Si sólo se modificó la app Node y se la quiere actualizar (sin haber cambiado la cantidad de instancias), pueden ejecutar el script de deploy únicamente:
+Si sólo se modificó la app Node y se la quiere actualizar (sin haber cambiado la cantidad de instancias), pueden ejecutar el deploy únicamente:
 
 ```sh
-ansible/deploy.sh
+mise run app:deploy
 ```
 
 ### Administración de la aplicación Node
@@ -286,13 +281,13 @@ Esto usa al jumpbox de proxy SSH para evitar exponer con una IP pública a los n
 
 ### Envío de métricas a Datadog
 
-El agente de Datadog se instala en cada instancia de Node automáticamente, cuando ejecutan el script `ansible/setup.sh` (el script `start.sh` lo invoca cuando crean la infraestructura).
+El agente de Datadog se instala en cada instancia de Node automáticamente, cuando ejecutan `mise run ansible:setup` (`mise run up` lo invoca cuando crean la infraestructura).
 
 Para enviar sus propias métricas, vean cómo hacerlo [aquí](https://docs.datadoghq.com/integrations/node/). Es muy sencillo porque el agente de Datadog abre el puerto de statsd en localhost y se encarga de enviar las métricas custom que recibe.
 
 Para enviar métricas desde Artillery, vean la configuración [aquí](https://artillery.io/docs/guides/plugins/plugin-publish-metrics.html).
 
-Antes de invocar a Artillery, ya sea utilizando `perf/run.sh` o de manera directa, exporten la API key de Datadog a la variable de entorno `DATADOG_API_KEY`:
+Antes de invocar a Artillery, ya sea utilizando `mise run perf:run <escenario> <reporte>` (que llama a `perf/run.sh`; instalar Artillery antes con `mise run perf:install`) o de manera directa, exporten la API key de Datadog a la variable de entorno `DATADOG_API_KEY`:
 
 `export DATADOG_API_KEY=<API key de Datadog>`
 
@@ -306,7 +301,7 @@ Si en la verificación de Datadog encuentran que el host comienza con un string 
 
 ## Destruir la infraestructura
 
-Cuando hayan terminado con el TP, pueden destruir la infraestructura con `terraform destroy`. Al par de claves que crearon a través de la UI de Azure deben eliminarlo también desde la UI.
+Cuando hayan terminado con el TP, pueden destruir la infraestructura con `mise run down` (destruye `platform` y luego `foundation`). Al par de claves que crearon a través de la UI de Azure deben eliminarlo también desde la UI.
 
 ## Cheatsheet de Terraform
 
