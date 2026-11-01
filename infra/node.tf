@@ -38,7 +38,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "tp2_vmss" {
   }
 
   provisioner "local-exec" {
-    command = "echo ${var.datadog_key} > ansible/ddog_api_key"
+    command = "echo ${var.datadog_key} > ${path.module}/../ansible/ddog_api_key"
   }
 }
 
@@ -72,7 +72,7 @@ resource "azurerm_lb" "tp2_lb" {
   }
 
   provisioner "local-exec" {
-    command = "echo ${azurerm_public_ip.lb_public_ip.fqdn} > node/lb_dns"
+    command = "echo ${azurerm_public_ip.lb_public_ip.fqdn} > ${path.module}/../node/lb_dns"
   }
 }
 

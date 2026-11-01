@@ -38,6 +38,6 @@ resource "azurerm_container_group" "tp2_container" {
 
   # Store the URI
   provisioner "local-exec" {
-    command = "sed -Ei.bak \"s/(arcaUri:)[^,]*,{0,1}/\\1 'http:\\/\\/${azurerm_container_group.tp2_container.ip_address}:8080',/\" node/config.js"
+    command = "sed -Ei.bak \"s/(arcaUri:)[^,]*,{0,1}/\\1 'http:\\/\\/${azurerm_container_group.tp2_container.ip_address}:8080',/\" ${path.module}/../node/config.js"
   }
 }

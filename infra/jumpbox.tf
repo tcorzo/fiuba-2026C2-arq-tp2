@@ -64,6 +64,6 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
 
   # Store the FQDN
   provisioner "local-exec" {
-    command = "echo ${azurerm_public_ip.jumpbox_public_ip.fqdn} > ansible/jumpbox_dns"
+    command = "echo ${azurerm_public_ip.jumpbox_public_ip.fqdn} > ${path.module}/../ansible/jumpbox_dns"
   }
 }

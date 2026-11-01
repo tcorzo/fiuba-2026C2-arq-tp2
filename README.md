@@ -164,7 +164,7 @@ Cada integrante es responsable de entender la totalidad del trabajo entregado po
 
 ### Archivo de variables
 
-- Crear dentro de este repositorio un archivo `terraform.tfvars`
+- Crear dentro del directorio `infra/` de este repositorio un archivo `terraform.tfvars`
 
     > __ATENCIÓN: EVITEN COMMITEAR ESTE ARCHIVO AL REPOSITORIO. LAS API KEYS EN GENERAL NO DEBEN COMMITEARSE. DE HACERLO DEBEN ELIMINARLAS Y CREAR NUEVAS__
     _
@@ -208,10 +208,10 @@ datadog_key = "<API key de Datadog>"
 ### Terraform
 
 - Instalar [Terraform](https://developer.hashicorp.com/terraform) utilizando el package manager de la distribución de Linux que se utilice (recomendado), o descargándolo desde [aquí](https://developer.hashicorp.com/terraform/install).
-- Revisar el archivo `variables.tf` y actualizar los valores default de las variables que corresponda. Este archivo sí será commiteado, así que solo poner aquí valores default que puedan exponerse (para los demás, deben estar las variables declaradas aquí pero los valores deben estar en `terraform.tfvars`, que nunca hay que commitearlo)
+- Revisar el archivo `infra/variables.tf` y actualizar los valores default de las variables que corresponda. Este archivo sí será commiteado, así que solo poner aquí valores default que puedan exponerse (para los demás, deben estar las variables declaradas aquí pero los valores deben estar en `terraform.tfvars`, que nunca hay que commitearlo)
   - Para "location" (region), recomendamos utilizar "eastus2" o "westus2".
   - Verificar que el nombre del par de claves creado en Azure coincida con el de la variable "ssh_key_name" y que su resource group coincida con "ssh_key_group_name".
-- Ejecutar `terraform init`. Esto inicializa la configuración que requiere terraform, e instala los providers necesarios.
+- Ejecutar `terraform -chdir=infra init`. Esto inicializa la configuración que requiere terraform, e instala los providers necesarios.
 
 ### Ansible
 
@@ -231,7 +231,7 @@ Existe el script `start.sh` en la raíz del proyecto para crear la infraestructu
 
 ```bash
 # Inicializo terraform
-terraform init
+terraform -chdir=infra init
 # Seteo los permisos apropiados para que la key sea válida
 chmod 400 key.pem
 
@@ -239,7 +239,7 @@ chmod 400 key.pem
 ./start.sh
 ```
 
-Terraform crea un archivo local llamado `terraform.tfstate` que tiene el resultado de la aplicación del plan. Usa ese archivo luego para detectar diferencias y definir un nuevo plan si hay modificaciones a la infraestructura. Ese archivo __no debe perderse__, pero como [puede contener información sensible en texto plano](https://www.terraform.io/docs/state/sensitive-data.html) no es recomendable commitearlo sin tomar algunas precauciones. Además, si se destruye y regenera la infraestructura, cambiará mucho, con lo que es muy propenso a conflictos en git.
+Terraform crea un archivo local llamado `infra/terraform.tfstate` que tiene el resultado de la aplicación del plan. Usa ese archivo luego para detectar diferencias y definir un nuevo plan si hay modificaciones a la infraestructura. Ese archivo __no debe perderse__, pero como [puede contener información sensible en texto plano](https://www.terraform.io/docs/state/sensitive-data.html) no es recomendable commitearlo sin tomar algunas precauciones. Además, si se destruye y regenera la infraestructura, cambiará mucho, con lo que es muy propenso a conflictos en git.
 
 La recomendación, por lo tanto, es que cada cual tenga su propia cuenta de Azure y de Datadog, y mantenga su propio `terraform.tfstate` en su computadora sin necesidad de compartirlo. [Acá](https://www.terraform.io/docs/state/remote.html) tienen más información e instrucciones sobre qué hacer si quieren operar todos los integrantes del grupo sobre una misma cuenta de Azure y compartir su tfstate.
 
