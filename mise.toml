@@ -246,6 +246,17 @@ ansible-galaxy collection install -r ansible/requirements.yml
 ansible/setup.sh
 '''
 
+[tasks."app:install"]
+description = "Installs the Node app's dependencies, exactly as node/package-lock.json pins them"
+dir = "node"
+run = "npm ci"
+
+[tasks."app:test"]
+description = "Runs the Node app's unit tests. They need no stack. Extra args go to node --test, e.g. --test-name-pattern=H-01"
+dir = "node"
+depends = ["app:install"]
+run = "npm test --"
+
 [tasks."app:deploy"]
 description = "Zips the Node app and deploys it to every VMSS instance"
 run = "ansible/deploy.sh"
