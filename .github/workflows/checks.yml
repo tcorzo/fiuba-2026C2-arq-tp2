@@ -1,0 +1,59 @@
+name: Checks
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+
+concurrency:
+    group: checks-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+# Each job installs only the tools it uses: mise.toml also pins azure-cli and
+# ansible-core, which take minutes to install and no check here needs.
+jobs:
+    lint:
+        # Only the files this change touches. Some course files predate the
+        # hooks (no final newline, for one), and fixing them belongs to
+        # whoever edits them next, not to every unrelated PR.
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+            - uses: jdx/mise-action@v5
+              with:
+                  install_args: prek typstyle terraform
+            - run: >-
+                  prek run --show-diff-on-failure --skip gitleaks
+                  --from-ref ${{ github.event.pull_request.base.sha || github.event.before }}
+                  --to-ref HEAD
+
+    secrets:
+        # The repository is public and the evidence goes in git: a Datadog API
+        # key in an Artillery report or in a `terraform output` is a leak the
+        # moment it is pushed. The local hook scans staged changes only; this
+        # job scans the whole history, so a commit made without the hook is
+        # caught too. A key found here must be revoked, not only removed.
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+            - uses: jdx/mise-action@v5
+              with:
+                  install_args: gitleaks
+            - run: gitleaks git --redact --no-banner --verbose
+
+    report:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: jdx/mise-action@v5
+              with:
+                  install_args: typst node
+            - run: mise run report
+            - run: mise run report:check

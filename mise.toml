@@ -10,5 +10,171 @@ node = "24.22.2"
 # Backend for the pypi: tools above (azure-cli, ansible-core)
 uv = "0.13.6"
 
+# Pre-commit hook manager (drop-in for pre-commit, no Python install needed).
+prek = "0.5.9"
+# The evidence goes in git, and Terraform and Artillery outputs are where an
+# API key leaks from. The pre-commit hook scans every staged change.
+gitleaks = "8.30.1"
+# The report is written in Typst; `typstyle` formats it from the lint hook, so
+# the .typ sources never diverge on whitespace between authors.
+typst = "0.15.1"
+typstyle = "0.15.1"
+# PlantUML is a jar and needs a JVM. PlantUML also shells out to Graphviz,
+# which has no mise registry entry: apt/dnf install graphviz, once per machine.
+java = "temurin-21"
+
+# Paths for the report and diagram tasks. Kept in [vars], not [env], so they do
+# not leak into the environment of every other task.
+[vars]
+plantuml_version = "1.2025.4"
+plantuml_jar = "{{env.HOME}}/.local/share/plantuml/plantuml.jar"
+diagrams_dir = "{{config_root}}/docs/diagramas"
+report_dir = "{{config_root}}/docs/informe"
+
+###############################################################################
+# Repo hygiene, diagrams and the report.
+#
+#   hooks:install   wire the git hooks (once per clone)
+#   lint            every pre-commit hook over what this branch changed
+#   diagrams:*      PlantUML sources in docs/diagramas/
+#   report:*        the Typst report in docs/informe/
+###############################################################################
+
+[tasks."hooks:install"]
+description = "Wires the pre-commit hooks into git (once per clone)"
+run = "prek install"
+
+[tasks.lint]
+description = "Runs every pre-commit hook over the files this branch changed against origin/main"
+# Not --all-files: some course files predate the hooks (no final newline, for
+# one), and the fix belongs to whoever edits them, not to an unrelated branch.
+# CI runs the same range.
+run = "prek run --from-ref origin/main --to-ref HEAD"
+
+[tasks."diagrams:fetch"]
+description = "Downloads plantuml.jar into ~/.local/share/plantuml (once per machine)"
+run = '''
+set -eu
+jar="{{vars.plantuml_jar}}"
+version="{{vars.plantuml_version}}"
+
+if [ -f "$jar" ]; then
+    echo "PlantUML already at $jar"
+    exit 0
+fi
+
+echo "Downloading PlantUML $version..."
+mkdir -p "$(dirname "$jar")"
+curl -fsSL -o "$jar" \
+    "https://github.com/plantuml/plantuml/releases/download/v${version}/plantuml-${version}.jar"
+echo "OK: $jar"
+'''
+
+[tasks.diagrams]
+description = "Renders the .puml sources to SVG (for the report) and PNG"
+depends = ["diagrams:fetch"]
+sources = ["docs/diagramas/*.puml"]
+outputs = ["docs/diagramas/*.svg", "docs/diagramas/*.png"]
+run = '''
+set -eu
+dir="{{vars.diagrams_dir}}"
+
+# PlantUML lays out everything except sequence diagrams through Graphviz.
+# Without `dot` it still writes both output files — each containing a picture
+# of a Java stack trace — and still exits 0, so a committed diagram is
+# replaced by an error image and nothing says so. Refuse to run instead.
+if ! command -v dot >/dev/null 2>&1; then
+    echo "Graphviz is missing. PlantUML would overwrite the diagrams with an" >&2
+    echo "error image and report success." >&2
+    echo "Install it from the system package manager (apt/dnf install graphviz)." >&2
+    exit 1
+fi
+
+set -- "$dir"/*.puml
+if [ ! -e "$1" ]; then
+    echo "No .puml sources in $dir"
+    exit 0
+fi
+
+# PlantUML honours a single -t<format> per invocation: hence two passes.
+java -jar "{{vars.plantuml_jar}}" -tsvg "$@"
+java -jar "{{vars.plantuml_jar}}" -tpng "$@"
+
+echo "Generated files:"
+for f in "$dir"/*.svg "$dir"/*.png; do
+    [ -f "$f" ] || continue
+    echo "  $f"
+done
+'''
+
+[tasks."diagrams:open"]
+description = "Renders the diagrams and opens the SVGs in the browser"
+depends = ["diagrams"]
+run = '''
+set -eu
+
+opener="${BROWSER:-xdg-open}"
+for svg in "{{vars.diagrams_dir}}"/*.svg; do
+    [ -f "$svg" ] || continue
+    echo "Opening $svg"
+    "$opener" "file://$svg" >/dev/null 2>&1 &
+done
+wait
+'''
+
+[tasks.report]
+description = "Compiles the report to PDF from the committed diagram renders"
+# Deliberately does NOT depend on `diagrams`: PlantUML's layout changes with
+# the Graphviz version, so re-rendering as a side effect of building the PDF
+# could quietly swap a worse figure into the deliverable. Edit a .puml, run
+# `mise run diagrams` yourself, and look at the result before committing it.
+#
+# `--root` is the repo so a section can reference a figure, a raw report or a
+# piece of evidence by its path from the repo root.
+sources = ["docs/informe/**/*.typ", "docs/informe/evidencia.yml", "docs/diagramas/*.svg"]
+outputs = ["docs/informe/informe.pdf"]
+run = '''
+set -eu
+
+typst compile --root "{{config_root}}" "{{vars.report_dir}}/informe.typ" "{{vars.report_dir}}/informe.pdf"
+echo "Generated file:"
+echo "  {{vars.report_dir}}/informe.pdf"
+'''
+
+[tasks."report:watch"]
+description = "Re-renders the report on every save"
+run = 'typst watch --root "{{config_root}}" "{{vars.report_dir}}/informe.typ" "{{vars.report_dir}}/informe.pdf"'
+
+[tasks."report:open"]
+description = "Compiles the report and opens the PDF"
+depends = ["report"]
+run = '''
+set -eu
+
+opener="${BROWSER:-xdg-open}"
+echo "Opening {{vars.report_dir}}/informe.pdf"
+"$opener" "file://{{vars.report_dir}}/informe.pdf" >/dev/null 2>&1 &
+'''
+
+[tasks."report:check"]
+description = "Checks the page limit and every [E-NN] citation; `--final` also fails on #pendiente and uncited IDs"
+# The checks the assignment grades on and nobody notices until it is late: a
+# body over 30 pages is cut where it overflows, and a citation that points to
+# nothing makes its whole section unsupported. See scripts/check-report.mjs.
+usage = """
+flag "--final" help="Treat #pendiente blocks and uncited evidence IDs as errors (run before delivery)"
+"""
+run = '''
+set -eu
+
+typst eval --root "{{config_root}}" --in "{{vars.report_dir}}/informe.typ" --format json '(
+    evidencia: query(<evidencia>).first().value,
+    citas: query(<cita-evidencia>).map(m => m.value),
+    paginas: query(<paginas-cuerpo>).first().value,
+    pendientes: query(<pendiente>).len(),
+)' | REPO_ROOT="{{config_root}}" node "{{config_root}}/scripts/check-report.mjs" \
+    $( [ "${usage_final:-false}" = true ] && echo --final )
+'''
+
 [settings]
 pipx.uvx = true

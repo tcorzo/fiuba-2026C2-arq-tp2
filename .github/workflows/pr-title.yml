@@ -1,0 +1,59 @@
+name: PR Title
+
+on:
+    pull_request:
+        types: [opened, edited, reopened, synchronize, ready_for_review]
+
+concurrency:
+    group: pr-title-${{ github.ref }}
+    cancel-in-progress: true
+
+# No permissions block: the check reads only context.payload.pull_request.title,
+# which is included in the event payload — no GitHub API call, no token needed.
+
+jobs:
+    lint:
+        # Feature branches are merged into main with a merge commit, so the
+        # individual commits survive: the assignment checks in the history that
+        # each prediction was committed before its results. With the repo set to
+        # merge_commit_title=PR_TITLE, the PR title becomes the merge commit
+        # subject. A non-conventional title lands on main as an unreadable
+        # commit and breaks reading `git log --first-parent main` as the list of
+        # measured cases and tactics.
+        # Skip on drafts: the title can churn freely until the PR is opened for review.
+        if: github.event.pull_request.draft == false
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/github-script@v9
+              with:
+                  script: |
+                      const title = context.payload.pull_request.title;
+                      const types = [
+                          'feat', 'fix', 'docs', 'chore', 'ci',
+                          'refactor', 'test', 'perf', 'build',
+                          'style', 'revert'
+                      ];
+                      const re = new RegExp(
+                          '^(' + types.join('|') + ')(\\([^)]+\\))?!?: [a-z].+'
+                      );
+                      if (re.test(title)) {
+                          core.info(`OK: "${title}" matches conventional commits.`);
+                          return;
+                      }
+                      const wipPrefix = /^(\[?WIP\]?|WIP:)/i;
+                      if (wipPrefix.test(title)) {
+                          core.warning('PR is marked WIP; skipping conventional check.');
+                          return;
+                      }
+                      core.setFailed(
+                          `PR title "${title}" is not a conventional commit.\n\n` +
+                          `Required: <type>(<scope>)?: <subject>\n` +
+                          `  - type: one of ${types.join(', ')}\n` +
+                          `  - subject: English, must start with a lowercase letter\n\n` +
+                          `Examples:\n` +
+                          `  feat(infra): add a managed redis instance\n` +
+                          `  feat(node): validate the dni against arca\n` +
+                          `  docs(report): record the 1-node prediction\n\n` +
+                          `Reference issues in the PR body via "Closes #N", not in the title.\n` +
+                          `This title becomes the merge commit subject on main.`
+                      );
