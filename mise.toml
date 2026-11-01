@@ -1,6 +1,7 @@
 [tools]
-# Infra: versions.tf requires terraform ~>1.3
+# Infra. terraform must match `required_version` in each stack's terraform.tf.
 terraform = "1.17.1"
+tflint = "0.64.0"
 azure-cli = "2.91.0"
 ansible-core = "2.21.5"
 
@@ -178,3 +179,124 @@ typst eval --root "{{config_root}}" --in "{{vars.report_dir}}/informe.typ" --for
 
 [settings]
 pipx.uvx = true
+
+[env]
+# One tflint config for every stack and module.
+TFLINT_CONFIG_FILE = "{{config_root}}/infra/.tflint.hcl"
+
+###############################################################################
+# Tasks. `mise tasks` lists them all.
+#
+# Each task is namespaced by the part of the repo it acts on:
+#
+#   infra:*     Terraform stacks under infra/envs/prd (foundation, then platform)
+#   ansible:*   software on the VMSS instances
+#   app:*       the Node app in node/
+#   perf:*      Artillery load tests in perf/
+#
+# `up` and `down` chain them for a full session.
+###############################################################################
+
+[tasks."infra:init"]
+description = "Initializes a stack's backend and downloads the providers"
+usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform"; }'
+run = 'terraform -chdir="infra/envs/prd/${usage_stack}" init'
+
+[tasks."infra:validate"]
+description = "Validates every stack"
+run = '''
+for stack in foundation platform; do
+  terraform -chdir="infra/envs/prd/$stack" init -backend=false -input=false >/dev/null || exit 1
+  terraform -chdir="infra/envs/prd/$stack" validate || exit 1
+done
+'''
+
+[tasks."infra:plan"]
+description = "Shows a stack's plan"
+usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform"; }'
+run = 'terraform -chdir="infra/envs/prd/${usage_stack}" plan'
+
+[tasks."infra:apply"]
+description = "Applies a stack. Apply foundation before platform"
+usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform"; }'
+run = 'terraform -chdir="infra/envs/prd/${usage_stack}" apply'
+
+[tasks."infra:destroy"]
+description = "Destroys a stack. Destroy platform before foundation"
+usage = 'arg "[stack]" default="platform" { choices "foundation" "platform"; }'
+run = 'terraform -chdir="infra/envs/prd/${usage_stack}" destroy'
+
+[tasks."infra:fmt"]
+description = "Formats every Terraform file"
+run = "terraform fmt -recursive infra"
+
+[tasks."infra:lint"]
+description = "Checks formatting and runs tflint on every stack and module"
+run = '''
+terraform fmt -check -recursive infra || exit 1
+tflint --init
+# Notices (like a retired VM size) are printed but don't fail the task.
+tflint --chdir=infra --recursive --minimum-failure-severity=warning
+'''
+
+[tasks."ansible:setup"]
+description = "Installs the Datadog agent, Node and pm2 on every VMSS instance"
+run = '''
+ansible-galaxy collection install -r ansible/requirements.yml
+ansible/setup.sh
+'''
+
+[tasks."app:deploy"]
+description = "Zips the Node app and deploys it to every VMSS instance"
+run = "ansible/deploy.sh"
+
+[tasks."perf:install"]
+description = "Installs Artillery"
+dir = "perf"
+run = "npm ci"
+
+[tasks."perf:run"]
+description = "Runs an Artillery scenario against the load balancer. Export DATADOG_API_KEY first"
+usage = '''
+arg "<scenario>" help="Scenario file in perf/, without .yaml"
+arg "<output>" help="Report path, without .json"
+'''
+dir = "perf"
+run = './run.sh "${usage_scenario}" "${usage_output}"'
+
+[tasks.up]
+description = "Logs into Azure, applies foundation and platform, then installs and deploys the app. Applies without asking"
+run = '''
+for stack in foundation platform; do
+  if [ ! -r "infra/envs/prd/$stack/terraform.tfvars" ]; then
+    echo "Missing infra/envs/prd/$stack/terraform.tfvars. Copy terraform.tfvars.example next to it and fill it in." >&2
+    exit 1
+  fi
+done
+
+echo "##### Logging into Azure #####"
+az login || exit 1
+
+for stack in foundation platform; do
+  echo "##### Applying $stack #####"
+  terraform -chdir="infra/envs/prd/$stack" init -input=false || exit 1
+  terraform -chdir="infra/envs/prd/$stack" apply -auto-approve || exit 1
+done
+
+echo "##### Installing software on VMSS #####"
+mise run ansible:setup || exit 1
+
+echo "##### Deploying node app to VMSS #####"
+mise run app:deploy || exit 1
+
+echo "##### Finished #####"
+'''
+
+[tasks.down]
+description = "Destroys platform, then foundation. Asks before each"
+run = '''
+for stack in platform foundation; do
+  terraform -chdir="infra/envs/prd/$stack" init -input=false || exit 1
+  terraform -chdir="infra/envs/prd/$stack" destroy || exit 1
+done
+'''
