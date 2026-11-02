@@ -8,7 +8,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 |---|---|
 | Cloud / region | Azure, `eastus2` (`var.region`) |
 | Entry point | Public **Standard Load Balancer**, port 80 → port 3000 on the VMSS |
-| App tier | **Linux VM Scale Set** `tp2vmss`, 1 × `Standard_B1s` (1 vCPU, 1 GiB), Ubuntu 24.04, Node 24 + pm2 |
+| App tier | **Linux VM Scale Set** `tp2vmss`, 1 × `Standard_F1als_v7` (1 vCPU, 2 GiB, no CPU credits), Ubuntu 24.04, Node 24 + pm2 |
 | External dependency | **ARCA** mock, `arqsoft/arca:1.0.0` on **Azure Container Instances**, private IP, port 8080 |
 | Admin access | **Jumpbox** VM with a public IP. It is the only SSH entry point into the VNet |
 | Observability | Datadog agent on every VMSS instance (installed by Ansible) |
@@ -35,7 +35,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.jumpbox.azurerm_public_ip.this` | Public IP (Standard, static) | `<random>.eastus2.cloudapp.azure.com` |
 | | `module.jumpbox.azurerm_network_interface.this` | NIC | |
 | | `module.jumpbox.azurerm_network_interface_security_group_association.this` | NSG ↔ NIC | Attaches `ssh_sg` to the jumpbox NIC |
-| | `module.jumpbox.azurerm_linux_virtual_machine.this` | VM `jumpbox` | `Standard_B1s`, `Standard_LRS` disk |
+| | `module.jumpbox.azurerm_linux_virtual_machine.this` | VM `jumpbox` | `Standard_F1als_v7`, `Standard_LRS` disk |
 | `foundation` → `arca` | `module.arca.random_string.name` | — | Container group name |
 | | `module.arca.azurerm_container_group.this` | Container Instances group | 0.5 vCPU / 0.5 GiB, private IP, `restart_policy = Always` |
 | `platform` → `app` | `module.app.azurerm_linux_virtual_machine_scale_set.this` | VMSS `tp2vmss` | `instances = 1` (hard-coded), `upgrade_mode = Automatic`, `StandardSSD_LRS` |
@@ -48,7 +48,24 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 
 Providers (each stack's `terraform.tf`): `azurerm ~>4.80` and `random ~>3.0`. State and runs live in HCP Terraform (organization `gaudi-followers`, project `arvault-prd`, one workspace per stack). `infra/bootstrap` creates the workspaces and the Azure identity the remote runs use. See the prd [README](../../infra/envs/prd/README.md).
 
-tflint notes that `Standard_B1s` is a retired or announced-for-retirement VM size.
+### VM size
+
+Every VM (the jumpbox and each VMSS instance) is `Standard_F1als_v7`: 1 vCPU, 2 GiB, AMD.
+The B series (`Standard_B1s`, the course's default) is not offered to our subscription
+in `eastus2`: `az vm list-skus -l eastus2` lists every B size as
+`NotAvailableForSubscription`, and the first apply failed with `SkuNotAvailable`. The
+smallest unrestricted sizes there are the v7 generation.
+
+- **1 vCPU, on purpose.** The subscription allows 4 regional vCPUs (`az vm list-usage
+  -l eastus2`). The jumpbox plus 2 VMSS instances fit; a 2-vCPU size wouldn't.
+- **No CPU credits.** Unlike the B series, an F-series VM doesn't throttle to a
+  baseline when it runs out of credits, so a long load test measures the same CPU from
+  start to end.
+- **NVMe and Gen2 only.** The image (Ubuntu 24.04 `server`) is Gen2 and NVMe-capable.
+  The OS disk controller type is not set, so Azure chooses it; this size only offers
+  NVMe. (`azurerm_linux_virtual_machine_scale_set` has no `disk_controller_type`.)
+- **Cost.** About USD 0.06/h per VM in `eastus2` (B1s: USD 0.01/h). Run `mise run down`
+  when not working.
 
 ## Network topology
 

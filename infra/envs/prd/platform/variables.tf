@@ -31,5 +31,5 @@ variable "os_version" {
 variable "machine_sku" {
   description = "VM size of each scale set instance."
   type        = string
-  default     = "Standard_B1s"
+  default     = "Standard_F1als_v7"
 }

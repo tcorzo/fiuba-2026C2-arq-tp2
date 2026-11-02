@@ -37,6 +37,11 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     `terraform output`. También escribió el stack `infra/bootstrap`: workspaces,
     variables e identidad OIDC de Azure. Nosotros elegimos la ejecución remota,
     revisamos el diff y aplicamos el bootstrap.],
+
+  [Tamaño de las VM],
+  [El primer `apply` falló con `SkuNotAvailable` para `Standard_B1s`. El agente
+    consultó los tamaños y la cuota de la suscripción en `eastus2` con `az` y
+    propuso `Standard_F1als_v7`. Nosotros revisamos el cambio y aplicamos.],
 )
 
 == Propuestas incorrectas
