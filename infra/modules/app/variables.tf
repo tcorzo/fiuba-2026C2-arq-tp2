@@ -32,14 +32,3 @@ variable "image" {
     version   = string
   })
 }
-
-variable "datadog_key" {
-  description = "Datadog API key. A local-exec provisioner writes it to ansible/ddog_api_key."
-  type        = string
-  sensitive   = true
-}
-
-variable "repo_root" {
-  description = "Repository root. local-exec provisioners write node/lb_dns and ansible/ddog_api_key under it."
-  type        = string
-}

@@ -40,7 +40,11 @@ mise.local.toml
 # evidencia/     Terraform, az and log outputs cited as [E-NN] in the report.
 
 
-# Local files
+# Generated from Terraform outputs by ansible/deploy.sh.
+node/config.local.json
+
+# Local files. lb_dns, jumpbox_dns and ddog_api_key are no longer written (the
+# scripts read Terraform outputs), but older checkouts may still have them.
 ip
 public_ip
 lb_dns

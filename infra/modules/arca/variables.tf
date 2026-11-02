@@ -24,8 +24,3 @@ variable "dockerhub_token" {
   type        = string
   sensitive   = true
 }
-
-variable "repo_root" {
-  description = "Repository root. A local-exec provisioner rewrites node/config.js under it."
-  type        = string
-}

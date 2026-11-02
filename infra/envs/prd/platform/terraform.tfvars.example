@@ -1,7 +1,0 @@
-# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored: never commit it.
-
-# Subscription ID shown after `az login`
-azure_sid = "<Subscription ID de Azure>"
-
-# Organization Settings → API Keys in Datadog
-datadog_key = "<API key de Datadog>"

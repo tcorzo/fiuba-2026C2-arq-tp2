@@ -57,9 +57,4 @@ resource "azurerm_linux_virtual_machine" "this" {
     sku       = var.image.sku
     version   = var.image.version
   }
-
-  # Store the FQDN for Ansible's inventory (ansible/update_vmss_inventory.sh). See issue #1.
-  provisioner "local-exec" {
-    command = "echo ${azurerm_public_ip.this.fqdn} > ${var.repo_root}/ansible/jumpbox_dns"
-  }
 }

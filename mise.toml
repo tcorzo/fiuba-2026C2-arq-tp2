@@ -189,7 +189,9 @@ TFLINT_CONFIG_FILE = "{{config_root}}/infra/.tflint.hcl"
 #
 # Each task is namespaced by the part of the repo it acts on:
 #
-#   infra:*     Terraform stacks under infra/envs/prd (foundation, then platform)
+#   infra:*     Terraform stacks under infra/envs/prd (foundation, then platform).
+#               State and runs live in HCP Terraform: `terraform login` once per
+#               machine. infra:bootstrap creates the workspaces (once per group)
 #   ansible:*   software on the VMSS instances
 #   app:*       the Node app in node/
 #   perf:*      Artillery load tests in perf/
@@ -202,12 +204,23 @@ description = "Initializes a stack's backend and downloads the providers"
 usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform"; }'
 run = 'terraform -chdir="infra/envs/prd/${usage_stack}" init'
 
-[tasks."infra:validate"]
-description = "Validates every stack"
+[tasks."infra:bootstrap"]
+description = "Creates the HCP Terraform workspaces and the Azure identity of their remote runs. Once per group, before the first infra:init"
 run = '''
-for stack in foundation platform; do
-  terraform -chdir="infra/envs/prd/$stack" init -backend=false -input=false >/dev/null || exit 1
-  terraform -chdir="infra/envs/prd/$stack" validate || exit 1
+if [ ! -r infra/bootstrap/terraform.tfvars ]; then
+  echo "Missing infra/bootstrap/terraform.tfvars. Copy terraform.tfvars.example next to it and fill it in." >&2
+  exit 1
+fi
+terraform -chdir=infra/bootstrap init -input=false || exit 1
+terraform -chdir=infra/bootstrap apply
+'''
+
+[tasks."infra:validate"]
+description = "Validates every stack, bootstrap included"
+run = '''
+for dir in infra/bootstrap infra/envs/prd/foundation infra/envs/prd/platform; do
+  terraform -chdir="$dir" init -backend=false -input=false >/dev/null || exit 1
+  terraform -chdir="$dir" validate || exit 1
 done
 '''
 
@@ -240,7 +253,7 @@ tflint --chdir=infra --recursive --minimum-failure-severity=warning
 '''
 
 [tasks."ansible:setup"]
-description = "Installs the Datadog agent, Node and pm2 on every VMSS instance"
+description = "Installs the Datadog agent, Node and pm2 on every VMSS instance. Export DATADOG_API_KEY first"
 run = '''
 ansible-galaxy collection install -r ansible/requirements.yml
 ansible/setup.sh
@@ -276,15 +289,16 @@ dir = "perf"
 run = './run.sh "${usage_scenario}" "${usage_output}"'
 
 [tasks.up]
-description = "Logs into Azure, applies foundation and platform, then installs and deploys the app. Applies without asking"
+description = "Logs into Azure, applies foundation and platform in HCP Terraform, then installs and deploys the app. Applies without asking"
 run = '''
-for stack in foundation platform; do
-  if [ ! -r "infra/envs/prd/$stack/terraform.tfvars" ]; then
-    echo "Missing infra/envs/prd/$stack/terraform.tfvars. Copy terraform.tfvars.example next to it and fill it in." >&2
-    exit 1
-  fi
-done
+# Checked before anything is created: ansible:setup needs it at the end.
+if [ -z "${DATADOG_API_KEY:-}" ]; then
+  echo "DATADOG_API_KEY is not set. Export your Datadog API key first." >&2
+  exit 1
+fi
 
+# The remote runs authenticate on their own. The local `az` session is for
+# ansible/update_vmss_inventory.sh, which lists the VMSS instances.
 echo "##### Logging into Azure #####"
 az login || exit 1
 

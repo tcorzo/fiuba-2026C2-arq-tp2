@@ -1,8 +1,0 @@
-# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored: never commit it.
-
-# Subscription ID shown after `az login`
-azure_sid = "<Subscription ID de Azure>"
-
-# Docker Hub account and a Public Repo Read-only access token
-dockerhub_username = "<Nombre de usuario>"
-dockerhub_token    = "<Token>"

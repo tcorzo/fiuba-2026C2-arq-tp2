@@ -16,16 +16,22 @@ variable "dockerhub_token" {
   sensitive   = true
 }
 
+variable "resource_group_name" {
+  description = "Pre-existing resource group every resource of the TP is created in. The team's access is assigned on it."
+  type        = string
+  default     = "RG-PRODUCTION"
+}
+
 variable "region" {
-  description = "Azure region for every resource of the TP. eastus2 or westus2 recommended."
+  description = "Azure region for every resource of the TP. eastus2 or westus2 recommended. It may differ from the resource group's own region."
   type        = string
   default     = "eastus2"
 }
 
 variable "ssh_key_group_name" {
-  description = "Resource group of the pre-existing SSH key pair."
+  description = "Resource group of the pre-existing SSH key pair. RG-PRODUCTION, so any member of the team can create it."
   type        = string
-  default     = "keys"
+  default     = "RG-PRODUCTION"
 }
 
 variable "ssh_key_name" {

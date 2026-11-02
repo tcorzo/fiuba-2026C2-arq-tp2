@@ -34,9 +34,4 @@ resource "azurerm_container_group" "this" {
     username = var.dockerhub_username
     password = var.dockerhub_token
   }
-
-  # Write the ARCA URI into the Node app's config. See issue #1.
-  provisioner "local-exec" {
-    command = "sed -Ei.bak \"s/(arcaUri:)[^,]*,{0,1}/\\1 'http:\\/\\/${self.ip_address}:8080',/\" ${var.repo_root}/node/config.js"
-  }
 }
