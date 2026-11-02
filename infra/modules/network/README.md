@@ -19,7 +19,7 @@ The address plan is fixed on purpose: there are no inputs for it.
 module "network" {
   source = "../../../modules/network"
 
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  resource_group_name = data.azurerm_resource_group.this.name
+  location            = var.region
 }
 ```

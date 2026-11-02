@@ -92,10 +92,10 @@ Before **each** load test (1 node, scaled, and each tactic) the group records a 
 
 | Path | What it is |
 |---|---|
-| `infra/` | Terraform. Its layout, the order to apply it and its tasks are documented in `docs/infra/overview.md`; read that instead of assuming a structure. `terraform.tfvars` files hold the secrets (Docker Hub, Azure subscription, Datadog key) and are never committed. `terraform.tfstate` stays on each member's machine. |
+| `infra/` | Terraform. Its layout, the order to apply it and its tasks are documented in `docs/infra/overview.md`; read that instead of assuming a structure. State and runs live in **HCP Terraform** (org `gaudi-followers`, project `arvault-prd`, one workspace per stack, remote execution); `infra/bootstrap` (applied by the subscription's Owner) creates the workspaces, their variables, the Azure OIDC identity, and manages the resource group `RG-PRODUCTION` with the team's Contributor access; the prd stacks only read that resource group. The stacks' secrets are workspace variables, not `terraform.tfvars`. Only `infra/bootstrap` has a local `terraform.tfvars` and `terraform.tfstate`, never committed. |
 | `ansible/` | `setup.sh` refreshes the VMSS inventory and installs Node, pm2 and the Datadog agent; `deploy.sh` zips `node/` and deploys it. Both go through the jumpbox. |
 | `node/` | The service. Starts as the course's sample app (`GET /:dni` → ARCA); gets replaced by our TP 1 service with the `dni` field and the ARCA call. |
-| `node/config.js` | `terraform apply` rewrites `arcaUri` with ARCA's private IP (a `local-exec` with `sed -i.bak`). That rewrite is per deployment: do not commit it. `git checkout -- node/config.js` before committing, unless the change to the file is deliberate. |
+| `node/config.js` | Reads `node/config.local.json` (gitignored), which `ansible/deploy.sh` writes from the `platform` stack's `app_config` output. Environment variables override it. A new runtime setting is a key in `app_config` plus a line in `config.js`. |
 | `perf/` | Artillery. `run.sh <scenario> <output>` runs `<scenario>.yaml` against the load balancer and writes the raw report. `DATADOG_API_KEY` comes from the environment, never from a file in the repo. |
 | `perf/predicciones.md` | The predictions, see above. |
 | `perf/results/<case>/` | Raw Artillery reports. Tracked on purpose. |
@@ -104,7 +104,7 @@ Before **each** load test (1 node, scaled, and each tactic) the group records a 
 | `docs/diagramas/` | PlantUML sources and their committed renders. |
 | `scripts/check-report.mjs` | The checks behind `mise run report:check`. |
 
-Secrets live in the `terraform.tfvars` files (gitignored) and in the `DATADOG_API_KEY` environment variable. Terraform's `local-exec` provisioners write `ansible/ddog_api_key`, `ansible/jumpbox_dns` and `node/lb_dns`; all three are gitignored.
+Secrets live in the HCP Terraform workspace variables, in `infra/bootstrap/terraform.tfvars` (gitignored) and in the `DATADOG_API_KEY` environment variable, which both Ansible and Artillery read. Terraform writes nothing to disk: the scripts read outputs with `infra/output.sh <stack> <output>`. `.terraformignore` keeps `*.tfvars`, `*.pem` and everything outside `infra/` out of the uploads to HCP Terraform.
 
 ## The report
 

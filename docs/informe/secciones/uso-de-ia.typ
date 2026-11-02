@@ -31,6 +31,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
   [Tooling del repositorio],
   [Tareas de `mise`, hooks de pre-commit, workflows de CI, la plantilla de este
     informe y `CLAUDE.md`, adaptados desde el TP 1. No es contenido del informe.],
+
+  [Estado en HCP Terraform y outputs (issue \#1)],
+  [El agente reemplazó los `local-exec` por outputs que los scripts leen con
+    `terraform output`. También escribió el stack `infra/bootstrap`: workspaces,
+    variables e identidad OIDC de Azure. Nosotros elegimos la ejecución remota,
+    revisamos el diff y aplicamos el bootstrap.],
 )
 
 == Propuestas incorrectas

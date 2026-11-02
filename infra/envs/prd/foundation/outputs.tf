@@ -2,13 +2,13 @@
 # breaks platform's plan.
 
 output "resource_group_name" {
-  description = "Resource group every resource of the TP lives in."
-  value       = azurerm_resource_group.this.name
+  description = "Resource group every resource of the TP lives in. ansible/update_vmss_inventory.sh reads it."
+  value       = data.azurerm_resource_group.this.name
 }
 
 output "location" {
-  description = "Azure region of the resource group."
-  value       = azurerm_resource_group.this.location
+  description = "Azure region every resource of the TP is created in. Not the resource group's own region."
+  value       = var.region
 }
 
 output "vmss_subnet_id" {

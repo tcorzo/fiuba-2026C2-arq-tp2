@@ -2,7 +2,7 @@
   hosts: all
   gather_facts: yes
   vars:
-    datadog_api_key: "{{ lookup('file', './ddog_api_key') }}"
+    datadog_api_key: "{{ lookup('env', 'DATADOG_API_KEY') }}"
     datadog_site: "datadoghq.com"
 
   tasks:
@@ -31,4 +31,3 @@
     - name: Install pm2
       command: npm install pm2@latest -g
       become: yes
-      

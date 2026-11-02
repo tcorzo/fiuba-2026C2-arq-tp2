@@ -37,8 +37,3 @@ variable "image" {
     version   = string
   })
 }
-
-variable "repo_root" {
-  description = "Repository root. A local-exec provisioner writes ansible/jumpbox_dns under it."
-  type        = string
-}

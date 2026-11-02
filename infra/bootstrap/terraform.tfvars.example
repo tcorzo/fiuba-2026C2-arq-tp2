@@ -1,4 +1,5 @@
 # Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored: never commit it.
+# These values end up as sensitive variables of the HCP Terraform workspaces.
 
 # Subscription ID shown after `az login`
 azure_sid = "<Subscription ID de Azure>"

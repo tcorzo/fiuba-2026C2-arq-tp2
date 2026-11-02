@@ -11,20 +11,22 @@
 # the instances after this stack is applied (mise run ansible:setup, app:deploy).
 ###############################################################################
 
+# foundation's workspace shares its state with this one only (remote state
+# sharing, set by infra/bootstrap). Only its outputs are read.
 data "terraform_remote_state" "foundation" {
-  backend = "local"
+  backend = "remote"
 
   config = {
-    path = "${path.root}/../foundation/terraform.tfstate"
+    organization = "gaudi-followers"
+
+    workspaces = {
+      name = "arvault-prd-foundation"
+    }
   }
 }
 
 locals {
   foundation = data.terraform_remote_state.foundation.outputs
-
-  # The local-exec provisioners write generated files into the repository
-  # (node/lb_dns, ansible/ddog_api_key). Issue #1 tracks replacing them.
-  repo_root = abspath("${path.root}/../../../..")
 
   image = {
     publisher = var.os_publisher
@@ -43,6 +45,4 @@ module "app" {
   ssh_public_key      = local.foundation.ssh_public_key
   vm_size             = var.machine_sku
   image               = local.image
-  datadog_key         = var.datadog_key
-  repo_root           = local.repo_root
 }

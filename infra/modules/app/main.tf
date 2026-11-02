@@ -30,11 +30,6 @@ resource "azurerm_lb" "this" {
     public_ip_address_id       = azurerm_public_ip.lb.id
     private_ip_address_version = "IPv4"
   }
-
-  # Store the FQDN for perf/run.sh and manual checks. See issue #1.
-  provisioner "local-exec" {
-    command = "echo ${azurerm_public_ip.lb.fqdn} > ${var.repo_root}/node/lb_dns"
-  }
 }
 
 resource "azurerm_lb_probe" "this" {
@@ -100,10 +95,5 @@ resource "azurerm_linux_virtual_machine_scale_set" "this" {
       subnet_id                              = var.subnet_id
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.this.id]
     }
-  }
-
-  # Store the Datadog API key for ansible/vmss_setup.yml. See issue #1.
-  provisioner "local-exec" {
-    command = "echo ${var.datadog_key} > ${var.repo_root}/ansible/ddog_api_key"
   }
 }

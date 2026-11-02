@@ -4,12 +4,6 @@ variable "azure_sid" {
   sensitive   = true
 }
 
-variable "datadog_key" {
-  description = "Datadog API key, for the agent Ansible installs on each instance."
-  type        = string
-  sensitive   = true
-}
-
 variable "os_publisher" {
   description = "Publisher of the instances' OS image."
   type        = string

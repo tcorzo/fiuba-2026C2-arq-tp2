@@ -11,9 +11,9 @@ The Node app's tier: a VM Scale Set behind a public Standard Load Balancer.
 The scale set and the load balancer share a module because the scale set can't join the
 pool until the rule exists (`depends_on`), and scaling the TP changes this unit.
 
-Two `local-exec` provisioners write files under `repo_root`: the LB FQDN to
-`node/lb_dns` and the Datadog key to `ansible/ddog_api_key`. Issue #1 tracks replacing
-them.
+The module writes nothing outside Terraform's state. The stack exposes the LB FQDN as the
+`lb_fqdn` output, which `perf/run.sh` reads with `terraform output`. The Datadog key never
+reaches Terraform: Ansible reads it from `DATADOG_API_KEY`.
 
 ## Usage
 
@@ -27,7 +27,5 @@ module "app" {
   ssh_public_key      = local.foundation.ssh_public_key
   vm_size             = var.machine_sku
   image               = local.image
-  datadog_key         = var.datadog_key
-  repo_root           = local.repo_root
 }
 ```

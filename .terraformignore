@@ -1,0 +1,28 @@
+# What `terraform plan/apply` must NOT upload to HCP Terraform.
+#
+# Each prd workspace has a working directory (infra/envs/prd/<stack>), so the CLI
+# uploads this whole repository, not just the stack. Remote runs only need infra/.
+# Same syntax as .gitignore. .git/ and .terraform/ are excluded by default.
+
+# Secrets, at any depth. An uploaded terraform.tfvars would be stored in HCP
+# Terraform and read by the run. The workspaces hold the variables instead
+# (infra/bootstrap sets them).
+*.pem
+*.tfvars
+*.tfstate
+*.tfstate.*
+ddog_api_key
+
+# The bootstrap stack keeps its state locally and never runs remotely.
+infra/bootstrap/
+
+# Everything that isn't Terraform.
+.claude/
+.local/
+.github/
+ansible/
+docs/
+evidencia/
+node/
+perf/
+scripts/
