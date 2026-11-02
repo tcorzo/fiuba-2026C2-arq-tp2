@@ -16,12 +16,14 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 
 ## Resource inventory
 
-22 managed resources and 1 data source, all in the resource group `tp2_resource_group`, split into two stacks under `infra/envs/prd/` (see its [README](../../infra/envs/prd/README.md)). Each stack calls modules from `infra/modules/`.
+21 managed resources and 2 data sources, all in the pre-existing resource group `RG-PRODUCTION`, split into two stacks under `infra/envs/prd/` (see its [README](../../infra/envs/prd/README.md)). Each stack calls modules from `infra/modules/`.
+
+`infra/bootstrap`, which the subscription's Owner applies, manages the resource group and the team's access to it (group `ARQUI-TP2-ADMIN`, Contributor). Both were first created in the portal and adopted with `import` blocks. The prd stacks only read the resource group: if `foundation` created it, every `destroy` would delete the team's role assignment with it. The resource group's own region is `eastus`. Every resource is created in `var.region` (`eastus2`), which may differ.
 
 | Stack → module | Terraform address (in the stack) | Azure resource | Notes |
 |---|---|---|---|
-| `foundation` | `azurerm_resource_group.this` | Resource group `tp2_resource_group` | Everything below lives here |
-| `foundation` | `data.azurerm_ssh_public_key.this` | *(data source)* | Reads a pre-existing SSH key from the `keys` RG. It is **not** managed here |
+| `foundation` | `data.azurerm_resource_group.this` | *(data source)* | Reads `RG-PRODUCTION` (`var.resource_group_name`). Everything below lives there. It is **not** managed here |
+| `foundation` | `data.azurerm_ssh_public_key.this` | *(data source)* | Reads the pre-existing SSH key `ssh_key` from `RG-PRODUCTION`. It is **not** managed here |
 | `foundation` → `network` | `module.network.azurerm_virtual_network.this` | VNet `10.0.0.0/16` | |
 | | `module.network.azurerm_subnet.vmss` | Subnet `10.0.2.0/24` | App instances |
 | | `module.network.azurerm_subnet.jumpbox` | Subnet `10.0.3.0/24` | Jumpbox |
@@ -44,7 +46,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.app.azurerm_lb_probe.this` | Health probe | TCP on port 3000 |
 | | `module.app.azurerm_lb_rule.http` | LB rule `HTTPFwd` | TCP 80 → 3000 |
 
-Providers (each stack's `terraform.tf`): `azurerm ~>4.80` and `random ~>3.0`. The `local-exec` blocks are provisioners built into Terraform, not part of any provider.
+Providers (each stack's `terraform.tf`): `azurerm ~>4.80` and `random ~>3.0`. State and runs live in HCP Terraform (organization `gaudi-followers`, project `arvault-prd`, one workspace per stack). `infra/bootstrap` creates the workspaces and the Azure identity the remote runs use. See the prd [README](../../infra/envs/prd/README.md).
 
 tflint notes that `Standard_B1s` is a retired or announced-for-retirement VM size.
 
@@ -57,7 +59,7 @@ flowchart LR
     dd[(Datadog SaaS)]
     hub[(Docker Hub)]
 
-    subgraph rg["Resource group tp2_resource_group (eastus2)"]
+    subgraph rg["Resource group RG-PRODUCTION (resources in eastus2)"]
         lbpip[Public IP<br/>lb_public_ip]
         lb[Standard Load Balancer<br/>tp2_lb<br/>rule: TCP 80 → 3000<br/>probe: TCP 3000]
         jbpip[Public IP<br/>jumpbox_public_ip]
@@ -119,55 +121,57 @@ The probe is **TCP-only**. The LB marks an instance healthy as soon as something
 
 ## Provisioning pipeline
 
-`mise run up` runs everything in this order. Terraform and Ansible do not share state directly. Terraform's `local-exec` provisioners write small files into the repo, and the scripts and the app read those files later.
+`mise run up` runs everything in this order. Terraform and Ansible do not share state directly, and Terraform writes nothing to disk. The scripts read the outputs they need from HCP Terraform with `infra/output.sh` (`terraform output`).
 
 ```mermaid
 flowchart TD
-    tfvarsf[/foundation/terraform.tfvars<br/>azure_sid, dockerhub_username,<br/>dockerhub_token/]
-    tfvarsp[/platform/terraform.tfvars<br/>azure_sid, datadog_key/]
+    boot[mise run infra:bootstrap<br/>once per group: workspaces,<br/>variables, Azure OIDC identity]
     start[mise run up]
-    login[az login]
-    applyf[mise run infra:apply foundation]
-    apply[mise run infra:apply platform]
+    login[az login<br/>for az vmss nic list]
+    applyf[terraform apply foundation<br/>remote run in arvault-prd-foundation]
+    apply[terraform apply platform<br/>remote run in arvault-prd-platform]
 
+    boot -.-> start
     start --> login --> applyf --> apply
-    tfvarsf --> applyf
-    tfvarsp --> apply
 
-    subgraph files["Files written by local-exec (gitignored, except node/config.js)"]
-        cfg[node/config.js<br/>arcaUri = ACI private IP]
-        lbdns[node/lb_dns<br/>LB FQDN]
-        jbdns[ansible/jumpbox_dns<br/>jumpbox FQDN]
-        ddkey[ansible/ddog_api_key<br/>Datadog API key]
+    subgraph outputs["Outputs in HCP Terraform"]
+        jb[foundation: jumpbox_fqdn]
+        arca[foundation: arca_uri]
+        lbo[platform: lb_fqdn]
+        appcfg[platform: app_config<br/>arcaUri]
     end
 
-    applyf --> cfg & jbdns
-    apply --> lbdns & ddkey
+    applyf --> jb & arca
+    apply --> lbo & appcfg
+    arca --> appcfg
 
     setup[mise run ansible:setup<br/>ansible/setup.sh]
     inv[ansible/update_vmss_inventory.sh<br/>az vmss nic list → vmss_hosts]
     pbsetup[vmss_setup.yml<br/>Datadog agent, unzip, Node 24, pm2]
+    ddkey[/DATADOG_API_KEY<br/>environment variable/]
     deploy[mise run app:deploy<br/>ansible/deploy.sh]
+    cfg[node/config.local.json<br/>gitignored]
     zip[node/zip → node/src.zip]
     pbdeploy[vmss_deploy.yml<br/>unzip, npm ci, pm2 start server.js]
 
     apply --> setup --> inv --> pbsetup
-    jbdns --> inv
+    jb --> inv
     ddkey --> pbsetup
-    pbsetup --> deploy --> zip --> pbdeploy
-    cfg --> zip
+    pbsetup --> deploy --> cfg --> zip --> pbdeploy
+    appcfg --> cfg
 
     perf[mise run perf:run → perf/run.sh → Artillery]
-    lbdns --> perf
+    lbo --> perf
+    ddkey --> perf
 ```
 
 Some consequences of this design:
 
-- **`node/config.js` is a tracked file that Terraform edits in place.** Terraform substitutes the ARCA IP with `sed`, leaving a `config.js.bak` behind. Expect a dirty working tree after `apply`, and don't commit the IP.
-- **Provisioners run only at creation time.** If ACI gets a new private IP (for example, after the container group is recreated), `config.js` is only updated when Terraform recreates that resource. The same applies to the DNS files.
+- **No tracked file changes on `apply`.** `node/config.js` reads `node/config.local.json`, which `ansible/deploy.sh` writes from `app_config` on every deploy. Environment variables override it and it has defaults, so the app also starts locally without it.
+- **Outputs can't go stale on disk.** Every script reads the latest applied state when it runs. `app_config` is computed by `platform` from `foundation`'s outputs, so apply `platform` after any `foundation` change.
 - **The VMSS instance count is set in two places.** Terraform's `instances` sets the count, but Ansible configures whatever `az vmss nic list` returns. Re-run `mise run ansible:setup` and `mise run app:deploy` after scaling (the README says so too).
 - **The VMSS has no custom image or cloud-init.** If Azure replaces an instance (automatic upgrade or autoscale), the new instance boots without Node or the app until Ansible runs again. This matters for any autoscaling design.
-- **Secrets reach disk.** The Datadog key is written to `ansible/ddog_api_key`, and the Terraform state stores the key and the Docker Hub token in plain text. Both files are gitignored. Keep them out of evidence files.
+- **Where secrets live.** The Docker Hub token is a sensitive workspace variable, and HCP Terraform's state (encrypted at rest) holds it in plain text. The bootstrap stack's local state holds it too. The Datadog key never reaches Terraform: it lives in `DATADOG_API_KEY`. Keep `terraform output` and run logs out of evidence files unless you read them first.
 
 ## What the TP will change
 

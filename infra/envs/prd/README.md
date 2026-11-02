@@ -4,7 +4,7 @@ Two stacks, one Terraform state each:
 
 | Stack | Contains | Changes |
 |---|---|---|
-| `foundation` | Resource group, network (VNet, subnets, NSGs), jumpbox, ARCA on Container Instances | Rarely. It's what the app tier stands on |
+| `foundation` | Network (VNet, subnets, NSGs), jumpbox, ARCA on Container Instances | Rarely. It's what the app tier stands on |
 | `platform` | Public load balancer and the VM Scale Set running the Node app | With every infrastructure configuration the TP measures |
 
 ```text
@@ -19,6 +19,15 @@ Unlike in a long-lived project, `foundation` is not permanent: everything is des
 at the end of the TP, and the jumpbox and ARCA are billed by the hour while they exist.
 A `data` stack (Redis) will sit between the two when storage is added.
 
+## Prerequisites
+
+Only read by the stacks:
+
+| What | Managed by |
+|---|---|
+| Resource group `RG-PRODUCTION` (`var.resource_group_name`) and the team's access to it (group `ARQUI-TP2-ADMIN`, Contributor) | [`infra/bootstrap`](../../bootstrap/README.md). Not by `foundation`: a resource group it created would lose the team's role assignment on every destroy. `destroy` empties it and keeps it |
+| SSH key `ssh_key` in `RG-PRODUCTION` (`var.ssh_key_name`, `var.ssh_key_group_name`) | Nobody: created by hand. | Created in the Azure portal (SSH keys → Create), which keeps the private key out of Terraform's state. Its private key is `key.pem` at the repository root, gitignored, shared within the team by other means |
+
 ## Order
 
 - **Apply** `foundation`, then `platform`. `platform` can't be planned before
@@ -31,6 +40,7 @@ The stack is the task's argument. It defaults to `foundation`, except for `destr
 which defaults to `platform`.
 
 ```sh
+mise run infra:bootstrap        # once per group: HCP workspaces + Azure identity
 mise run infra:plan platform
 mise run infra:apply foundation
 mise run infra:destroy platform
@@ -41,32 +51,40 @@ mise run up                    # login, apply both stacks, Ansible setup, deploy
 mise run down                  # destroy platform, then foundation
 ```
 
-## Variables
+## HCP Terraform
 
-Each stack has its own `terraform.tfvars` (gitignored). Copy `terraform.tfvars.example`
-in each stack directory and fill it in:
+Each stack keeps its state in, and runs its plans and applies on, an HCP Terraform
+workspace: organization `gaudi-followers`, project `arvault-prd`.
 
-- `foundation`: `azure_sid`, `dockerhub_username`, `dockerhub_token`
-- `platform`: `azure_sid`, `datadog_key`
+| Stack | Workspace |
+|---|---|
+| `foundation` | `arvault-prd-foundation` |
+| `platform` | `arvault-prd-platform` |
 
-## State
+[`infra/bootstrap`](../../bootstrap/README.md) creates both workspaces, their variables,
+and the Azure identity the runs authenticate as. Apply it once per group before
+anything else.
 
-Local: `terraform.tfstate` next to each stack's files, gitignored. Don't lose it, and
-don't commit it: it holds the Docker Hub token and the Datadog key in plain text.
-Moving to HCP Terraform means adding a `cloud` block to each stack's `terraform.tf` and
-switching `platform`'s `terraform_remote_state` to `backend = "remote"`.
+- **Runs are remote.** `terraform plan` and `apply` upload the repository (minus
+  `.terraformignore`) and stream the run's output. The runs authenticate to Azure with
+  dynamic provider credentials (OIDC). The local `az login` is not used by Terraform.
+- **Variables live in the workspaces**, not in `terraform.tfvars` files. The stacks
+  have none. `.terraformignore` keeps any local `*.tfvars` from being uploaded.
+- **State is shared and locked.** Every member sees the same deployment. Run
+  `terraform login` once per machine.
 
-## Generated files
+## Outputs
 
-Some resources write files into the repository with `local-exec` provisioners when they
-are created. All are gitignored except `node/config.js`, which is tracked and edited in
-place:
+Nothing is written to disk by Terraform. The scripts read the outputs they need with
+[`infra/output.sh`](../output.sh), which calls `terraform output` against the
+workspace. Each value is the one in the latest applied state.
 
-| File | Written by | Read by |
+| Output | Stack | Read by |
 |---|---|---|
-| `node/config.js` (`arcaUri`) | `foundation` → `arca` | the Node app |
-| `ansible/jumpbox_dns` | `foundation` → `jumpbox` | `ansible/update_vmss_inventory.sh` |
-| `node/lb_dns` | `platform` → `app` | `perf/run.sh` |
-| `ansible/ddog_api_key` | `platform` → `app` | `ansible/vmss_setup.yml` |
+| `jumpbox_fqdn` | `foundation` | `ansible/update_vmss_inventory.sh` |
+| `arca_uri` | `foundation` | `platform`, into `app_config` |
+| `lb_fqdn` | `platform` | `perf/run.sh` |
+| `app_config` | `platform` | `ansible/deploy.sh`, which writes it to `node/config.local.json` (gitignored) |
 
-Issue #1 tracks replacing them with outputs and Terraform-managed files.
+The Datadog API key doesn't go through Terraform: `ansible/vmss_setup.yml` reads it
+from `DATADOG_API_KEY`, the same variable `perf/run.sh` uses.
