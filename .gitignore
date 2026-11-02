@@ -59,6 +59,7 @@ pubkey
 *.bak
 .vscode
 .local
+.claude
 
 # A module's lock file comes from `terraform validate` initialising it on its own.
 # Only a stack's lock file is authoritative.
