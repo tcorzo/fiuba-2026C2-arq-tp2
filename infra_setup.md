@@ -11,7 +11,7 @@ repository is public.
 | 1 | HCP Terraform user token | app.terraform.io → Account settings → Tokens | `mise.local.toml` (or `terraform login`) | Every `terraform` command |
 | 2 | Azure login | Your account in the `ARQUI-TP2-ADMIN` group | `az login` session | `ansible/update_vmss_inventory.sh`, the evidence |
 | 3 | SSH private key | Shared within the team | `key.pem` at the repository root | Ansible, through the jumpbox |
-| 4 | Datadog API key | Datadog → Organization Settings → API Keys | `DATADOG_API_KEY` in `mise.local.toml` | Ansible (agent), Artillery |
+| 4 | Datadog API key | Datadog → Organization Settings → API Keys | `DATADOG_API_KEY` and `DATADOG_SITE` in `mise.local.toml` | Ansible (agent), Artillery |
 
 Terraform does not use your local Azure session: the HCP Terraform runs authenticate to
 Azure on their own (OIDC). You don't need the Azure subscription ID, the Docker Hub
@@ -25,8 +25,10 @@ bootstrap (see the last section).
 2. Go to app.terraform.io → your avatar → **Account settings** → **Tokens** →
    **Create an API token**. Use a **user token**: an organization token can't start
    runs.
-3. Put it in `mise.local.toml` at the repository root (gitignored). This scopes the
-   token to this repository and doesn't touch other HCP accounts you are logged into:
+3. Put it in `mise.local.toml` at the repository root (gitignored), not in a
+   subdirectory: mise doesn't read it from there when a task runs from the root. This
+   scopes the token to this repository and doesn't touch other HCP accounts you are
+   logged into:
 
    ```toml
    [env]
@@ -67,16 +69,25 @@ chmod 400 key.pem
 
 ## 4. Datadog API key
 
-Datadog (site `datadoghq.com`) → **Organization Settings** → **API Keys** → copy or
-create a key. Add it to the same `mise.local.toml`:
+Datadog → **Organization Settings** → **API Keys** → copy or create a key. Use an
+**API key** (32 hex characters), not an application key (`ddapp_…`): the agent and
+Artillery reject the latter. Add it to the same `mise.local.toml`:
 
 ```toml
 [env]
 DATADOG_API_KEY = "<your key>"
+DATADOG_SITE = "<your site>"
 ```
 
-Or export it in the shell before each session: `export DATADOG_API_KEY=<your key>`.
-`mise run up`, `ansible:setup` and `perf:run` stop if it's missing.
+Or export both in the shell before each session. `mise run up`, `ansible:setup` and
+`perf:run` stop if either is missing.
+
+`DATADOG_SITE` is the host in your browser's URL without the `app.` prefix:
+`datadoghq.com` for `app.datadoghq.com`, `us5.datadoghq.com`, `datadoghq.eu`, and so
+on. It has no default on purpose: a key belongs to one site, and the agent or Artillery
+sending it to another one loses the data without a visible error.
+`ansible/vmss_setup.yml` passes it to the agent, and Artillery's Datadog plugin reads it
+from the environment.
 
 ## Run
 

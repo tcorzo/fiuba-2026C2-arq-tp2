@@ -122,7 +122,7 @@ sequenceDiagram
     participant N as Node app (VMSS instance)
     participant A as ARCA (ACI)
 
-    C->>LB: GET http://<lb_dns>/<dni>
+    C->>LB: GET http://<lb_fqdn>/<dni>
     LB->>N: forward to :3000 (healthy backend chosen by 5-tuple hash)
     N->>A: POST http://<aci-private-ip>:8080/validar {dni}
     A-->>N: 200 + body
@@ -165,7 +165,7 @@ flowchart TD
     setup[mise run ansible:setup<br/>ansible/setup.sh]
     inv[ansible/update_vmss_inventory.sh<br/>az vmss nic list → vmss_hosts]
     pbsetup[vmss_setup.yml<br/>Datadog agent, unzip, Node 24, pm2]
-    ddkey[/DATADOG_API_KEY<br/>environment variable/]
+    ddkey[/DATADOG_API_KEY, DATADOG_SITE<br/>environment variables/]
     deploy[mise run app:deploy<br/>ansible/deploy.sh]
     cfg[node/config.local.json<br/>gitignored]
     zip[node/zip → node/src.zip]

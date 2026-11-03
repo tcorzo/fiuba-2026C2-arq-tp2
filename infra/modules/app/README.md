@@ -13,7 +13,8 @@ pool until the rule exists (`depends_on`), and scaling the TP changes this unit.
 
 The module writes nothing outside Terraform's state. The stack exposes the LB FQDN as the
 `lb_fqdn` output, which `perf/run.sh` reads with `terraform output`. The Datadog key never
-reaches Terraform: Ansible reads it from `DATADOG_API_KEY`.
+reaches Terraform: Ansible reads it from `DATADOG_API_KEY`, and the site from
+`DATADOG_SITE`.
 
 ## Usage
 

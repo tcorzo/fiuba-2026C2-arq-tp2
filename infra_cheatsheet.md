@@ -18,7 +18,7 @@ Stacks: `foundation` (network, jumpbox, ARCA) and `platform` (load balancer, VMS
 
 | Command | When |
 |---|---|
-| `mise run up` | To start a work or measurement session from nothing. Runs `az login`, applies `foundation` and `platform` **without asking**, then `ansible:setup` and `app:deploy`. Needs `DATADOG_API_KEY` |
+| `mise run up` | To start a work or measurement session from nothing. Runs `az login`, applies `foundation` and `platform` **without asking**, then `ansible:setup` and `app:deploy`. Needs `DATADOG_API_KEY` and `DATADOG_SITE` |
 | `mise run down` | When you stop working or measuring: everything is billed by the hour. Destroys `platform`, then `foundation`, asking before each. Keeps `RG-PRODUCTION` and the team's access |
 
 ## Terraform, one stack at a time
@@ -52,18 +52,22 @@ both stacks are applied.
 
 | Command | When |
 |---|---|
-| `mise run ansible:setup` | After every `platform` apply that creates instances (first deploy, scaling): installs Node, pm2 and the Datadog agent. Needs `DATADOG_API_KEY` |
+| `mise run ansible:setup` | After every `platform` apply that creates instances (first deploy, scaling): installs Node, pm2 and the Datadog agent. Needs `DATADOG_API_KEY` and `DATADOG_SITE` |
 | `mise run app:deploy` | After `ansible:setup`, and after every change in `node/`. Also writes `node/config.local.json` from the `app_config` output |
 | `mise run app:test` | Before deploying a change in `node/`. Local, needs no infrastructure |
 
 Check that it answers: `curl "http://$(infra/output.sh platform lb_fqdn)/"`.
+
+On the first deploy, the task `Stop old version` fails with `Process or Namespace
+server.js not found` and Ansible prints `...ignoring`: there is no process to stop yet.
+The deploy is fine if the recap shows `failed=0`.
 
 ## Load tests
 
 | Command | When |
 |---|---|
 | `mise run perf:install` | Once per clone, before the first `perf:run` |
-| `mise run perf:run <scenario> <output>` | With the app deployed, **after committing the prediction**. `<scenario>` is a file in `perf/` without `.yaml` (e.g. `baseline`, `exchange`); `<output>` is relative to `perf/`, without `.json` (e.g. `results/1-node/exchange`). Needs `DATADOG_API_KEY` |
+| `mise run perf:run <scenario> <output>` | With the app deployed, **after committing the prediction**. `<scenario>` is a file in `perf/` without `.yaml` (e.g. `baseline`, `exchange`); `<output>` is relative to `perf/`, without `.json` (e.g. `results/1-node/exchange`). Needs `DATADOG_API_KEY` and `DATADOG_SITE` |
 
 ## Common workflows
 

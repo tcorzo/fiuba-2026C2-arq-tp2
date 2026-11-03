@@ -7,7 +7,8 @@ config:
     publish-metrics:
       - type: datadog
         apiKey: "{{ $processEnvironment.DATADOG_API_KEY }}"
-        apiHost: "app.datadoghq.com"
+        # No apiHost: datadog-metrics reads the site from DATADOG_SITE, which
+        # run.sh requires.
         prefix: "artillery."
         tags:
           - "test:root"

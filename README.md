@@ -194,16 +194,17 @@ azure_sid = "<Subscription ID de Azure>"
 ### Datadog
 
 - Crear una cuenta con el [pack estudiantil de GitHub](https://education.github.com/pack) en [Datadog](https://www.datadoghq.com/)
-- Ir a `<Usuario> -> Organization Settings -> API Keys` y obtener la API Key.
-  - En `infra/envs/prd/platform/terraform.tfvars`, asignar el valor de la API key a una variable llamada __datadog_key__, debe quedar de esta manera:
+- Ir a `<Usuario> -> Organization Settings -> API Keys` y obtener la API Key. Tiene que ser una __API key__ (32 caracteres hexadecimales), no una Application Key (empieza con `ddapp_`).
+- Verificar el host en la URL del navegador y sacarle el prefijo "app.": ese es el __site__ de la cuenta. Por ejemplo, __app.datadoghq.com__ es `datadoghq.com` y __us5.datadoghq.com__ es `us5.datadoghq.com`.
+- Guardar ambos valores en las variables de entorno `DATADOG_API_KEY` y `DATADOG_SITE`, en el `mise.local.toml` de la raíz del repositorio (está en el `.gitignore`), debe quedar de esta manera:
 
-```properties
-datadog_key = "<API key de Datadog>"
+```toml
+[env]
+DATADOG_API_KEY = "<API key de Datadog>"
+DATADOG_SITE = "<site de Datadog>"
 ```
 
-- Verificar el host en la URL del navegador:
-  - Si es __app.datadoghq.com__, saltear este paso.
-  - Si en vez de "app" aparece otro nombre (por ejemplo, __us5.datadoghq.com__) ver las secciones de "Configuración adicional" más abajo.
+`DATADOG_SITE` no tiene valor por defecto: una key enviada al site equivocado pierde los datos sin mostrar ningún error. Por eso `mise run up`, `mise run ansible:setup` y `mise run perf:run` se detienen si falta alguna de las dos variables. Más detalles en [`infra_setup.md`](infra_setup.md).
 
 ### Terraform
 
@@ -217,10 +218,7 @@ datadog_key = "<API key de Datadog>"
 
 - Ansible se instala con `mise install`.
 - La colección de Datadog para Ansible (`ansible/requirements.yml`) se instala sola al ejecutar `mise run ansible:setup`.
-
-#### Configuración adicional
-
-Si en la verificación de Datadog encuentran que el host comienza con un string distinto a "app", deben editar el archivo `ansible/vmss_setup.yml` y colocar el hostname en la variable __datadog_site__.
+- `ansible/vmss_setup.yml` toma el site de Datadog de la variable de entorno `DATADOG_SITE`.
 
 ## Correr los servidores
 
@@ -240,11 +238,13 @@ La recomendación, por lo tanto, es que cada cual tenga su propia cuenta de Azur
 
 ### Verificación de funcionamiento
 
-Una vez levantados los servidores, se puede verificar su correcto funcionamiento utilizando la URL que se encuentra dentro del archivo `lb_dns` de la carpeta `node` y enviando un request:
+Una vez levantados los servidores, se puede verificar su correcto funcionamiento enviando un request a la URL del load balancer. `infra/output.sh` la lee del output `lb_fqdn` del stack `platform`:
 
 ```sh
-curl `cat node/lb_dns`
+curl "http://$(infra/output.sh platform lb_fqdn)/"
 ```
+
+En el primer deploy, la tarea `Stop old version` falla con `Process or Namespace server.js not found` y Ansible muestra `...ignoring`: todavía no hay ningún proceso para detener. El deploy está bien si el resumen final muestra `failed=0`.
 
 Con esto pueden verificar que la aplicación Node de ejemplo levantó correctamente.
 
@@ -274,7 +274,7 @@ El proyecto usa [pm2](https://pm2.keymetrics.io/) para daemonizar y administrar 
 Si necesitan ingresar a alguna instancia de VMSS para ver logs o administrarla en general, deben ejecutar el siguiente comando desde la raíz del repositorio (reemplazando en el lugar apropiado por la IP interna de la instancia):
 
 ```sh
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %h:%p -q azureuser@$(cat ansible/jumpbox_dns) -i ./key.pem" -i ./key.pem azureuser@<IP privada del host>
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %h:%p -q azureuser@$(infra/output.sh foundation jumpbox_fqdn) -i ./key.pem" -i ./key.pem azureuser@<IP privada del host>
 ```
 
 Esto usa al jumpbox de proxy SSH para evitar exponer con una IP pública a los nodos del VMSS. Utilizamos el mismo par de claves para el jumpbox y los nodos por simplicidad. Normalmente se usan pares distintos.
@@ -287,21 +287,22 @@ Para enviar sus propias métricas, vean cómo hacerlo [aquí](https://docs.datad
 
 Para enviar métricas desde Artillery, vean la configuración [aquí](https://artillery.io/docs/guides/plugins/plugin-publish-metrics.html).
 
-Antes de invocar a Artillery, ya sea utilizando `mise run perf:run <escenario> <reporte>` (que llama a `perf/run.sh`; instalar Artillery antes con `mise run perf:install`) o de manera directa, exporten la API key de Datadog a la variable de entorno `DATADOG_API_KEY`:
+Antes de invocar a Artillery, ya sea utilizando `mise run perf:run <escenario> <reporte>` (que llama a `perf/run.sh`; instalar Artillery antes con `mise run perf:install`) o de manera directa, tienen que estar definidas las variables de entorno `DATADOG_API_KEY` y `DATADOG_SITE` (ver la sección [Datadog](#datadog)). Si no usan `mise.local.toml`, pueden exportarlas en la terminal:
 
-`export DATADOG_API_KEY=<API key de Datadog>`
+```sh
+export DATADOG_API_KEY=<API key de Datadog>
+export DATADOG_SITE=<site de Datadog>
+```
 
 Esta es una manera con la que evitan subir la key al repositorio. Pueden usar cualquier otro mecanismo que prefieran, mientras eviten commitearla.
 
 Recuerden guardar el reporte crudo de cada ejecución en `perf/results/`, por ejemplo agregando `--output` a la invocación de Artillery (ver la sección [Evidencia](#evidencia)). El script `perf/run.sh` ya tiene la generación del reporte, revisen para ver cómo funciona.
 
-#### Configuración adicional
-
-Si en la verificación de Datadog encuentran que el host comienza con un string distinto a "app", deben editar el archivo YAML de Artillery y colocar el hostname en la variable __apiHost__.
+El plugin de Datadog de Artillery toma el site de `DATADOG_SITE`, así que no hace falta configurar `apiHost` en los YAML de `perf/`.
 
 ## Destruir la infraestructura
 
-Cuando hayan terminado con el TP, pueden destruir la infraestructura con `mise run down` (destruye `platform` y luego `foundation`). Al par de claves que crearon a través de la UI de Azure deben eliminarlo también desde la UI.
+Cuando hayan terminado con el TP, pueden destruir la infraestructura con `mise run down` (destruye `platform` y luego `foundation`). El par de claves que crearon a través de la UI de Azure deben eliminarlo también desde la UI.
 
 ## Cheatsheet de Terraform
 

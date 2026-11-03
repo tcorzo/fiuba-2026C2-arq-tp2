@@ -253,7 +253,7 @@ tflint --chdir=infra --recursive --minimum-failure-severity=warning
 '''
 
 [tasks."ansible:setup"]
-description = "Installs the Datadog agent, Node and pm2 on every VMSS instance. Export DATADOG_API_KEY first"
+description = "Installs the Datadog agent, Node and pm2 on every VMSS instance. Export DATADOG_API_KEY and DATADOG_SITE first"
 run = '''
 ansible-galaxy collection install -r ansible/requirements.yml
 ansible/setup.sh
@@ -280,7 +280,7 @@ dir = "perf"
 run = "npm ci"
 
 [tasks."perf:run"]
-description = "Runs an Artillery scenario against the load balancer. Export DATADOG_API_KEY first"
+description = "Runs an Artillery scenario against the load balancer. Export DATADOG_API_KEY and DATADOG_SITE first"
 usage = '''
 arg "<scenario>" help="Scenario file in perf/, without .yaml"
 arg "<output>" help="Report path, without .json"
@@ -291,9 +291,13 @@ run = './run.sh "${usage_scenario}" "${usage_output}"'
 [tasks.up]
 description = "Logs into Azure, applies foundation and platform in HCP Terraform, then installs and deploys the app. Applies without asking"
 run = '''
-# Checked before anything is created: ansible:setup needs it at the end.
+# Checked before anything is created: ansible:setup needs them at the end.
 if [ -z "${DATADOG_API_KEY:-}" ]; then
   echo "DATADOG_API_KEY is not set. Export your Datadog API key first." >&2
+  exit 1
+fi
+if [ -z "${DATADOG_SITE:-}" ]; then
+  echo "DATADOG_SITE is not set. Export your Datadog site first (e.g. us5.datadoghq.com)." >&2
   exit 1
 fi
 

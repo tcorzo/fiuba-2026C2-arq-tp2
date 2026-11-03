@@ -42,6 +42,13 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
   [El primer `apply` falló con `SkuNotAvailable` para `Standard_B1s`. El agente
     consultó los tamaños y la cuota de la suscripción en `eastus2` con `az` y
     propuso `Standard_F1als_v7`. Nosotros revisamos el cambio y aplicamos.],
+
+  [Site de Datadog],
+  [Una cuenta del grupo está en `us5.datadoghq.com`. El agente revisó el repo y
+    encontró el site US1 fijo en Ansible y en Artillery. Propuso leerlo de
+    `DATADOG_SITE`, con US1 por defecto. Nosotros descartamos el default: una key
+    enviada al site equivocado pierde los datos sin error visible. La variable
+    quedó obligatoria.],
 )
 
 == Propuestas incorrectas
