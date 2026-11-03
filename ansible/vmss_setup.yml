@@ -3,7 +3,18 @@
   gather_facts: yes
   vars:
     datadog_api_key: "{{ lookup('env', 'DATADOG_API_KEY') }}"
-    datadog_site: "datadoghq.com"
+    # The site follows the API key's account: datadoghq.com, us5.datadoghq.com, ...
+    # No default on purpose: a key sent to the wrong site fails without a visible error.
+    datadog_site: "{{ lookup('env', 'DATADOG_SITE') }}"
+
+  pre_tasks:
+    - name: Require the Datadog API key and site
+      assert:
+        that:
+          - datadog_api_key | length > 0
+          - datadog_site | length > 0
+        fail_msg: "Set DATADOG_API_KEY and DATADOG_SITE (e.g. us5.datadoghq.com) first."
+      run_once: yes
 
   tasks:
     - name: Import Datadog Agent role from collection
