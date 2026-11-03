@@ -25,8 +25,10 @@ bootstrap (see the last section).
 2. Go to app.terraform.io → your avatar → **Account settings** → **Tokens** →
    **Create an API token**. Use a **user token**: an organization token can't start
    runs.
-3. Put it in `mise.local.toml` at the repository root (gitignored). This scopes the
-   token to this repository and doesn't touch other HCP accounts you are logged into:
+3. Put it in `mise.local.toml` at the repository root (gitignored), not in a
+   subdirectory: mise doesn't read it from there when a task runs from the root. This
+   scopes the token to this repository and doesn't touch other HCP accounts you are
+   logged into:
 
    ```toml
    [env]

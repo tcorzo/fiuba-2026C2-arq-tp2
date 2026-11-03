@@ -96,7 +96,7 @@ Before **each** load test (1 node, scaled, and each tactic) the group records a 
 | `ansible/` | `setup.sh` refreshes the VMSS inventory and installs Node, pm2 and the Datadog agent; `deploy.sh` zips `node/` and deploys it. Both go through the jumpbox. |
 | `node/` | The service. Starts as the course's sample app (`GET /:dni` → ARCA); gets replaced by our TP 1 service with the `dni` field and the ARCA call. |
 | `node/config.js` | Reads `node/config.local.json` (gitignored), which `ansible/deploy.sh` writes from the `platform` stack's `app_config` output. Environment variables override it. A new runtime setting is a key in `app_config` plus a line in `config.js`. |
-| `perf/` | Artillery. `run.sh <scenario> <output>` runs `<scenario>.yaml` against the load balancer and writes the raw report. `DATADOG_API_KEY` comes from the environment, never from a file in the repo. |
+| `perf/` | Artillery. `run.sh <scenario> <output>` runs `<scenario>.yaml` against the load balancer and writes the raw report. `DATADOG_API_KEY` and `DATADOG_SITE` come from the environment, never from a file in the repo. |
 | `perf/predicciones.md` | The predictions, see above. |
 | `perf/results/<case>/` | Raw Artillery reports. Tracked on purpose. |
 | `evidencia/<case>/` | Infra outputs, log extracts, dashboard JSON. Tracked on purpose. |
