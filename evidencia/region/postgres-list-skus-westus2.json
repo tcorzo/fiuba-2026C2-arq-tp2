@@ -1,0 +1,63 @@
+[
+  {
+    "fastProvisioningSupported": "Disabled",
+    "geoBackupSupported": "Enabled",
+    "name": "FlexibleServerCapabilities",
+    "onlineResizeSupported": "Enabled",
+    "reason": "Subscriptions are restricted from provisioning in this region. Please choose a different region. For exceptions to this rule please open a support request with Issue type of 'Service and subscription limits'.",
+    "restricted": null,
+    "status": null,
+    "storageAutoGrowthSupported": "Enabled",
+    "supportedFastProvisioningEditions": [],
+    "supportedFeatures": [
+      {
+        "name": "FastProvisioning",
+        "status": "Disabled"
+      },
+      {
+        "name": "ZoneRedundantHa",
+        "status": "Disabled"
+      },
+      {
+        "name": "GeoBackup",
+        "status": "Enabled"
+      },
+      {
+        "name": "ZoneRedundantHaAndGeoBackup",
+        "status": "Disabled"
+      },
+      {
+        "name": "StorageAutoGrowth",
+        "status": "Enabled"
+      },
+      {
+        "name": "OnlineResize",
+        "status": "Enabled"
+      },
+      {
+        "name": "OfferRestricted",
+        "status": "Enabled"
+      },
+      {
+        "name": "IndexTuning",
+        "status": "Enabled"
+      },
+      {
+        "name": "Clusters",
+        "status": "Enabled"
+      },
+      {
+        "name": "AdaptiveAutoVacuumAutoApply",
+        "status": "Enabled"
+      },
+      {
+        "name": "ConfigTuning",
+        "status": "Disabled"
+      }
+    ],
+    "supportedServerEditions": [],
+    "supportedServerVersions": [],
+    "zoneRedundantHaAndGeoBackupSupported": "Disabled",
+    "zoneRedundantHaSupported": "Disabled"
+  }
+]

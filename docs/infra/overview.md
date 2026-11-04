@@ -6,7 +6,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 
 | Concern | What it is |
 |---|---|
-| Cloud / region | Azure, `eastus2` (`var.region`) |
+| Cloud / region | Azure, `centralus` (`var.region`). See [Region](#region) |
 | Entry point | Public **Standard Load Balancer**, port 80 → port 3000 on the VMSS |
 | App tier | **Linux VM Scale Set** `tp2vmss`, 1 × `Standard_F1als_v7` (1 vCPU, 2 GiB, no CPU credits), Ubuntu 24.04, Node 24 + pm2 |
 | External dependency | **ARCA** mock, `arqsoft/arca:1.0.0` on **Azure Container Instances**, private IP, port 8080 |
@@ -18,7 +18,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 
 21 managed resources and 2 data sources, all in the pre-existing resource group `RG-PRODUCTION`, split into two stacks under `infra/envs/prd/` (see its [README](../../infra/envs/prd/README.md)). Each stack calls modules from `infra/modules/`.
 
-`infra/bootstrap`, which the subscription's Owner applies, manages the resource group and the team's access to it (group `ARQUI-TP2-ADMIN`, Contributor). Both were first created in the portal and adopted with `import` blocks. The prd stacks only read the resource group: if `foundation` created it, every `destroy` would delete the team's role assignment with it. The resource group's own region is `eastus`. Every resource is created in `var.region` (`eastus2`), which may differ.
+`infra/bootstrap`, which the subscription's Owner applies, manages the resource group and the team's access to it (group `ARQUI-TP2-ADMIN`, Contributor). Both were first created in the portal and adopted with `import` blocks. The prd stacks only read the resource group: if `foundation` created it, every `destroy` would delete the team's role assignment with it. The resource group's own region is `eastus`. Every resource is created in `var.region` (`centralus`), which may differ.
 
 | Stack → module | Terraform address (in the stack) | Azure resource | Notes |
 |---|---|---|---|
@@ -32,7 +32,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.network.azurerm_network_security_group.ssh` | NSG `ssh_sg` | Allows TCP 22 from `*` |
 | | `module.network.azurerm_network_security_group.vmss_http` | NSG `vmss_http_sg` | Allows TCP 3000 from `*` |
 | `foundation` → `jumpbox` | `module.jumpbox.random_string.dns_label` | — | DNS label |
-| | `module.jumpbox.azurerm_public_ip.this` | Public IP (Standard, static) | `<random>.eastus2.cloudapp.azure.com` |
+| | `module.jumpbox.azurerm_public_ip.this` | Public IP (Standard, static) | `<random>.centralus.cloudapp.azure.com` |
 | | `module.jumpbox.azurerm_network_interface.this` | NIC | |
 | | `module.jumpbox.azurerm_network_interface_security_group_association.this` | NSG ↔ NIC | Attaches `ssh_sg` to the jumpbox NIC |
 | | `module.jumpbox.azurerm_linux_virtual_machine.this` | VM `jumpbox` | `Standard_F1als_v7`, `Standard_LRS` disk |
@@ -48,24 +48,39 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 
 Providers (each stack's `terraform.tf`): `azurerm ~>4.80` and `random ~>3.0`. State and runs live in HCP Terraform (organization `gaudi-followers`, project `arvault-prd`, one workspace per stack). `infra/bootstrap` creates the workspaces and the Azure identity the remote runs use. See the prd [README](../../infra/envs/prd/README.md).
 
+### Region
+
+Everything runs in `centralus`, not in `eastus2`, the region the course recommends. Our
+subscription can't create PostgreSQL Flexible Server in `eastus2`:
+`az postgres flexible-server list-skus -l eastus2` answers "Subscriptions are restricted
+from provisioning in this region", and a real `create` fails with "The location is
+restricted from performing this operation". `list-skus` reports `eastus`, `westus2` and
+`southcentralus` as restricted too. The database has to be in the VNet's region, so the
+whole deployment moved. The outputs are in [`evidencia/region/`](../../evidencia/region/).
+
+Before moving, a server, a container group in a VNet and every size and quota below were
+checked in `centralus`. The server and the container group were created for real and
+deleted right after.
+
 ### VM size
 
 Every VM (the jumpbox and each VMSS instance) is `Standard_F1als_v7`: 1 vCPU, 2 GiB, AMD.
-The B series (`Standard_B1s`, the course's default) is not offered to our subscription
-in `eastus2`: `az vm list-skus -l eastus2` lists every B size as
-`NotAvailableForSubscription`, and the first apply failed with `SkuNotAvailable`. The
-smallest unrestricted sizes there are the v7 generation.
+The B series (`Standard_B1s`, the course's default) is not offered to our subscription:
+in `eastus2`, `az vm list-skus` lists every B size as `NotAvailableForSubscription`, and
+the first apply failed with `SkuNotAvailable`. In `centralus`, it doesn't list
+`Standard_B1s` at all. The smallest unrestricted sizes are the v7 generation.
 
 - **1 vCPU, on purpose.** The subscription allows 4 regional vCPUs (`az vm list-usage
-  -l eastus2`). The jumpbox plus 2 VMSS instances fit; a 2-vCPU size wouldn't.
+  -l centralus`, also 4 for the `StandardFalsv7Family`). The jumpbox plus 2 VMSS
+  instances fit; a 2-vCPU size wouldn't.
 - **No CPU credits.** Unlike the B series, an F-series VM doesn't throttle to a
   baseline when it runs out of credits, so a long load test measures the same CPU from
   start to end.
 - **NVMe and Gen2 only.** The image (Ubuntu 24.04 `server`) is Gen2 and NVMe-capable.
   The OS disk controller type is not set, so Azure chooses it; this size only offers
   NVMe. (`azurerm_linux_virtual_machine_scale_set` has no `disk_controller_type`.)
-- **Cost.** About USD 0.06/h per VM in `eastus2` (B1s: USD 0.01/h). Run `mise run down`
-  when not working.
+- **Cost.** About USD 0.06/h per VM, the `eastus2` price (B1s: USD 0.01/h). The
+  `centralus` price wasn't checked. Run `mise run down` when not working.
 
 ## Network topology
 
@@ -76,7 +91,7 @@ flowchart LR
     dd[(Datadog SaaS)]
     hub[(Docker Hub)]
 
-    subgraph rg["Resource group RG-PRODUCTION (resources in eastus2)"]
+    subgraph rg["Resource group RG-PRODUCTION (resources in centralus)"]
         lbpip[Public IP<br/>lb_public_ip]
         lb[Standard Load Balancer<br/>tp2_lb<br/>rule: TCP 80 → 3000<br/>probe: TCP 3000]
         jbpip[Public IP<br/>jumpbox_public_ip]

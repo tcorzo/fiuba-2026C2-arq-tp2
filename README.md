@@ -210,7 +210,7 @@ DATADOG_SITE = "<site de Datadog>"
 
 - Instalar las herramientas con [mise](https://mise.jdx.dev/): `mise install` instala Terraform, Azure CLI, Ansible y Node en las versiones fijadas en `mise.toml`. `mise tasks` lista las tareas disponibles.
 - Revisar los archivos `variables.tf` de cada stack en `infra/envs/prd/` y actualizar los valores default de las variables que corresponda. Este archivo sí será commiteado, así que solo poner aquí valores default que puedan exponerse (para los demás, deben estar las variables declaradas aquí pero los valores deben estar en `terraform.tfvars`, que nunca hay que commitearlo)
-  - Para "location" (region), recomendamos utilizar "eastus2" o "westus2".
+  - Para "location" (region), usamos "centralus". El curso recomienda "eastus2" o "westus2", pero en esas regiones la suscripción no puede crear PostgreSQL Flexible Server (ver `docs/infra/overview.md`, *Region*).
   - Verificar que el nombre del par de claves creado en Azure coincida con el de la variable "ssh_key_name" y que su resource group coincida con "ssh_key_group_name".
 - Ejecutar `mise run infra:init foundation` y `mise run infra:init platform`. Esto inicializa la configuración que requiere terraform, e instala los providers necesarios.
 

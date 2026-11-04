@@ -49,6 +49,13 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     `DATADOG_SITE`, con US1 por defecto. Nosotros descartamos el default: una key
     enviada al site equivocado pierde los datos sin error visible. La variable
     quedó obligatoria.],
+
+  [Región y storage],
+  [El agente diagnosticó que la app no escuchaba porque le faltaba Postgres.
+    Encontró que la suscripción no puede crear PostgreSQL Flexible Server en
+    `eastus2`. Un `validate` de ARM dio `Succeeded` y era engañoso: lo confirmó
+    una creación real, que falló. Probó y borró los recursos en `centralus`.
+    Nosotros decidimos mover la región.],
 )
 
 == Propuestas incorrectas
