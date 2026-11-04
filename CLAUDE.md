@@ -82,7 +82,7 @@ Before **each** load test (1 node, scaled, and each tactic) the group records a 
 | Rule | Consequence of breaking it |
 |---|---|
 | Every test runs from outside Azure, and **every test that is compared with another runs from the same location** (same machine, same network). The report states where the load generator ran, its connection type and bandwidth. | Latency includes the internet round trip; a different location changes it. |
-| Measure the **baseline network latency** against `/` (no load, no ARCA, no Redis) before the tests, and use it when interpreting every latency. | A latency delta smaller than the baseline's variation is noise. |
+| Measure the **baseline network latency** against `/` (no load, no ARCA, no storage) before the tests, and use it when interpreting every latency. | A latency delta smaller than the baseline's variation is noise. |
 | Every infrastructure change goes through `infra/` (Terraform) or `ansible/`. | Changes made in the Azure portal or over SSH are **not implemented** for the assignment: they are not reproducible. |
 | Scaling means changing `instances` on the VMSS in Terraform, applying it, then running the Ansible setup and deploy again. | A new instance without the app is a backend the load balancer probes and then routes to. |
 | Record the infra evidence (see *Evidence*) for every configuration while it is deployed. | Once destroyed, there is no way to prove what ran. |
@@ -94,7 +94,7 @@ Before **each** load test (1 node, scaled, and each tactic) the group records a 
 |---|---|
 | `infra/` | Terraform. Its layout, the order to apply it and its tasks are documented in `docs/infra/overview.md`; read that instead of assuming a structure. State and runs live in **HCP Terraform** (org `gaudi-followers`, project `arvault-prd`, one workspace per stack, remote execution); `infra/bootstrap` (applied by the subscription's Owner) creates the workspaces, their variables, the Azure OIDC identity, and manages the resource group `RG-PRODUCTION` with the team's Contributor access; the prd stacks only read that resource group. The stacks' secrets are workspace variables, not `terraform.tfvars`. Only `infra/bootstrap` has a local `terraform.tfvars` and `terraform.tfstate`, never committed. |
 | `ansible/` | `setup.sh` refreshes the VMSS inventory and installs Node, pm2 and the Datadog agent; `deploy.sh` zips `node/` and deploys it. Both go through the jumpbox. |
-| `node/` | The service. Starts as the course's sample app (`GET /:dni` → ARCA); gets replaced by our TP 1 service with the `dni` field and the ARCA call. |
+| `node/` | The service: our TP 1 exchange service, on PostgreSQL. The ARCA call (`dni` field) is still to come. |
 | `node/config.js` | Reads `node/config.local.json` (gitignored), which `ansible/deploy.sh` writes from the `platform` stack's `app_config` output. Environment variables override it. A new runtime setting is a key in `app_config` plus a line in `config.js`. |
 | `perf/` | Artillery. `run.sh <scenario> <output>` runs `<scenario>.yaml` against the load balancer and writes the raw report. `DATADOG_API_KEY` and `DATADOG_SITE` come from the environment, never from a file in the repo. |
 | `perf/predicciones.md` | The predictions, see above. |

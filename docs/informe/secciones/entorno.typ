@@ -8,6 +8,6 @@
   Extensión orientativa: 1 página.
 
   La latencia de base se mide contra `/`, sin carga y sin pasar por ARCA ni
-  Redis, antes de las pruebas. Todas las pruebas que se comparan entre sí corren
+  Postgres, antes de las pruebas. Todas las pruebas que se comparan entre sí corren
   desde la misma ubicación.
 ]

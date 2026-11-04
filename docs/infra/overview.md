@@ -1,6 +1,6 @@
 # Infrastructure overview
 
-This document describes the Azure infrastructure in `infra/` (stacks in `infra/envs/prd/`, modules in `infra/modules/`), how the pieces connect, and how Terraform and Ansible hand off to each other. It describes the baseline the course provides, before any group changes (Redis, scaling, etc.).
+This document describes the Azure infrastructure in `infra/` (stacks in `infra/envs/prd/`, modules in `infra/modules/`), how the pieces connect, and how Terraform and Ansible hand off to each other. It started from the baseline the course provides and now includes our changes: the move to `centralus` and the PostgreSQL store.
 
 ## At a glance
 
@@ -159,9 +159,9 @@ sequenceDiagram
     LB-->>C: response
 ```
 
-This is the path of the course's example app, which `node/` no longer holds: it now holds tp1's exchange service (`node/server.js`), which does not call ARCA yet. The `dni` → `/validar` step comes back with the ARCA integration.
+This is the path of the course's example app, which `node/` no longer holds: it now holds tp1's exchange service (`node/server.js`), which does not call ARCA yet. The `dni` → `/validar` step comes back with the ARCA integration. Every route except `GET /` reads or writes PostgreSQL, over TLS on port 5432.
 
-`GET /` returns `Server is up.` without calling ARCA. The TP asks you to use it to measure baseline latency.
+`GET /` returns `Server is up.` without calling ARCA or PostgreSQL. The TP asks you to use it to measure baseline latency.
 
 The probe is **TCP-only**. The LB marks an instance healthy as soon as something is listening on port 3000, even if the app cannot reach ARCA or its storage.
 
@@ -224,6 +224,6 @@ Some consequences of this design:
 
 According to the assignment (`README.md`), groups will typically:
 
-1. **Add a managed storage resource**, for example `azurerm_managed_redis`, and wire its connection data into the app the same way ARCA's URI is wired (a provisioner or generated config). We use `azurerm_postgresql_flexible_server`: the service's `DATABASE_URL` points at it.
+1. **Add a managed storage resource**, for example `azurerm_managed_redis`, and wire its connection data into the app the same way ARCA's URI is wired (a provisioner or generated config). **Done:** `azurerm_postgresql_flexible_server` in the `database` module. Its URL reaches the app as `databaseUrl` in `app_config`.
 2. **Scale the app tier horizontally.** Make `instances` a variable or add autoscale (`azurerm_monitor_autoscale_setting`). Keep in mind the "no bootstrap on new instances" caveat above.
 3. **Reconsider tactics that depended on nginx in TP 1**, because the Azure Standard LB is a layer-4 balancer. It has no HTTP caching, no rate limiting, no HTTP-aware health checks, and no request routing.

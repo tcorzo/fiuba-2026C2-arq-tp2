@@ -17,7 +17,7 @@ foundation ◀── platform      (platform reads foundation's outputs)
 
 Unlike in a long-lived project, `foundation` is not permanent: everything is destroyed
 at the end of the TP, and the jumpbox and ARCA are billed by the hour while they exist.
-A `data` stack (Redis) will sit between the two when storage is added.
+The store, PostgreSQL, lives in `foundation`, so its data outlives a `platform` destroy.
 
 ## Prerequisites
 

@@ -14,10 +14,11 @@ import {
 import { createSchema, loadState, seed } from "../seed.js";
 import { repositoryContract } from "./repositories.contract.js";
 
-// Set by `mise run test:pg`. Without it the suite skips, so `npm test` needs
-// no database.
+// A Postgres URL to run the suite against, e.g. a postgres:18 container:
+// TEST_DATABASE_URL=postgres://... mise run app:test. Without it the suite
+// skips, so the tests need no database.
 const url = process.env.TEST_DATABASE_URL;
-const skip = !url && "TEST_DATABASE_URL is not set (mise run test:pg)";
+const skip = !url && "TEST_DATABASE_URL is not set";
 const pool = url ? new pg.Pool({ connectionString: url }) : null;
 
 after(() => pool?.end());
