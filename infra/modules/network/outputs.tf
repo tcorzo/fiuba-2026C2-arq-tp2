@@ -1,3 +1,13 @@
+output "vnet_id" {
+  description = "The VNet. The database module links its private DNS zone to it."
+  value       = azurerm_virtual_network.this.id
+}
+
+output "database_subnet_id" {
+  description = "Subnet delegated to Microsoft.DBforPostgreSQL/flexibleServers."
+  value       = azurerm_subnet.database.id
+}
+
 output "vmss_subnet_id" {
   description = "Subnet for the app's VM Scale Set. vmss_http_sg is attached to it."
   value       = azurerm_subnet.vmss.id

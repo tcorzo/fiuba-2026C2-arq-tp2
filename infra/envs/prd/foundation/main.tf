@@ -6,6 +6,8 @@
 #   - The network: VNet, subnets and NSGs
 #   - The jumpbox, the only SSH entry point into the VNet
 #   - ARCA, the mock of the external API, on Container Instances
+#   - The service's store, PostgreSQL Flexible Server. Here and not in platform
+#     so the data outlives a platform destroy between configurations.
 #
 # `platform` reads this stack's outputs, so outputs.tf is a contract: renaming or
 # removing an output breaks platform's plan. Apply this stack first and destroy it
@@ -68,4 +70,13 @@ module "arca" {
   subnet_id           = module.network.container_subnet_id
   dockerhub_username  = var.dockerhub_username
   dockerhub_token     = var.dockerhub_token
+}
+
+module "database" {
+  source = "../../../modules/database"
+
+  resource_group_name = data.azurerm_resource_group.this.name
+  location            = var.region
+  vnet_id             = module.network.vnet_id
+  subnet_id           = module.network.database_subnet_id
 }

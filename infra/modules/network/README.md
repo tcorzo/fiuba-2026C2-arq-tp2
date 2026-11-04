@@ -8,6 +8,7 @@ The VNet and everything that decides where traffic can go.
 | Subnet | `tp2_vmss_subnet` | `10.0.2.0/24`, app instances. `vmss_http_sg` is attached |
 | Subnet | `tp2_jumpbox_subnet` | `10.0.3.0/24` |
 | Subnet | `tp2_container_subnet` | `10.0.4.0/24`, delegated to Container Instances |
+| Subnet | `tp2_database_subnet` | `10.0.5.0/24`, delegated to PostgreSQL Flexible Server |
 | NSG | `ssh_sg` | Allows TCP 22 from anywhere. The jumpbox module attaches it to its NIC |
 | NSG | `vmss_http_sg` | Allows TCP 3000 from anywhere |
 

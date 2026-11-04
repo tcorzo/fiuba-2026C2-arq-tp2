@@ -56,6 +56,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     `eastus2`. Un `validate` de ARM dio `Succeeded` y era engañoso: lo confirmó
     una creación real, que falló. Probó y borró los recursos en `centralus`.
     Nosotros decidimos mover la región.],
+
+  [Postgres en Terraform],
+  [El agente escribió el módulo `database`: subnet delegada, zona DNS privada y
+    servidor B1ms sin acceso público. Corrió un `plan` remoto, sin aplicar.
+    tflint pidió `prevent_destroy`. Lo descartamos porque `mise run down` destruye
+    `foundation` en cada sesión.],
 )
 
 == Propuestas incorrectas

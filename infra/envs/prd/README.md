@@ -83,8 +83,9 @@ workspace. Each value is the one in the latest applied state.
 |---|---|---|
 | `jumpbox_fqdn` | `foundation` | `ansible/update_vmss_inventory.sh` |
 | `arca_uri` | `foundation` | `platform`, into `app_config` |
+| `database_url` (sensitive) | `foundation` | `platform`, into `app_config` |
 | `lb_fqdn` | `platform` | `perf/run.sh` |
-| `app_config` | `platform` | `ansible/deploy.sh`, which writes it to `node/config.local.json` (gitignored) |
+| `app_config` (sensitive) | `platform` | `ansible/deploy.sh`, which writes it to `node/config.local.json` (gitignored) |
 
 The Datadog API key doesn't go through Terraform: `ansible/vmss_setup.yml` reads it
 from `DATADOG_API_KEY`, the same variable `perf/run.sh` uses. Both require the site in

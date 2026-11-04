@@ -12,11 +12,11 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | External dependency | **ARCA** mock, `arqsoft/arca:1.0.0` on **Azure Container Instances**, private IP, port 8080 |
 | Admin access | **Jumpbox** VM with a public IP. It is the only SSH entry point into the VNet |
 | Observability | Datadog agent on every VMSS instance (installed by Ansible) |
-| Storage | **None yet.** The TP asks for Redis or another managed (PaaS) database. We chose **Azure Database for PostgreSQL Flexible Server**, so the service keeps tp1's Postgres repositories (H-09) |
+| Storage | **Azure Database for PostgreSQL Flexible Server** 18, `B_Standard_B1ms` (1 vCore, 2 GiB, CPU credits), 32 GB, private access only. The TP asks for Redis or another managed (PaaS) database; Postgres keeps tp1's repositories (H-09) |
 
 ## Resource inventory
 
-21 managed resources and 2 data sources, all in the pre-existing resource group `RG-PRODUCTION`, split into two stacks under `infra/envs/prd/` (see its [README](../../infra/envs/prd/README.md)). Each stack calls modules from `infra/modules/`.
+28 managed resources and 2 data sources, all in the pre-existing resource group `RG-PRODUCTION`, split into two stacks under `infra/envs/prd/` (see its [README](../../infra/envs/prd/README.md)). Each stack calls modules from `infra/modules/`.
 
 `infra/bootstrap`, which the subscription's Owner applies, manages the resource group and the team's access to it (group `ARQUI-TP2-ADMIN`, Contributor). Both were first created in the portal and adopted with `import` blocks. The prd stacks only read the resource group: if `foundation` created it, every `destroy` would delete the team's role assignment with it. The resource group's own region is `eastus`. Every resource is created in `var.region` (`centralus`), which may differ.
 
@@ -31,6 +31,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.network.azurerm_subnet_network_security_group_association.vmss` | NSG ↔ subnet | Attaches `vmss_http_sg` to the VMSS subnet |
 | | `module.network.azurerm_network_security_group.ssh` | NSG `ssh_sg` | Allows TCP 22 from `*` |
 | | `module.network.azurerm_network_security_group.vmss_http` | NSG `vmss_http_sg` | Allows TCP 3000 from `*` |
+| | `module.network.azurerm_subnet.database` | Subnet `10.0.5.0/24` | Delegated to `Microsoft.DBforPostgreSQL/flexibleServers` |
 | `foundation` → `jumpbox` | `module.jumpbox.random_string.dns_label` | — | DNS label |
 | | `module.jumpbox.azurerm_public_ip.this` | Public IP (Standard, static) | `<random>.centralus.cloudapp.azure.com` |
 | | `module.jumpbox.azurerm_network_interface.this` | NIC | |
@@ -38,6 +39,12 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.jumpbox.azurerm_linux_virtual_machine.this` | VM `jumpbox` | `Standard_F1als_v7`, `Standard_LRS` disk |
 | `foundation` → `arca` | `module.arca.random_string.name` | — | Container group name |
 | | `module.arca.azurerm_container_group.this` | Container Instances group | 0.5 vCPU / 0.5 GiB, private IP, `restart_policy = Always` |
+| `foundation` → `database` | `module.database.random_string.name` | — | Server name suffix (names are global) |
+| | `module.database.random_password.admin` | — | Admin password, letters and digits only |
+| | `module.database.azurerm_private_dns_zone.this` | Private DNS zone | `arvault.private.postgres.database.azure.com` |
+| | `module.database.azurerm_private_dns_zone_virtual_network_link.this` | DNS zone ↔ VNet | The VNet resolves the server's FQDN |
+| | `module.database.azurerm_postgresql_flexible_server.this` | PostgreSQL Flexible Server `arvault-<random>` | 18, `B_Standard_B1ms`, 32 GB, no public access |
+| | `module.database.azurerm_postgresql_flexible_server_database.exchange` | Database `exchange` | UTF8 |
 | `platform` → `app` | `module.app.azurerm_linux_virtual_machine_scale_set.this` | VMSS `tp2vmss` | `instances = 1` (hard-coded), `upgrade_mode = Automatic`, `StandardSSD_LRS` |
 | | `module.app.random_string.lb_dns_label` | — | DNS label |
 | | `module.app.azurerm_public_ip.lb` | Public IP (Standard, static) | The public URL of the service |
@@ -107,13 +114,19 @@ flowchart LR
             subgraph snaci["tp2_container_subnet 10.0.4.0/24<br/>delegated to ACI"]
                 arca[ARCA container<br/>arqsoft/arca:1.0.0 :8080]
             end
+            subgraph sndb["tp2_database_subnet 10.0.5.0/24<br/>delegated to PostgreSQL"]
+                db[(PostgreSQL Flexible Server<br/>exchange :5432)]
+            end
         end
+        dns[Private DNS zone<br/>arvault.private.postgres.database.azure.com]
     end
 
     user -- "HTTP :80" --> lbpip --> lb
     lb -- ":3000" --> vm1
     lb -.-> vmN
     vm1 -- "POST /validar :8080" --> arca
+    vm1 -- "TLS :5432" --> db
+    dns -. "resolves the FQDN in the VNet" .-> vnet
     admin -- "SSH :22" --> jbpip --> jb
     jb -- "SSH :22 (ProxyCommand)" --> vm1
     vm1 -- "metrics" --> dd
@@ -125,6 +138,7 @@ Things to note about the topology:
 - **VMSS instances have no public IP.** Inbound traffic from the internet arrives only through the load balancer. Outbound traffic (apt, NodeSource, npm, Datadog) leaves through the LB frontend IP, because a load-balancing rule gives the backend pool outbound SNAT by default.
 - **SSH reaches the instances only through the jumpbox.** Azure's default `AllowVnetInBound` NSG rule lets the jumpbox reach the VMSS subnet on port 22. `ansible/update_vmss_inventory.sh` writes the matching `ProxyCommand` into the Ansible inventory.
 - **ARCA is only reachable inside the VNet.** Its subnet has no NSG, so only Azure's default rules apply: traffic from inside the VNet is allowed, traffic from the internet is denied.
+- **So is the database.** It has no public endpoint, and its FQDN resolves only in the VNet, through the linked private DNS zone. Anything that talks to it, seeding included, runs on a VMSS instance. TLS is required: the URL uses `sslmode=verify-full`.
 - **No NSG restricts sources.** `ssh_sg` and `vmss_http_sg` both allow `*`. Because the VMSS has no public IP, the only internet path to port 3000 is the LB. The jumpbox, however, accepts SSH from the entire internet.
 
 ## Request path
@@ -169,13 +183,14 @@ flowchart TD
     subgraph outputs["Outputs in HCP Terraform"]
         jb[foundation: jumpbox_fqdn]
         arca[foundation: arca_uri]
+        dburl[foundation: database_url<br/>sensitive]
         lbo[platform: lb_fqdn]
-        appcfg[platform: app_config<br/>arcaUri]
+        appcfg[platform: app_config, sensitive<br/>arcaUri, databaseUrl]
     end
 
-    applyf --> jb & arca
+    applyf --> jb & arca & dburl
     apply --> lbo & appcfg
-    arca --> appcfg
+    arca & dburl --> appcfg
 
     setup[mise run ansible:setup<br/>ansible/setup.sh]
     inv[ansible/update_vmss_inventory.sh<br/>az vmss nic list → vmss_hosts]
@@ -203,7 +218,7 @@ Some consequences of this design:
 - **Outputs can't go stale on disk.** Every script reads the latest applied state when it runs. `app_config` is computed by `platform` from `foundation`'s outputs, so apply `platform` after any `foundation` change.
 - **The VMSS instance count is set in two places.** Terraform's `instances` sets the count, but Ansible configures whatever `az vmss nic list` returns. Re-run `mise run ansible:setup` and `mise run app:deploy` after scaling (the README says so too).
 - **The VMSS has no custom image or cloud-init.** If Azure replaces an instance (automatic upgrade or autoscale), the new instance boots without Node or the app until Ansible runs again. This matters for any autoscaling design.
-- **Where secrets live.** The Docker Hub token is a sensitive workspace variable, and HCP Terraform's state (encrypted at rest) holds it in plain text. The bootstrap stack's local state holds it too. The Datadog key never reaches Terraform: it lives in `DATADOG_API_KEY`. Keep `terraform output` and run logs out of evidence files unless you read them first.
+- **Where secrets live.** The Docker Hub token is a sensitive workspace variable, and HCP Terraform's state (encrypted at rest) holds it in plain text. The bootstrap stack's local state holds it too. The database password is a `random_password`: it lives in the state of `foundation` and `platform`, and in `node/config.local.json` (gitignored) on the machine that deploys and on every instance. The Datadog key never reaches Terraform: it lives in `DATADOG_API_KEY`. Keep `terraform output` and run logs out of evidence files unless you read them first.
 
 ## What the TP will change
 
