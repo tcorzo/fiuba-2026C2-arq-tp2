@@ -212,7 +212,7 @@ export function createPgAtomically(pool) {
 
 // Connects and checks the store is seeded. Throws if the database cannot be
 // reached, a table is missing, or accounts or rates are empty: the service
-// never answers from an empty store (H-04). Seeding is `mise run db:seed`.
+// never answers from an empty store (H-04). `mise run app:deploy` seeds it.
 export async function connectStore(connectionString) {
   const pool = new pg.Pool({ connectionString });
   // An idle connection that breaks (the db restarts) is reported here. Without
@@ -228,7 +228,7 @@ export async function connectStore(connectionString) {
     );
     if (rows[0].accounts === 0 || rows[0].rates === 0) {
       throw new Error(
-        `the store is not seeded (${rows[0].accounts} accounts, ${rows[0].rates} rates): run mise run db:seed`,
+        `the store is not seeded (${rows[0].accounts} accounts, ${rows[0].rates} rates): run mise run app:deploy`,
       );
     }
   } catch (err) {

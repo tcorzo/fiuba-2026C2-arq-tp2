@@ -1,3 +1,4 @@
+import config from "./config.js";
 import { createExchange } from "./exchange.js";
 import { createApp } from "./http.js";
 import {
@@ -12,7 +13,7 @@ import { startRuntimeMetrics } from "./runtime-metrics.js";
 export async function compose({ transfer }) {
   startRuntimeMetrics();
 
-  const pool = await connectStore(process.env.DATABASE_URL);
+  const pool = await connectStore(config.databaseUrl);
   const exchange = createExchange({
     repositories: createPgRepositories(pool),
     atomically: createPgAtomically(pool),
