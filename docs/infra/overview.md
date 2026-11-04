@@ -1,24 +1,24 @@
 # Infrastructure overview
 
-This document describes the Azure infrastructure in `infra/` (stacks in `infra/envs/prd/`, modules in `infra/modules/`), how the pieces connect, and how Terraform and Ansible hand off to each other. It describes the baseline the course provides, before any group changes (Redis, scaling, etc.).
+This document describes the Azure infrastructure in `infra/` (stacks in `infra/envs/prd/`, modules in `infra/modules/`), how the pieces connect, and how Terraform and Ansible hand off to each other. It started from the baseline the course provides and now includes our changes: the move to `centralus` and the PostgreSQL store.
 
 ## At a glance
 
 | Concern | What it is |
 |---|---|
-| Cloud / region | Azure, `eastus2` (`var.region`) |
+| Cloud / region | Azure, `centralus` (`var.region`). See [Region](#region) |
 | Entry point | Public **Standard Load Balancer**, port 80 → port 3000 on the VMSS |
 | App tier | **Linux VM Scale Set** `tp2vmss`, 1 × `Standard_F1als_v7` (1 vCPU, 2 GiB, no CPU credits), Ubuntu 24.04, Node 24 + pm2 |
 | External dependency | **ARCA** mock, `arqsoft/arca:1.0.0` on **Azure Container Instances**, private IP, port 8080 |
 | Admin access | **Jumpbox** VM with a public IP. It is the only SSH entry point into the VNet |
 | Observability | Datadog agent on every VMSS instance (installed by Ansible) |
-| Storage | **None yet.** The TP asks for Redis or another managed (PaaS) database. We chose **Azure Database for PostgreSQL Flexible Server**, so the service keeps tp1's Postgres repositories (H-09) |
+| Storage | **Azure Database for PostgreSQL Flexible Server** 18, `B_Standard_B1ms` (1 vCore, 2 GiB, CPU credits), 32 GB, private access only. The TP asks for Redis or another managed (PaaS) database; Postgres keeps tp1's repositories (H-09) |
 
 ## Resource inventory
 
-21 managed resources and 2 data sources, all in the pre-existing resource group `RG-PRODUCTION`, split into two stacks under `infra/envs/prd/` (see its [README](../../infra/envs/prd/README.md)). Each stack calls modules from `infra/modules/`.
+28 managed resources and 2 data sources, all in the pre-existing resource group `RG-PRODUCTION`, split into two stacks under `infra/envs/prd/` (see its [README](../../infra/envs/prd/README.md)). Each stack calls modules from `infra/modules/`.
 
-`infra/bootstrap`, which the subscription's Owner applies, manages the resource group and the team's access to it (group `ARQUI-TP2-ADMIN`, Contributor). Both were first created in the portal and adopted with `import` blocks. The prd stacks only read the resource group: if `foundation` created it, every `destroy` would delete the team's role assignment with it. The resource group's own region is `eastus`. Every resource is created in `var.region` (`eastus2`), which may differ.
+`infra/bootstrap`, which the subscription's Owner applies, manages the resource group and the team's access to it (group `ARQUI-TP2-ADMIN`, Contributor). Both were first created in the portal and adopted with `import` blocks. The prd stacks only read the resource group: if `foundation` created it, every `destroy` would delete the team's role assignment with it. The resource group's own region is `eastus`. Every resource is created in `var.region` (`centralus`), which may differ.
 
 | Stack → module | Terraform address (in the stack) | Azure resource | Notes |
 |---|---|---|---|
@@ -31,13 +31,20 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.network.azurerm_subnet_network_security_group_association.vmss` | NSG ↔ subnet | Attaches `vmss_http_sg` to the VMSS subnet |
 | | `module.network.azurerm_network_security_group.ssh` | NSG `ssh_sg` | Allows TCP 22 from `*` |
 | | `module.network.azurerm_network_security_group.vmss_http` | NSG `vmss_http_sg` | Allows TCP 3000 from `*` |
+| | `module.network.azurerm_subnet.database` | Subnet `10.0.5.0/24` | Delegated to `Microsoft.DBforPostgreSQL/flexibleServers` |
 | `foundation` → `jumpbox` | `module.jumpbox.random_string.dns_label` | — | DNS label |
-| | `module.jumpbox.azurerm_public_ip.this` | Public IP (Standard, static) | `<random>.eastus2.cloudapp.azure.com` |
+| | `module.jumpbox.azurerm_public_ip.this` | Public IP (Standard, static) | `<random>.centralus.cloudapp.azure.com` |
 | | `module.jumpbox.azurerm_network_interface.this` | NIC | |
 | | `module.jumpbox.azurerm_network_interface_security_group_association.this` | NSG ↔ NIC | Attaches `ssh_sg` to the jumpbox NIC |
 | | `module.jumpbox.azurerm_linux_virtual_machine.this` | VM `jumpbox` | `Standard_F1als_v7`, `Standard_LRS` disk |
 | `foundation` → `arca` | `module.arca.random_string.name` | — | Container group name |
 | | `module.arca.azurerm_container_group.this` | Container Instances group | 0.5 vCPU / 0.5 GiB, private IP, `restart_policy = Always` |
+| `foundation` → `database` | `module.database.random_string.name` | — | Server name suffix (names are global) |
+| | `module.database.random_password.admin` | — | Admin password, letters and digits only |
+| | `module.database.azurerm_private_dns_zone.this` | Private DNS zone | `arvault.private.postgres.database.azure.com` |
+| | `module.database.azurerm_private_dns_zone_virtual_network_link.this` | DNS zone ↔ VNet | The VNet resolves the server's FQDN |
+| | `module.database.azurerm_postgresql_flexible_server.this` | PostgreSQL Flexible Server `arvault-<random>` | 18, `B_Standard_B1ms`, 32 GB, no public access |
+| | `module.database.azurerm_postgresql_flexible_server_database.exchange` | Database `exchange` | UTF8 |
 | `platform` → `app` | `module.app.azurerm_linux_virtual_machine_scale_set.this` | VMSS `tp2vmss` | `instances = 1` (hard-coded), `upgrade_mode = Automatic`, `StandardSSD_LRS` |
 | | `module.app.random_string.lb_dns_label` | — | DNS label |
 | | `module.app.azurerm_public_ip.lb` | Public IP (Standard, static) | The public URL of the service |
@@ -48,24 +55,39 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 
 Providers (each stack's `terraform.tf`): `azurerm ~>4.80` and `random ~>3.0`. State and runs live in HCP Terraform (organization `gaudi-followers`, project `arvault-prd`, one workspace per stack). `infra/bootstrap` creates the workspaces and the Azure identity the remote runs use. See the prd [README](../../infra/envs/prd/README.md).
 
+### Region
+
+Everything runs in `centralus`, not in `eastus2`, the region the course recommends. Our
+subscription can't create PostgreSQL Flexible Server in `eastus2`:
+`az postgres flexible-server list-skus -l eastus2` answers "Subscriptions are restricted
+from provisioning in this region", and a real `create` fails with "The location is
+restricted from performing this operation". `list-skus` reports `eastus`, `westus2` and
+`southcentralus` as restricted too. The database has to be in the VNet's region, so the
+whole deployment moved. The outputs are in [`evidencia/region/`](../../evidencia/region/).
+
+Before moving, a server, a container group in a VNet and every size and quota below were
+checked in `centralus`. The server and the container group were created for real and
+deleted right after.
+
 ### VM size
 
 Every VM (the jumpbox and each VMSS instance) is `Standard_F1als_v7`: 1 vCPU, 2 GiB, AMD.
-The B series (`Standard_B1s`, the course's default) is not offered to our subscription
-in `eastus2`: `az vm list-skus -l eastus2` lists every B size as
-`NotAvailableForSubscription`, and the first apply failed with `SkuNotAvailable`. The
-smallest unrestricted sizes there are the v7 generation.
+The B series (`Standard_B1s`, the course's default) is not offered to our subscription:
+in `eastus2`, `az vm list-skus` lists every B size as `NotAvailableForSubscription`, and
+the first apply failed with `SkuNotAvailable`. In `centralus`, it doesn't list
+`Standard_B1s` at all. The smallest unrestricted sizes are the v7 generation.
 
 - **1 vCPU, on purpose.** The subscription allows 4 regional vCPUs (`az vm list-usage
-  -l eastus2`). The jumpbox plus 2 VMSS instances fit; a 2-vCPU size wouldn't.
+  -l centralus`, also 4 for the `StandardFalsv7Family`). The jumpbox plus 2 VMSS
+  instances fit; a 2-vCPU size wouldn't.
 - **No CPU credits.** Unlike the B series, an F-series VM doesn't throttle to a
   baseline when it runs out of credits, so a long load test measures the same CPU from
   start to end.
 - **NVMe and Gen2 only.** The image (Ubuntu 24.04 `server`) is Gen2 and NVMe-capable.
   The OS disk controller type is not set, so Azure chooses it; this size only offers
   NVMe. (`azurerm_linux_virtual_machine_scale_set` has no `disk_controller_type`.)
-- **Cost.** About USD 0.06/h per VM in `eastus2` (B1s: USD 0.01/h). Run `mise run down`
-  when not working.
+- **Cost.** About USD 0.06/h per VM, the `eastus2` price (B1s: USD 0.01/h). The
+  `centralus` price wasn't checked. Run `mise run down` when not working.
 
 ## Network topology
 
@@ -76,7 +98,7 @@ flowchart LR
     dd[(Datadog SaaS)]
     hub[(Docker Hub)]
 
-    subgraph rg["Resource group RG-PRODUCTION (resources in eastus2)"]
+    subgraph rg["Resource group RG-PRODUCTION (resources in centralus)"]
         lbpip[Public IP<br/>lb_public_ip]
         lb[Standard Load Balancer<br/>tp2_lb<br/>rule: TCP 80 → 3000<br/>probe: TCP 3000]
         jbpip[Public IP<br/>jumpbox_public_ip]
@@ -92,13 +114,19 @@ flowchart LR
             subgraph snaci["tp2_container_subnet 10.0.4.0/24<br/>delegated to ACI"]
                 arca[ARCA container<br/>arqsoft/arca:1.0.0 :8080]
             end
+            subgraph sndb["tp2_database_subnet 10.0.5.0/24<br/>delegated to PostgreSQL"]
+                db[(PostgreSQL Flexible Server<br/>exchange :5432)]
+            end
         end
+        dns[Private DNS zone<br/>arvault.private.postgres.database.azure.com]
     end
 
     user -- "HTTP :80" --> lbpip --> lb
     lb -- ":3000" --> vm1
     lb -.-> vmN
     vm1 -- "POST /validar :8080" --> arca
+    vm1 -- "TLS :5432" --> db
+    dns -. "resolves the FQDN in the VNet" .-> vnet
     admin -- "SSH :22" --> jbpip --> jb
     jb -- "SSH :22 (ProxyCommand)" --> vm1
     vm1 -- "metrics" --> dd
@@ -110,6 +138,7 @@ Things to note about the topology:
 - **VMSS instances have no public IP.** Inbound traffic from the internet arrives only through the load balancer. Outbound traffic (apt, NodeSource, npm, Datadog) leaves through the LB frontend IP, because a load-balancing rule gives the backend pool outbound SNAT by default.
 - **SSH reaches the instances only through the jumpbox.** Azure's default `AllowVnetInBound` NSG rule lets the jumpbox reach the VMSS subnet on port 22. `ansible/update_vmss_inventory.sh` writes the matching `ProxyCommand` into the Ansible inventory.
 - **ARCA is only reachable inside the VNet.** Its subnet has no NSG, so only Azure's default rules apply: traffic from inside the VNet is allowed, traffic from the internet is denied.
+- **So is the database.** It has no public endpoint, and its FQDN resolves only in the VNet, through the linked private DNS zone. Anything that talks to it, seeding included, runs on a VMSS instance. TLS is required: the URL uses `sslmode=verify-full`.
 - **No NSG restricts sources.** `ssh_sg` and `vmss_http_sg` both allow `*`. Because the VMSS has no public IP, the only internet path to port 3000 is the LB. The jumpbox, however, accepts SSH from the entire internet.
 
 ## Request path
@@ -130,9 +159,9 @@ sequenceDiagram
     LB-->>C: response
 ```
 
-This is the path of the course's example app, which `node/` no longer holds: it now holds tp1's exchange service (`node/server.js`), which does not call ARCA yet. The `dni` → `/validar` step comes back with the ARCA integration.
+This is the path of the course's example app, which `node/` no longer holds: it now holds tp1's exchange service (`node/server.js`), which does not call ARCA yet. The `dni` → `/validar` step comes back with the ARCA integration. Every route except `GET /` reads or writes PostgreSQL, over TLS on port 5432.
 
-`GET /` returns `Server is up.` without calling ARCA. The TP asks you to use it to measure baseline latency.
+`GET /` returns `Server is up.` without calling ARCA or PostgreSQL. The TP asks you to use it to measure baseline latency.
 
 The probe is **TCP-only**. The LB marks an instance healthy as soon as something is listening on port 3000, even if the app cannot reach ARCA or its storage.
 
@@ -154,13 +183,14 @@ flowchart TD
     subgraph outputs["Outputs in HCP Terraform"]
         jb[foundation: jumpbox_fqdn]
         arca[foundation: arca_uri]
+        dburl[foundation: database_url<br/>sensitive]
         lbo[platform: lb_fqdn]
-        appcfg[platform: app_config<br/>arcaUri]
+        appcfg[platform: app_config, sensitive<br/>arcaUri, databaseUrl]
     end
 
-    applyf --> jb & arca
+    applyf --> jb & arca & dburl
     apply --> lbo & appcfg
-    arca --> appcfg
+    arca & dburl --> appcfg
 
     setup[mise run ansible:setup<br/>ansible/setup.sh]
     inv[ansible/update_vmss_inventory.sh<br/>az vmss nic list → vmss_hosts]
@@ -169,7 +199,7 @@ flowchart TD
     deploy[mise run app:deploy<br/>ansible/deploy.sh]
     cfg[node/config.local.json<br/>gitignored]
     zip[node/zip → node/src.zip]
-    pbdeploy[vmss_deploy.yml<br/>unzip, npm ci, pm2 start server.js]
+    pbdeploy[vmss_deploy.yml<br/>unzip, npm ci, seed.js --if-empty on one instance,<br/>pm2 start server.js, wait for GET / → 200]
 
     apply --> setup --> inv --> pbsetup
     jb --> inv
@@ -188,12 +218,12 @@ Some consequences of this design:
 - **Outputs can't go stale on disk.** Every script reads the latest applied state when it runs. `app_config` is computed by `platform` from `foundation`'s outputs, so apply `platform` after any `foundation` change.
 - **The VMSS instance count is set in two places.** Terraform's `instances` sets the count, but Ansible configures whatever `az vmss nic list` returns. Re-run `mise run ansible:setup` and `mise run app:deploy` after scaling (the README says so too).
 - **The VMSS has no custom image or cloud-init.** If Azure replaces an instance (automatic upgrade or autoscale), the new instance boots without Node or the app until Ansible runs again. This matters for any autoscaling design.
-- **Where secrets live.** The Docker Hub token is a sensitive workspace variable, and HCP Terraform's state (encrypted at rest) holds it in plain text. The bootstrap stack's local state holds it too. The Datadog key never reaches Terraform: it lives in `DATADOG_API_KEY`. Keep `terraform output` and run logs out of evidence files unless you read them first.
+- **Where secrets live.** The Docker Hub token is a sensitive workspace variable, and HCP Terraform's state (encrypted at rest) holds it in plain text. The bootstrap stack's local state holds it too. The database password is a `random_password`: it lives in the state of `foundation` and `platform`, and in `node/config.local.json` (gitignored) on the machine that deploys and on every instance. The Datadog key never reaches Terraform: it lives in `DATADOG_API_KEY`. Keep `terraform output` and run logs out of evidence files unless you read them first.
 
 ## What the TP will change
 
 According to the assignment (`README.md`), groups will typically:
 
-1. **Add a managed storage resource**, for example `azurerm_managed_redis`, and wire its connection data into the app the same way ARCA's URI is wired (a provisioner or generated config). We use `azurerm_postgresql_flexible_server`: the service's `DATABASE_URL` points at it.
+1. **Add a managed storage resource**, for example `azurerm_managed_redis`, and wire its connection data into the app the same way ARCA's URI is wired (a provisioner or generated config). **Done:** `azurerm_postgresql_flexible_server` in the `database` module. Its URL reaches the app as `databaseUrl` in `app_config`.
 2. **Scale the app tier horizontally.** Make `instances` a variable or add autoscale (`azurerm_monitor_autoscale_setting`). Keep in mind the "no bootstrap on new instances" caveat above.
 3. **Reconsider tactics that depended on nginx in TP 1**, because the Azure Standard LB is a layer-4 balancer. It has no HTTP caching, no rate limiting, no HTTP-aware health checks, and no request routing.

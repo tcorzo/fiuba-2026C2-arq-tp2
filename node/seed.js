@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import pg from "pg";
 
+import config from "./config.js";
 import { createPgRepositories } from "./pg-repositories.js";
 import { SCHEMA } from "./schema.js";
 
@@ -69,7 +70,7 @@ export async function seed({
     if (rows[0].n > 0) {
       if (!ifEmpty) {
         throw new Error(
-          "the store already has accounts: recreate db with mise run reset-state",
+          "the store already has accounts: seed only an empty database",
         );
       }
       await client.query("ROLLBACK");
@@ -87,11 +88,12 @@ export async function seed({
   }
 }
 
-// `node seed.js [--if-empty]`, run by `mise run db:seed` inside the api image.
+// `node seed.js [--if-empty]`. ansible/vmss_deploy.yml runs it with --if-empty
+// on one VMSS instance: the database is reachable only from inside the VNet.
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     const outcome = await seed({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: config.databaseUrl,
       ifEmpty: process.argv.includes("--if-empty"),
     });
     console.log(`Store ${outcome}`);

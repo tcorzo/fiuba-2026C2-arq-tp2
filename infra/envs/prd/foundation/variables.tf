@@ -23,9 +23,9 @@ variable "resource_group_name" {
 }
 
 variable "region" {
-  description = "Azure region for every resource of the TP. eastus2 or westus2 recommended. It may differ from the resource group's own region."
+  description = "Azure region for every resource of the TP. It may differ from the resource group's own region."
   type        = string
-  default     = "eastus2"
+  default     = "centralus"
 }
 
 variable "ssh_key_group_name" {

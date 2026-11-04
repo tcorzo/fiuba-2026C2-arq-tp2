@@ -1,0 +1,12 @@
+2026-11-04T00:35:47Z
+WARNING: Checking the existence of the resource group 'RG-PRODUCTION'...
+WARNING: Resource group 'RG-PRODUCTION' exists ? : True 
+WARNING: Creating PostgreSQL Server 'probe-pg-centralus-10912' in group 'RG-PRODUCTION'...
+WARNING: Your server 'probe-pg-centralus-10912' is using sku 'Standard_B1ms' (Paid Tier). Please refer to https://aka.ms/postgres-pricing for pricing details
+WARNING: Make a note of your password. If you forget, you would have to reset your password with "az postgres flexible-server update -n probe-pg-centralus-10912 -g RG-PRODUCTION -p <new-password>".
+WARNING: Try using 'az postgres flexible-server connect' command to test out connection.
+create exit=0
+2026-11-04T00:41:04Z
+Name                      Location    State    Version    Sku
+------------------------  ----------  -------  ---------  -------------
+probe-pg-centralus-10912  Central US  Ready    18         Standard_B1ms

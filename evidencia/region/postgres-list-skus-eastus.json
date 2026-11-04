@@ -1,0 +1,289 @@
+[
+  {
+    "fastProvisioningSupported": "Enabled",
+    "geoBackupSupported": "Enabled",
+    "name": "FlexibleServerCapabilities",
+    "onlineResizeSupported": "Enabled",
+    "reason": "Provisioning is restricted in this region. Please choose a different region. For exceptions to this rule please open a support request with Issue type of 'Service and subscription limits'.",
+    "restricted": null,
+    "status": null,
+    "storageAutoGrowthSupported": "Enabled",
+    "supportedFastProvisioningEditions": [
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "12",
+        "supportedSku": "standard_b1ms",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "12",
+        "supportedSku": "standard_b2s",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "12",
+        "supportedSku": "standard_d2s_v3",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "12",
+        "supportedSku": "standard_d2ds_v4",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "12",
+        "supportedSku": "standard_e2ds_v4",
+        "supportedStorageGb": 512,
+        "supportedTier": "MemoryOptimized"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "13",
+        "supportedSku": "standard_b1ms",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "13",
+        "supportedSku": "standard_b2s",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "13",
+        "supportedSku": "standard_d2s_v3",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "13",
+        "supportedSku": "standard_d2ds_v4",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "13",
+        "supportedSku": "standard_e2ds_v4",
+        "supportedStorageGb": 512,
+        "supportedTier": "MemoryOptimized"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "14",
+        "supportedSku": "standard_b1ms",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "14",
+        "supportedSku": "standard_b2s",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "14",
+        "supportedSku": "standard_d2s_v3",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "14",
+        "supportedSku": "standard_d2ds_v4",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "14",
+        "supportedSku": "standard_e2ds_v4",
+        "supportedStorageGb": 512,
+        "supportedTier": "MemoryOptimized"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "15",
+        "supportedSku": "standard_b1ms",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "15",
+        "supportedSku": "standard_b2s",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "15",
+        "supportedSku": "standard_d2s_v3",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "15",
+        "supportedSku": "standard_d2ds_v4",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "15",
+        "supportedSku": "standard_e2ds_v4",
+        "supportedStorageGb": 512,
+        "supportedTier": "MemoryOptimized"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "16",
+        "supportedSku": "standard_b1ms",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "16",
+        "supportedSku": "standard_b2s",
+        "supportedStorageGb": 32,
+        "supportedTier": "Burstable"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "16",
+        "supportedSku": "standard_d2s_v3",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "16",
+        "supportedSku": "standard_d2ds_v4",
+        "supportedStorageGb": 128,
+        "supportedTier": "GeneralPurpose"
+      },
+      {
+        "reason": null,
+        "serverCount": 0,
+        "status": null,
+        "supportedServerVersions": "16",
+        "supportedSku": "standard_e2ds_v4",
+        "supportedStorageGb": 512,
+        "supportedTier": "MemoryOptimized"
+      }
+    ],
+    "supportedFeatures": [
+      {
+        "name": "FastProvisioning",
+        "status": "Enabled"
+      },
+      {
+        "name": "ZoneRedundantHa",
+        "status": "Disabled"
+      },
+      {
+        "name": "GeoBackup",
+        "status": "Enabled"
+      },
+      {
+        "name": "ZoneRedundantHaAndGeoBackup",
+        "status": "Enabled"
+      },
+      {
+        "name": "StorageAutoGrowth",
+        "status": "Enabled"
+      },
+      {
+        "name": "OnlineResize",
+        "status": "Enabled"
+      },
+      {
+        "name": "OfferRestricted",
+        "status": "Enabled"
+      },
+      {
+        "name": "IndexTuning",
+        "status": "Enabled"
+      },
+      {
+        "name": "Clusters",
+        "status": "Enabled"
+      },
+      {
+        "name": "AdaptiveAutoVacuumAutoApply",
+        "status": "Enabled"
+      },
+      {
+        "name": "ConfigTuning",
+        "status": "Disabled"
+      }
+    ],
+    "supportedServerEditions": [],
+    "supportedServerVersions": [],
+    "zoneRedundantHaAndGeoBackupSupported": "Enabled",
+    "zoneRedundantHaSupported": "Disabled"
+  }
+]

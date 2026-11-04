@@ -35,6 +35,24 @@ resource "azurerm_subnet" "container" {
   }
 }
 
+# The PostgreSQL server's own subnet: a VNet-integrated server needs a subnet
+# delegated to it, with nothing else in it.
+resource "azurerm_subnet" "database" {
+  name                 = "tp2_database_subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["10.0.5.0/24"]
+
+  delegation {
+    name = "tp2_sn_database_delegation"
+
+    service_delegation {
+      name    = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
 resource "azurerm_network_security_group" "ssh" {
   name                = "ssh_sg"
   location            = var.location

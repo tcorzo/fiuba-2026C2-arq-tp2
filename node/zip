@@ -2,6 +2,7 @@ OLD_DIR="$(pwd)"
 DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $DIR
 
-zip src.zip *.js *.json -1
+# state/ is the initial state seed.js loads into an empty database.
+zip src.zip *.js *.json state/*.json -1
 
 cd $OLD_DIR

@@ -13,5 +13,23 @@
         group: azureuser
     - name: Install dependencies
       command: npm ci
+    # The database is reachable only from inside the VNet, so an instance seeds
+    # it. Once is enough: every instance shares it. --if-empty leaves a seeded
+    # database as it is, and the app refuses to start on an empty one.
+    - name: Seed the database if it is empty
+      command: node seed.js --if-empty
+      run_once: yes
+      register: seed
+      changed_when: "'Store seeded' in seed.stdout"
     - name: Start new version
       command: pm2 start server.js
+    # pm2 reports the process online even when the app fails before it listens,
+    # so the deploy waits for the port to answer.
+    - name: Wait for the app to answer
+      uri:
+        url: http://127.0.0.1:3000/
+        status_code: 200
+      register: root
+      until: root.status == 200
+      retries: 10
+      delay: 3

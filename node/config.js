@@ -21,4 +21,7 @@ const generated = readGenerated();
 export default {
   // Base URI of the ARCA service
   arcaUri: process.env.ARCA_URI ?? generated.arcaUri ?? "",
+  // Connection URL of the PostgreSQL store. Without one, pg falls back to
+  // localhost:5432, as it did in tp1's Docker Compose.
+  databaseUrl: process.env.DATABASE_URL ?? generated.databaseUrl ?? "",
 };

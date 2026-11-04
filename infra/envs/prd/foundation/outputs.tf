@@ -30,3 +30,9 @@ output "arca_uri" {
   description = "Base URI of ARCA, reachable only from inside the VNet."
   value       = module.arca.uri
 }
+
+output "database_url" {
+  description = "Connection URL of the service's PostgreSQL database, reachable only from inside the VNet. Holds the admin password."
+  value       = module.database.url
+  sensitive   = true
+}

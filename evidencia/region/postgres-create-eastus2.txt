@@ -1,0 +1,3 @@
+WARNING: Checking the existence of the resource group 'RG-PRODUCTION'...
+WARNING: Resource group 'RG-PRODUCTION' exists ? : True 
+ERROR: The location is restricted from performing this operation.
