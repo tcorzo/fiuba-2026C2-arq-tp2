@@ -71,8 +71,19 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
 
 == Propuestas incorrectas
 
-#pendiente[
-  Al menos un caso concreto en el que la herramienta propuso algo incorrecto,
-  incompleto, desactualizado o inadecuado para este sistema: qué propuso, cómo
-  se detectó (con evidencia `[E-NN]`) y qué se hizo en su lugar.
-]
+=== Destroy bloqueado por un output nuevo
+
+En #sha("21c8367"), el agente agregó `databaseUrl` al output `app_config` de
+`platform`. El valor sale de `database_url`, un output nuevo de `foundation`.
+
+El agente propuso aplicar el cambio con `mise run down` y después `mise run up`.
+Advirtió que `platform` no podía planificar sin `database_url` aplicado. No previó
+que el destroy tiene el mismo problema.
+
+El state de `foundation` en Azure era anterior al cambio y no tenía
+`database_url`. Por eso, `mise run down` falló en el destroy de `platform` con
+`Unsupported attribute`. Lo reprodujimos con un plan de destroy, sin destruir
+nada [E-01].
+
+En su lugar, destruimos con el código que creó esa infraestructura, el commit
+#sha("7d6e8c3"). Después aplicamos la branch nueva con `mise run up`.

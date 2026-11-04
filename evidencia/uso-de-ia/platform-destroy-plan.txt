@@ -1,0 +1,52 @@
+Running plan in HCP Terraform. Output will stream here. Pressing Ctrl-C
+will stop streaming the logs, but will not stop the plan running remotely.
+
+Preparing the remote plan...
+
+The remote workspace is configured to work with configuration at
+infra/envs/prd/platform relative to the target repository.
+
+Terraform will upload the contents of the following directory,
+excluding files or directories as defined by a .terraformignore file
+at /home/sebak/Escritorio/FIUBA/materias-cursando/Aquitectura-del-Software/TPs/tp2/.terraformignore (if it is present),
+in order to capture the filesystem context the remote workspace expects:
+    /home/sebak/Escritorio/FIUBA/materias-cursando/Aquitectura-del-Software/TPs/tp2
+
+To view this run in a browser, visit:
+https://app.terraform.io/app/gaudi-followers/arvault-prd-platform/runs/run-nqFJsgdc4NZnkusA
+
+Waiting for the plan to start...
+
+Terraform v1.17.1
+on linux_amd64
+
+Initializing plugins and modules...
+data.terraform_remote_state.foundation: Refreshing...
+data.terraform_remote_state.foundation: Refresh complete after 1s
+╷
+│ Warning: Resource targeting is in effect
+│
+│ You are creating a plan with the -target option, which means that the
+│ result of this plan may not represent all of the changes requested by the
+│ current configuration.
+│
+│ The -target option is not for routine use, and is provided only for
+│ exceptional situations such as recovering from errors or mistakes, or when
+│ Terraform specifically suggests to use it as part of an error message.
+╵
+╷
+│ Error: Unsupported attribute
+│
+│   on outputs.tf line 20, in output "app_config":
+│   20:     databaseUrl = local.foundation.database_url
+│     ├────────────────
+│     │ local.foundation is object with 6 attributes
+│
+│ This object does not have an attribute named "database_url".
+╵
+Operation failed: failed running terraform plan (exit 1)
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.

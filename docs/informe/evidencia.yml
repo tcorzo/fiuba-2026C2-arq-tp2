@@ -14,4 +14,6 @@
 #
 # Antes de commitear evidencia, revisar que no tenga secretos: API keys,
 # claves privadas, terraform.tfvars, terraform.tfstate.
-[]
+- id: E-01
+  descripcion: Plan de destroy de `platform` con el commit `7a488fb`. Falla con `Unsupported attribute`, porque el state de `foundation` no tiene `database_url`.
+  ubicacion: evidencia/uso-de-ia/platform-destroy-plan.txt
