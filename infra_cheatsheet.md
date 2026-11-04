@@ -53,7 +53,7 @@ both stacks are applied.
 | Command | When |
 |---|---|
 | `mise run ansible:setup` | After every `platform` apply that creates instances (first deploy, scaling): installs Node, pm2 and the Datadog agent. Needs `DATADOG_API_KEY` and `DATADOG_SITE` |
-| `mise run app:deploy` | After `ansible:setup`, and after every change in `node/`. Also writes `node/config.local.json` from the `app_config` output |
+| `mise run app:deploy` | After `ansible:setup`, and after every change in `node/`. Also writes `node/config.local.json` from the `app_config` output, seeds the database if it is empty, and fails if the app doesn't answer `GET /` |
 | `mise run app:test` | Before deploying a change in `node/`. Local, needs no infrastructure |
 
 Check that it answers: `curl "http://$(infra/output.sh platform lb_fqdn)/"`.

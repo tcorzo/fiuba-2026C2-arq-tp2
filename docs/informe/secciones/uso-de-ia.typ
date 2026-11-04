@@ -62,6 +62,11 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     servidor B1ms sin acceso público. Corrió un `plan` remoto, sin aplicar.
     tflint pidió `prevent_destroy`. Lo descartamos porque `mise run down` destruye
     `foundation` en cada sesión.],
+
+  [App y deploy contra Postgres],
+  [El agente pasó `databaseUrl` por `config.js` y sumó al deploy la siembra y
+    una espera a `GET /`. Encontró que `node/zip` no empaquetaba `state/`, que la
+    siembra necesita. Lo probó contra un Postgres 18 local en Docker.],
 )
 
 == Propuestas incorrectas

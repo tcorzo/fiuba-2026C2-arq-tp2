@@ -199,7 +199,7 @@ flowchart TD
     deploy[mise run app:deploy<br/>ansible/deploy.sh]
     cfg[node/config.local.json<br/>gitignored]
     zip[node/zip → node/src.zip]
-    pbdeploy[vmss_deploy.yml<br/>unzip, npm ci, pm2 start server.js]
+    pbdeploy[vmss_deploy.yml<br/>unzip, npm ci, seed.js --if-empty on one instance,<br/>pm2 start server.js, wait for GET / → 200]
 
     apply --> setup --> inv --> pbsetup
     jb --> inv
