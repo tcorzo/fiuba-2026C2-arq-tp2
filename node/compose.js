@@ -1,3 +1,4 @@
+import { createArcaClient } from "./arca.js";
 import config from "./config.js";
 import { createExchange } from "./exchange.js";
 import { createApp } from "./http.js";
@@ -18,6 +19,10 @@ export async function compose({ transfer }) {
     repositories: createPgRepositories(pool),
     atomically: createPgAtomically(pool),
     transfer,
+    arca: createArcaClient({
+      uri: config.arcaUri,
+      timeoutMs: config.arcaTimeoutMs,
+    }),
   });
 
   return createApp(exchange);

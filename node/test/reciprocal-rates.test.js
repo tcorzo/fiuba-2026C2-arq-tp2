@@ -7,6 +7,7 @@ import {
   createMemoryAtomically,
   createMemoryRepositories,
 } from "../memory-repositories.js";
+import { fakeArca } from "./helpers.js";
 
 // The state the repo ships, read from disk and never written back.
 async function shipped(name) {
@@ -24,6 +25,7 @@ async function build() {
     repositories,
     atomically: createMemoryAtomically(repositories),
     transfer: async () => true,
+    arca: fakeArca(),
   });
   return { service, repositories };
 }

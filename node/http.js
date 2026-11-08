@@ -16,7 +16,11 @@ import {
   NotFoundError,
   ValidationError,
 } from "./errors.js";
-import { assertNonNegativeNumber, assertPositiveNumber } from "./validation.js";
+import {
+  assertDni,
+  assertNonNegativeNumber,
+  assertPositiveNumber,
+} from "./validation.js";
 
 // An allow-list instead of req.route.path: that path carries a ":", which is
 // the statsd name/value separator, and a label derived from the URL itself
@@ -211,6 +215,7 @@ export function createApp(exchange) {
         baseAccountId,
         counterAccountId,
         baseAmount,
+        dni,
       } = req.body;
 
       if (
@@ -225,6 +230,8 @@ export function createApp(exchange) {
       // H-07: a negative amount inverts both transfers and slips past the funds
       // check, so only a positive finite number reaches the domain.
       assertPositiveNumber("baseAmount", baseAmount);
+      // Checked here, so a malformed one never reaches ARCA.
+      assertDni(dni);
 
       const exchangeRequest = { ...req.body };
       const exchangeResult = await exchange.exchange(exchangeRequest);

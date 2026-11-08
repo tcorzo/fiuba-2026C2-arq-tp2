@@ -33,6 +33,12 @@
  * @typedef {{ accounts: AccountRepository, rates: RateRepository,
  *             exchanges: ExchangeRepository }} Repositories
  *
+ * ARCA's DNI validation (arca.js). `ok: false` is a rejection; a call that
+ * gives no usable answer throws ArcaUnavailableError instead.
+ * @typedef {{ ok: true, authorizationCode: string } | { ok: false }} ArcaValidation
+ * @typedef {object} ArcaPort
+ * @property {(dni: string) => Promise<ArcaValidation>} validate
+ *
  * Runs fn with repositories whose writes commit together or not at all.
  * @typedef {<T>(fn: (repositories: Repositories) => Promise<T>) => Promise<T>} Atomically
  */

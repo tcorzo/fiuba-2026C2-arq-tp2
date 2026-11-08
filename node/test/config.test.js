@@ -32,4 +32,12 @@ describe("config", () => {
     const uri = "http://arca.test:8080";
     assert.equal(configWith({ ARCA_URI: uri }).arcaUri, uri);
   });
+
+  test("the ARCA timeout defaults to 2000 ms", () => {
+    assert.equal(configWith({}).arcaTimeoutMs, 2000);
+  });
+
+  test("ARCA_TIMEOUT_MS overrides the deployed arcaTimeoutMs", () => {
+    assert.equal(configWith({ ARCA_TIMEOUT_MS: "750" }).arcaTimeoutMs, 750);
+  });
 });
