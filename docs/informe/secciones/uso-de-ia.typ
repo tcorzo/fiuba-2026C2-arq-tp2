@@ -67,6 +67,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
   [El agente pasó `databaseUrl` por `config.js` y sumó al deploy la siembra y
     una espera a `GET /`. Encontró que `node/zip` no empaquetaba `state/`, que la
     siembra necesita. Lo probó contra un Postgres 18 local en Docker.],
+
+  [Borrador de las secciones 3 y 10],
+  [El agente recorrió el informe del TP 1 y clasificó sus 27 tácticas. Generó el diff de `app/` contra `node/` y corrió
+    `npm test`. Verificó en la documentación del provider que el probe usa TCP
+    por defecto. Encontró que el load balancer publica las rutas de
+    administración. Nosotros revisamos el texto contra la evidencia.],
 )
 
 == Propuestas incorrectas

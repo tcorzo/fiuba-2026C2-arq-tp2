@@ -17,3 +17,60 @@
 - id: E-01
   descripcion: Plan de destroy de `platform` con el commit `7a488fb`. Falla con `Unsupported attribute`, porque el state de `foundation` no tiene `database_url`.
   ubicacion: evidencia/uso-de-ia/platform-destroy-plan.txt
+- id: E-02
+  descripcion: "`diff -r` entre `app/` del TP 1 en `f6d14f1` y `node/` de este repositorio, sin `node_modules`. Sólo cambian la configuración, `GET /`, comentarios y el fin de línea de dos archivos de estado."
+  ubicacion: evidencia/punto-de-partida/diff-app-node.txt
+- id: E-03
+  descripcion: "Salida de `npm test` en `node/`: 112 tests, 111 pasan, 0 fallan. Los de Postgres se omiten sin `TEST_DATABASE_URL`."
+  ubicacion: evidencia/punto-de-partida/npm-test-node.txt
+- id: E-04
+  descripcion: "Módulo `database`: PostgreSQL Flexible Server 18, `B_Standard_B1ms`, subnet delegada y sin acceso público."
+  ubicacion: infra/modules/database/main.tf
+  lineas: "40-56"
+- id: E-05
+  descripcion: "Módulo `app`: probe sin protocolo sobre el puerto 3000, regla TCP 80 → 3000, `instances = 1` y la NIC de cada nodo en el backend pool, sin IP pública."
+  ubicacion: infra/modules/app/main.tf
+  lineas: "35-97"
+- id: E-06
+  descripcion: "Rutas de administración del servicio: `GET /accounts`, `PUT /accounts/:id/balance`, `PUT /rates` y `GET /log`."
+  ubicacion: node/http.js
+  lineas: "107-168"
+- id: E-07
+  descripcion: "El setup instala el agente de Datadog en cada nodo."
+  ubicacion: ansible/vmss_setup.yml
+  lineas: "20-22"
+- id: E-08
+  descripcion: "El deploy corre el playbook con el usuario `azureuser`."
+  ubicacion: ansible/deploy.sh
+  lineas: "17"
+- id: E-09
+  descripcion: "`node/zip` arma el paquete del deploy con `*.js`, `*.json` y `state/*.json`."
+  ubicacion: node/zip
+  lineas: "5-6"
+- id: E-10
+  descripcion: "`az postgres flexible-server list-skus -l eastus2`: aprovisionamiento restringido para la suscripción."
+  ubicacion: evidencia/region/postgres-list-skus-eastus2.json
+- id: E-11
+  descripcion: "`az postgres flexible-server list-skus -l westus2`: aprovisionamiento restringido para la suscripción."
+  ubicacion: evidencia/region/postgres-list-skus-westus2.json
+- id: E-12
+  descripcion: "Creación de un Flexible Server en `eastus2`: falla con \"The location is restricted from performing this operation\"."
+  ubicacion: evidencia/region/postgres-create-eastus2.txt
+- id: E-13
+  descripcion: "`az postgres flexible-server list-skus -l centralus`: sin restricciones."
+  ubicacion: evidencia/region/postgres-list-skus-centralus.json
+- id: E-14
+  descripcion: "Creación de un Flexible Server de prueba en `centralus`: termina en estado `Ready`."
+  ubicacion: evidencia/region/postgres-create-centralus.txt
+- id: E-15
+  descripcion: "Puerto `Atomically`: las escrituras de una operación se confirman juntas o ninguna."
+  ubicacion: node/ports.js
+  lineas: "36-37"
+- id: E-16
+  descripcion: "Adaptador de Postgres de `Atomically`: una transacción con `BEGIN` y `COMMIT`."
+  ubicacion: node/pg-repositories.js
+  lineas: "180-205"
+- id: E-17
+  descripcion: "Región de todos los recursos: `centralus`. `platform` la lee de `foundation`."
+  ubicacion: infra/envs/prd/foundation/variables.tf
+  lineas: "25-29"
