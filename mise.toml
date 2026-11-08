@@ -304,7 +304,7 @@ fi
 # The remote runs authenticate on their own. The local `az` session is for
 # ansible/update_vmss_inventory.sh, which lists the VMSS instances.
 echo "##### Logging into Azure #####"
-az login || exit 1
+az account show >/dev/null 2>&1 || az login || exit 1
 
 for stack in foundation platform; do
   echo "##### Applying $stack #####"
