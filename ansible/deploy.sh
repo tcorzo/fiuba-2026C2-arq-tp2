@@ -13,7 +13,7 @@ fi
 APP_CONFIG=$(../infra/output.sh platform app_config -json) || exit 1
 echo "$APP_CONFIG" > ../node/config.local.json
 
-../node/zip
+../node/zip.sh
 ansible-playbook -i vmss_hosts --private-key ../key.pem -u azureuser vmss_deploy.yml
 
 cd $OLD_DIR

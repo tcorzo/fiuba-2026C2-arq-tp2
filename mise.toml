@@ -20,6 +20,9 @@ gitleaks = "8.30.1"
 # the .typ sources never diverge on whitespace between authors.
 typst = "0.15.1"
 typstyle = "0.15.1"
+# node/zip.sh builds the app archive app:deploy ships. Info-ZIP's zip has no
+# mise registry entry, so 7-Zip writes it.
+7zip = "26.06"
 # PlantUML is a jar and needs a JVM. PlantUML also shells out to Graphviz,
 # which has no mise registry entry: apt/dnf install graphviz, once per machine.
 java = "temurin-21"
@@ -269,6 +272,10 @@ description = "Runs the Node app's unit tests. They need no stack. Extra args go
 dir = "node"
 depends = ["app:install"]
 run = "npm test --"
+
+[tasks."app:zip"]
+description = "Zips the Node app into node/src.zip, the same archive app:deploy ships"
+run = "node/zip.sh"
 
 [tasks."app:deploy"]
 description = "Zips the Node app and deploys it to every VMSS instance"
