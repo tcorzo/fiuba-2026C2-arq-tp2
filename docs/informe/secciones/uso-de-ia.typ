@@ -67,6 +67,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
   [El agente pasó `databaseUrl` por `config.js` y sumó al deploy la siembra y
     una espera a `GET /`. Encontró que `node/zip` no empaquetaba `state/`, que la
     siembra necesita. Lo probó contra un Postgres 18 local en Docker.],
+
+  [Integración con ARCA (issue \#14)],
+  [El agente escribió el adaptador de ARCA con `fetch` y timeout, sin
+    reintentos. Cada exchange valida el `dni` antes de mover fondos. Escribió
+    tests contra un ARCA falso y sumó el `dni` aleatorio a los escenarios.
+    Nosotros decidimos no reintentar y revisamos el diff.],
 )
 
 == Propuestas incorrectas
