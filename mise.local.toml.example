@@ -3,11 +3,11 @@
 # API token of a HCP Terraform account that belongs to "gaudi-followers" organization.
 # It wins over the `terraform login` token in ~/.terraform.d/credentials.tfrc.json.
 # Create it at app.terraform.io → Account settings → Tokens → Create an API token.
-TF_TOKEN_app_terraform_io = <your_personal_API_token>
+TF_TOKEN_app_terraform_io = "<your_personal_API_token>"
 
 # The same token, for the tfe provider (infra/bootstrap).
 TFE_TOKEN = "{{env.TF_TOKEN_app_terraform_io}}"
 
 # Datadog variables:
-DATADOG_SITE = <site_account_asigned_by_datadog>
-DATADOG_API_KEY = <organization_datadog_API_Key>
+DATADOG_SITE = "<site_account_asigned_by_datadog>"
+DATADOG_API_KEY = "<organization_datadog_API_Key>"
