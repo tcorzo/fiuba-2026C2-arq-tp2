@@ -67,12 +67,6 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
   [El agente pasó `databaseUrl` por `config.js` y sumó al deploy la siembra y
     una espera a `GET /`. Encontró que `node/zip` no empaquetaba `state/`, que la
     siembra necesita. Lo probó contra un Postgres 18 local en Docker.],
-
-  [Tooling local en WSL],
-  [El agente encontró que los placeholders sin comillas de
-    `mise.local.toml.example` rompían el TOML. Agregó la tarea `app:zip`. Reemplazó
-    `zip`, que mise no instala, por 7-Zip fijado en `mise.toml`. Nosotros probamos
-    cada paso en WSL.],
 )
 
 == Propuestas incorrectas
@@ -93,16 +87,3 @@ nada [E-01].
 
 En su lugar, destruimos con el código que creó esa infraestructura, el commit
 #sha("7d6e8c3"). Después aplicamos la branch nueva con `mise run up`.
-
-=== Login con device code desde WSL
-
-Desde WSL, `az login` no abría el login de Azure: `xdg-open` le pasaba al
-navegador de Windows la URL sin su query string. Microsoft respondía
-`AADSTS900144`, por falta de `client_id`.
-
-El agente propuso cambiar `mise run up` a `az login --use-device-code`, que no
-necesita navegador local. La cuenta se autenticó, pero el tenant respondió "No
-tiene permiso para acceder a este recurso". No confirmamos la causa exacta.
-
-En su lugar, definimos `BROWSER` con la ruta del Chrome de Windows y volvimos a
-`az login`. El login funcionó y `mise run up` quedó con `az login`.
