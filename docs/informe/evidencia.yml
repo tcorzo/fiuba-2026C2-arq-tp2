@@ -7,9 +7,13 @@
 #     descripcion: Fragmento de código que muestra el timeout hacia ARCA
 #     ubicacion: node/app.js
 #     lineas: "40-55"
+#     commit: 55a2922
 #
 # `ubicacion` es una ruta desde la raíz del repositorio, y tiene que existir:
 # `mise run report:check` falla si no. `descripcion` admite markup de Typst.
+# `commit` fija la ubicación a ese commit, y es obligatorio con `lineas`: las
+# líneas de un archivo en `main` se corren cada vez que `main` avanza. Con
+# `commit`, el check busca el archivo y sus líneas en ese commit.
 # Un ID no se reutiliza ni se renumera: la prosa y la defensa lo citan.
 #
 # Antes de commitear evidencia, revisar que no tenga secretos: API keys,
@@ -27,26 +31,32 @@
   descripcion: "Módulo `database`: PostgreSQL Flexible Server 18, `B_Standard_B1ms`, subnet delegada y sin acceso público."
   ubicacion: infra/modules/database/main.tf
   lineas: "40-56"
+  commit: 55a2922
 - id: E-05
   descripcion: "Módulo `app`: probe sin protocolo sobre el puerto 3000, regla TCP 80 → 3000, `instances = 1` y la NIC de cada nodo en el backend pool, sin IP pública."
   ubicacion: infra/modules/app/main.tf
   lineas: "35-97"
+  commit: 55a2922
 - id: E-06
   descripcion: "Rutas de administración del servicio: `GET /accounts`, `PUT /accounts/:id/balance`, `PUT /rates` y `GET /log`."
   ubicacion: node/http.js
-  lineas: "107-168"
+  lineas: "111-171"
+  commit: 55a2922
 - id: E-07
   descripcion: "El setup instala el agente de Datadog en cada nodo."
   ubicacion: ansible/vmss_setup.yml
   lineas: "20-22"
+  commit: 55a2922
 - id: E-08
   descripcion: "El deploy corre el playbook con el usuario `azureuser`."
   ubicacion: ansible/deploy.sh
   lineas: "17"
+  commit: 55a2922
 - id: E-09
   descripcion: "`node/zip.sh` arma el paquete del deploy con `*.js`, `*.json` y `state/*.json`."
   ubicacion: node/zip.sh
   lineas: "12"
+  commit: 55a2922
 - id: E-10
   descripcion: "`az postgres flexible-server list-skus -l eastus2`: aprovisionamiento restringido para la suscripción."
   ubicacion: evidencia/region/postgres-list-skus-eastus2.json
@@ -65,12 +75,15 @@
 - id: E-15
   descripcion: "Puerto `Atomically`: las escrituras de una operación se confirman juntas o ninguna."
   ubicacion: node/ports.js
-  lineas: "36-37"
+  lineas: "42-43"
+  commit: 55a2922
 - id: E-16
   descripcion: "Adaptador de Postgres de `Atomically`: una transacción con `BEGIN` y `COMMIT`."
   ubicacion: node/pg-repositories.js
-  lineas: "180-205"
+  lineas: "180-211"
+  commit: 55a2922
 - id: E-17
   descripcion: "Región de todos los recursos: `centralus`. `platform` la lee de `foundation`."
   ubicacion: infra/envs/prd/foundation/variables.tf
   lineas: "25-29"
+  commit: 55a2922

@@ -105,6 +105,11 @@
 //     descripcion: Manejo del timeout de ARCA
 //     ubicacion: node/app.js
 //     lineas: "40-55"
+//     commit: 55a2922
+//
+// `commit` fija la ubicación a ese commit, y es obligatorio con `lineas`: una
+// cita por líneas contra `main` se corre cada vez que `main` avanza, como con
+// `#codigo`. El índice enlaza el archivo en ese commit.
 //
 // En la prosa se cita escribiendo el ID entre corchetes, como pide el
 // enunciado: `La mediana sube a 180 ms [E-01].` La regla `citar-evidencia` de
@@ -113,7 +118,7 @@
 //
 // `descripcion` admite markup de Typst (`código`, *negrita*). `ubicacion` es
 // una ruta desde la raíz del repositorio; `mise run report:check` falla si no
-// existe.
+// existe (en `commit`, si lo tiene) o si `lineas` pasa del final del archivo.
 // ─────────────────────────────────────────────────────────────
 #let evidencia = yaml("evidencia.yml")
 #let ids-evidencia = evidencia.map(e => e.id)
@@ -134,7 +139,7 @@
 
   set text(size: 9pt)
   table(
-    columns: (auto, 1fr, auto),
+    columns: (auto, 1.2fr, 1fr),
     align: (left + top, left + top, left + top),
     inset: (x: 6pt, y: 5pt),
     stroke: (x, y) => (
@@ -150,7 +155,20 @@
             faltante[sin citar]
           }],
         eval(e.descripcion, mode: "markup"),
-        {
+        if "commit" in e {
+          // Fijada a un commit: el enlace y las líneas no se corren cuando
+          // `main` avanza.
+          let ancla = if "lineas" in e {
+            let rango = str(e.lineas).split(",").first().split("-")
+            "#L" + rango.first() + if rango.len() > 1 { "-L" + rango.last() }
+          } else { "" }
+          link(
+            repositorio + "/blob/" + e.commit + "/" + e.ubicacion + ancla,
+            raw(e.ubicacion),
+          )
+          if "lineas" in e [, líneas #e.lineas]
+          [, en #sha(e.commit)]
+        } else {
           raw(e.ubicacion)
           if "lineas" in e [, líneas #e.lineas]
         },
