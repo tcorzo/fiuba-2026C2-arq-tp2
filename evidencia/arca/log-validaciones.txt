@@ -1,0 +1,14 @@
+arca.validation error reason=status_500
+arca.validation error reason=status_500
+arca.validation error reason=status_500
+arca.validation approved codigoAutorizacion=176889c2-519f-415f-86f9-4e2f08c9d6fc
+arca.validation approved codigoAutorizacion=fd23f549-1295-4cc4-a1e5-ce4569e4c7a2
+arca.validation error reason=status_500
+arca.validation error reason=status_500
+arca.validation approved codigoAutorizacion=57af9eaf-5009-42ee-a6e6-9363fef51e21
+arca.validation error reason=status_500
+arca.validation approved codigoAutorizacion=5a0b142c-a79e-4bac-b19d-6158809a2d5e
+arca.validation rejected
+arca.validation rejected
+arca.validation rejected
+arca.validation rejected
