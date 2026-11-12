@@ -1,0 +1,44 @@
+Thu Nov 12 21:52:27 UTC 2026
+┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼───────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ server    │ default     │ 1.0.0   │ fork    │ 11146    │ 35m    │ 0    │ online    │ 0%       │ 79.5mb   │ azureus… │ disabled │
+└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+host metrics | cpu: 0.8% | ram usage: 34.4% | eth0: ⇓ 2kb/s ⇑ 2kb/s | disk: ⇓ 0mb/s ⇑ 5kb/s
+kill -9 11146
+Thu Nov 12 21:52:33 UTC 2026
+┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼───────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ server    │ default     │ 1.0.0   │ fork    │ 11761    │ 5s     │ 1    │ online    │ 0%       │ 78.1mb   │ azureus… │ disabled │
+└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+host metrics | cpu: 0.8% | ram usage: 34.4% | eth0: ⇓ 2kb/s ⇑ 2kb/s | disk: ⇓ 0mb/s ⇑ 5kb/s
+2026-11-12T21:16:56: PM2 log: App [server:0] starting in -fork mode-
+2026-11-12T21:16:56: PM2 log: App [server:0] online
+2026-11-12T21:52:28: PM2 log: App [server:0] exited with code [0] via signal [SIGKILL]
+2026-11-12T21:52:28: PM2 log: App [server:0] starting in -fork mode-
+2026-11-12T21:52:28: PM2 log: App [server:0] online
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 57862 
+* using HTTP/1.x
+> GET / HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Content-Type: text/html; charset=utf-8
+< Content-Length: 13
+< ETag: W/"d-aGTv12Omx4QelmA2daCP+sXihWo"
+< Date: Thu, 12 Nov 2026 21:52:33 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [13 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+Server is up.
