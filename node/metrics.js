@@ -1,37 +1,40 @@
-// The only module in node/ that talks to statsd. The rest of the service calls
-// the functions below, so every metric name is decided in this file.
+// The only module in node/ that talks to the metrics agent. The rest of the
+// service calls the functions below, so every metric name is decided in this
+// file.
 //
-// Counters and gauges carry the worker segment (`w0.`); timers do not. statsd
-// has to see every sample of a timer under one name to compute a percentile:
-// averaging the p99 of each worker does not give the p99.
-import { hostname } from "node:os";
+// The agent is the Datadog agent Ansible installs on every VMSS instance
+// (ansible/vmss_setup.yml). Its DogStatsD listens on 127.0.0.1:8125, and it
+// tags every metric with the instance's `host`, so nothing here names the
+// instance.
+//
+// Names are fixed; what varies goes in a tag (`route:`, `status:`,
+// `outcome:`). tp1 sent to Graphite, which has no tags, so it wrote the
+// replica and the route into the name. In Datadog that would be one metric per
+// node and route: a dashboard would need a new query for every new instance.
+//
+// Durations are distributions, not timers: Datadog computes their percentiles
+// over the samples of every node. A timer is aggregated by each agent, and the
+// p95 of two nodes cannot be taken from the p95 of each.
 import { StatsD } from "hot-shots";
+
+import config from "./config.js";
 
 // Off only for the overhead probe: the same scenario, with and without the
 // instrument. The baseline is the received code plus this instrumentation.
 export const metricsEnabled = process.env.METRICS_ENABLED !== "false";
 
-// One value per replica, so that H-13's replicas do not overwrite each
-// other's gauges: counters would still add up across replicas sharing one
-// value, but a gauge is last-write-wins per segment. METRICS_WORKER lets a
-// single, non-replicated run pin a stable name (e.g. "w0"); every replica of
-// a scaled service gets the same environment, so it stays unset there and
-// this falls back to the hostname: one per VMSS instance here, one per
-// container in tp1's docker-compose.perf.yml.
-const worker = process.env.METRICS_WORKER ?? hostname();
-
 const client = metricsEnabled
   ? new StatsD({
-      host: process.env.METRICS_HOST ?? "graphite",
-      port: Number(process.env.METRICS_PORT ?? 8125),
+      host: config.metricsHost,
+      port: config.metricsPort,
       prefix: "exchange.",
       // Uncached, every send resolves the host through dns.lookup, which runs
-      // on the libuv threadpool the state writes also use (H-11): the
-      // instrument would compete for the resource it measures.
+      // on the libuv threadpool: the instrument would compete with the
+      // service it measures.
       cacheDns: true,
       maxBufferSize: 1024,
-      // Below the 1 s statsd flush, so batching never pushes a sample into the
-      // next interval.
+      // Below the agent's 10 s flush, so batching never pushes a sample into
+      // the next interval.
       bufferFlushInterval: 250,
       // A metrics fault must never take down the service under test. UDP loses
       // packets silently anyway; a send error is no different.
@@ -39,114 +42,88 @@ const client = metricsEnabled
     })
   : null;
 
-function perWorker(name) {
-  return `${worker}.${name}`;
-}
-
 export function msSince(startedAt) {
   return Number(process.hrtime.bigint() - startedAt) / 1e6;
 }
 
 // ── HTTP ────────────────────────────────────────────────────────────────────
 
+// `route` is a label from the allow-list in http.js, never the URL, so a
+// caller cannot mint new series.
 export function recordHttpDuration(route, ms) {
-  client?.timing(`http.${route}.duration`, ms);
+  client?.distribution("http.duration", ms, [`route:${route}`]);
 }
 
 export function countHttpStatus(route, code) {
-  client?.increment(perWorker(`http.${route}.status.${code}`));
+  client?.increment("http.responses", 1, [`route:${route}`, `status:${code}`]);
 }
 
 export function gaugeResponseBytes(route, bytes) {
-  client?.gauge(perWorker(`http.${route}.response.bytes`), bytes);
+  client?.gauge("http.response.bytes", bytes, [`route:${route}`]);
 }
 
 // Errors answered by error-handler.js, by code. The code comes from the fixed
-// set in errors.js, never from the request, so it cannot mint new series.
+// set in errors.js, never from the request.
 export function countHandledError(code) {
-  client?.increment(perWorker(`http.errors.${code.toLowerCase()}`));
+  client?.increment("http.errors", 1, [`code:${code.toLowerCase()}`]);
 }
 
 // ── Runtime ─────────────────────────────────────────────────────────────────
 
 export function gaugeEventLoopLag({ p50, p99, max }) {
-  client?.gauge(perWorker("runtime.eventloop.lag.p50"), p50);
-  client?.gauge(perWorker("runtime.eventloop.lag.p99"), p99);
-  client?.gauge(perWorker("runtime.eventloop.lag.max"), max);
+  client?.gauge("runtime.eventloop.lag.p50", p50);
+  client?.gauge("runtime.eventloop.lag.p99", p99);
+  client?.gauge("runtime.eventloop.lag.max", max);
 }
 
 export function gaugeHeap({ used, rss }) {
-  client?.gauge(perWorker("runtime.heap.used"), used);
-  client?.gauge(perWorker("runtime.heap.rss"), rss);
+  client?.gauge("runtime.heap.used", used);
+  client?.gauge("runtime.heap.rss", rss);
 }
 
-// The limits the kernel applies to this container. The dashboard divides CPU
-// and memory by these instead of by a value typed into it, so a percentage
-// can never be taken against a profile other than the one the run had.
+// The cgroup limits of the process, when it has any. tp1's containers had
+// them; pm2 on a VMSS instance sets none, and the gauges are then not sent.
 export function gaugeContainerLimits({ cpuNs, memoryBytes }) {
   if (cpuNs != null) {
-    client?.gauge(perWorker("runtime.limit.cpu_ns"), cpuNs);
+    client?.gauge("runtime.limit.cpu_ns", cpuNs);
   }
   if (memoryBytes != null) {
-    client?.gauge(perWorker("runtime.limit.memory_bytes"), memoryBytes);
+    client?.gauge("runtime.limit.memory_bytes", memoryBytes);
   }
 }
 
 // ── Exchange ────────────────────────────────────────────────────────────────
 
+// From after ARCA's validation to the response: the same span as tp1's.
 export function recordExchangeDuration(ms) {
-  client?.timing("exchange.duration", ms);
+  client?.distribution("exchange.duration", ms);
 }
 
 // "attempted" or "ok".
 export function countExchangeOutcome(outcome) {
-  client?.increment(perWorker(outcome));
+  client?.increment("exchange.outcomes", 1, [`outcome:${outcome}`]);
 }
 
 export function countExchangeFailure(cause) {
-  client?.increment(perWorker(`failed.${cause}`));
+  client?.increment("exchange.failures", 1, [`cause:${cause}`]);
 }
 
-// statsd reads a leading sign as a change: "-500|g" subtracts 500 from the
-// gauge instead of setting it. A negative balance is exactly what these gauges
-// exist to catch (H-06, H-07), so it is sent right after a 0: statsd sets a
-// gauge that holds 0 instead of adding to it.
-//
-// Lab only. These are the house's cash positions, sent in plain text to a
-// statsd anyone on the network can read. A production deployment would drop
-// this gauge and reconcile GET /accounts before and after each run against
-// the exchange log instead; nothing else in this file exposes business data.
+// Lab only. These are the house's cash positions, sent in plain text to an
+// agent on the same host. A production deployment would drop this gauge and
+// reconcile GET /accounts before and after each run against the exchange log
+// instead; nothing else in this file exposes business data.
 export function gaugeAccountBalance(currency, balance) {
-  const stat = perWorker(`accounts.balance.${currency}`);
-  if (balance < 0) client?.gauge(stat, 0);
-  client?.gauge(stat, balance);
+  client?.gauge("accounts.balance", balance, [`currency:${currency}`]);
 }
 
 // ── ARCA ────────────────────────────────────────────────────────────────────
 
-// Every validation, whatever its outcome: a timer has no worker segment.
+// Every validation, whatever its outcome.
 export function recordArcaValidationDuration(ms) {
-  client?.timing("arca.validation.duration", ms);
+  client?.distribution("arca.validation.duration", ms);
 }
 
 // "approved", "rejected" or "error".
 export function countArcaValidation(outcome) {
-  client?.increment(perWorker(`arca.validation.${outcome}`));
-}
-
-// ── State write path ────────────────────────────────────────────────────────
-
-// Two timers, not one: serializing blocks the event loop, writing does not.
-export function recordStateSave(file, { serializeMs, writeMs, bytes }) {
-  client?.timing(`state.${file}.serialize`, serializeMs);
-  client?.timing(`state.${file}.write`, writeMs);
-  client?.gauge(perWorker(`state.${file}.bytes`), bytes);
-}
-
-export function countStateSaveOverlap(file) {
-  client?.increment(perWorker(`state.${file}.save.overlaps`));
-}
-
-export function gaugeLogLength(entries) {
-  client?.gauge(perWorker("state.log.length"), entries);
+  client?.increment("arca.validation.outcomes", 1, [`outcome:${outcome}`]);
 }
