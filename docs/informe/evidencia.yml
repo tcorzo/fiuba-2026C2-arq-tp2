@@ -216,3 +216,56 @@
   ubicacion: doc/informe/secciones/tacticas/coherencia-semantica.typ
   repositorio: tp1
   commit: f6d14f1
+- id: E-45
+  descripcion: "`POST /validar` desde el jumpbox con 200 DNIs aleatorios: 102 aprobaciones, 50 rechazos y 48 `500`. Por línea: DNI, body, status y segundos."
+  ubicacion: evidencia/arca/validar-200-dni-aleatorios.txt
+- id: E-46
+  descripcion: "Tres DNIs, 15 llamadas cada uno: la aprobación o el rechazo es fijo por DNI, y el `500` aparece en 4, 6 y 7 de 15."
+  ubicacion: evidencia/arca/validar-mismo-dni-repetido.txt
+- id: E-47
+  descripcion: "`assertDni`: el `dni` es un texto de siete u ocho dígitos, sin cero adelante."
+  ubicacion: node/validation.js
+  lineas: "25-33"
+  commit: 55a2922
+- id: E-48
+  descripcion: "`POST /exchange` valida el `dni` antes de llamar al servicio."
+  ubicacion: node/http.js
+  lineas: "234"
+  commit: 55a2922
+- id: E-49
+  descripcion: "Adaptador de ARCA: `POST /validar` con `fetch` y un timeout para toda la llamada, sin reintentos."
+  ubicacion: node/arca.js
+  lineas: "9-53"
+  commit: 55a2922
+- id: E-50
+  descripcion: "`POST /exchange` a través del load balancer, con un nodo: 4 `200` con `codigoAutorizacion`, 6 `502 ARCA_UNAVAILABLE` y 1 `400` por un `dni` inválido."
+  ubicacion: evidencia/arca/exchange-via-lb.txt
+- id: E-51
+  descripcion: "`arcaTimeoutMs = 2000` en el output `app_config`, que el deploy escribe en la configuración de la app."
+  ubicacion: infra/envs/prd/platform/outputs.tf
+  lineas: "20"
+  commit: 55a2922
+- id: E-52
+  descripcion: "El exchange valida el `dni` con ARCA antes de cualquier escritura o transferencia."
+  ubicacion: node/exchange.js
+  lineas: "118-122"
+  commit: 55a2922
+- id: E-53
+  descripcion: "Salida de `npm test -- test/arca.test.js` en `55a2922`: 26 tests, 26 pasan. Cubren el timeout, el body malformado, ARCA inalcanzable y que un rechazo o una falla no cambian saldos ni log."
+  ubicacion: evidencia/arca/npm-test-arca.txt
+- id: E-54
+  descripcion: "`POST /exchange` con el DNI 99999999 a través del load balancer: 4 `403 ARCA_REJECTED`."
+  ubicacion: evidencia/arca/exchange-rechazado-via-lb.txt
+- id: E-55
+  descripcion: "`ArcaRejectedError` (`403`) y `ArcaUnavailableError` (`502`)."
+  ubicacion: node/errors.js
+  lineas: "77-94"
+  commit: 55a2922
+- id: E-56
+  descripcion: "Las 14 líneas `arca.validation` del log del nodo después de los requests de E-50 y E-54."
+  ubicacion: evidencia/arca/log-validaciones.txt
+- id: E-57
+  descripcion: "`validateDni`: una línea de log por validación, con el código de autorización si ARCA aprueba."
+  ubicacion: node/exchange.js
+  lineas: "220-250"
+  commit: 55a2922
