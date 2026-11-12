@@ -1,0 +1,44 @@
+
+> exchange-service@1.0.0 test
+> METRICS_ENABLED=false node --test test/arca.test.js
+
+▶ ARCA adapter
+  ✔ sends POST /validar with { dni } and returns the approval (16.246789ms)
+  ✔ a trailing slash on the base URI still reaches /validar (2.43789ms)
+  ✔ ok: false is a rejection (1.403744ms)
+  ✔ a 500 with an empty body is ARCA unavailable (1.599904ms)
+  ✔ any other non-200 is ARCA unavailable (1.480655ms)
+  ✔ no answer within the timeout is ARCA unavailable (203.250252ms)
+  ✔ a body that is not JSON is ARCA unavailable (3.426533ms)
+  ✔ a body without ok is ARCA unavailable (1.569307ms)
+  ✔ a string ok is ARCA unavailable (1.570209ms)
+  ✔ an approval without a code is ARCA unavailable (1.369271ms)
+  ✔ an unreachable ARCA is ARCA unavailable (1.594995ms)
+✔ ARCA adapter (238.841097ms)
+▶ the exchange validates the DNI before it operates
+  ✔ approved: the exchange runs and returns the authorization code (1.022855ms)
+  ✔ rejected: no transfer, no balance change, no log entry (0.181312ms)
+  ✔ unavailable: no transfer, no balance change, no log entry (0.115772ms)
+  ✔ a port that throws anything else: no transfer, no balance change, no log entry (0.111575ms)
+  ✔ an approved and a rejected line are told apart with grep (0.306352ms)
+✔ the exchange validates the DNI before it operates (1.871121ms)
+▶ POST /exchange and ARCA
+  ✔ approved: 200, and the response carries codigoAutorizacion (16.233644ms)
+  ✔ rejected: 403 ARCA_REJECTED, and nothing changes (2.340432ms)
+  ✔ unavailable: 502 ARCA_UNAVAILABLE, and nothing changes (1.027835ms)
+  ✔ a dni that is missing answers 400 and never calls ARCA (0.936998ms)
+  ✔ a dni that is a number answers 400 and never calls ARCA (0.871999ms)
+  ✔ a dni that is 999999 answers 400 and never calls ARCA (0.845791ms)
+  ✔ a dni that is 100000000 answers 400 and never calls ARCA (0.907685ms)
+  ✔ a dni that is abc1234 answers 400 and never calls ARCA (0.815766ms)
+  ✔ a dni that is a leading zero answers 400 and never calls ARCA (0.822738ms)
+  ✔ the bounds 1000000 and 99999999 are valid (1.490152ms)
+✔ POST /exchange and ARCA (28.181902ms)
+ℹ tests 26
+ℹ suites 3
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 374.593301
