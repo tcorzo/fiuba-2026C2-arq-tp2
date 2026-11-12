@@ -1,0 +1,8 @@
+data.terraform_remote_state.foundation
+module.app.azurerm_lb.this
+module.app.azurerm_lb_backend_address_pool.this
+module.app.azurerm_lb_probe.this
+module.app.azurerm_lb_rule.http
+module.app.azurerm_linux_virtual_machine_scale_set.this
+module.app.azurerm_public_ip.lb
+module.app.random_string.lb_dns_label

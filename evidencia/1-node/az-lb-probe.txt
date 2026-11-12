@@ -1,0 +1,3 @@
+Name      Protocol    Port    IntervalSeconds    Threshold
+--------  ----------  ------  -----------------  -----------
+lb_probe  Tcp         3000    15                 1

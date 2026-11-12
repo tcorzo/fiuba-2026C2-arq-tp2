@@ -1,0 +1,3 @@
+Name       InstanceId    Sku                Location    State      LatestModel
+---------  ------------  -----------------  ----------  ---------  -------------
+tp2vmss_0  0             Standard_F1als_v7  centralus   Succeeded  True
