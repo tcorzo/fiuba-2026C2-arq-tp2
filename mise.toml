@@ -291,9 +291,10 @@ description = "Runs an Artillery scenario against the load balancer. Export DATA
 usage = '''
 arg "<scenario>" help="Scenario file in perf/, without .yaml"
 arg "<output>" help="Report path, without .json"
+arg "[environment]" help="Artillery environment of the scenario, e.g. ramp in baseline.yaml"
 '''
 dir = "perf"
-run = './run.sh "${usage_scenario}" "${usage_output}"'
+run = './run.sh "${usage_scenario}" "${usage_output}" "${usage_environment:-}"'
 
 [tasks.up]
 description = "Logs into Azure, applies foundation and platform in HCP Terraform, then installs and deploys the app. Applies without asking"

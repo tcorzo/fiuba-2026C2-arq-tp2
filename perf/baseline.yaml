@@ -4,18 +4,15 @@
 # shapes in one file means the traffic mix cannot drift between the ramp that
 # finds the knee and the steady run measured at it.
 #
-#   mise run scenario baseline ramp
-#   mise run scenario baseline steady
-#   mise run scenario baseline spike
+#   mise run perf:run baseline results/<case>/baseline-ramp ramp
+#   mise run perf:run baseline results/<case>/baseline-steady steady
+#   mise run perf:run baseline results/<case>/baseline-spike spike
 #
-# Traffic reaches the service through nginx on 5555, never api:3000.
+# Traffic reaches the service through Azure's load balancer, the TARGET
+# run.sh exports. There is no nginx and no TLS in this deployment.
 config:
   # Inherited by every environment below.
-  target: 'https://localhost:5555'
-
-  # H-38: nginx serves a self-signed lab certificate (`mise run certs`).
-  tls:
-    rejectUnauthorized: false
+  target: "{{ $processEnvironment.TARGET }}"
 
   # No connection pool, on purpose: each virtual user opens its own connection,
   # like an independent client, and concurrency is not capped by the
@@ -27,22 +24,26 @@ config:
   environments:
     # `plugins` is the one config key an environment does NOT inherit from the
     # top level. Declared up there it is silently ignored: the run succeeds,
-    # reports every request, exits 0, and sends nothing to Graphite. So it is
+    # reports every request, exits 0, and sends nothing to Datadog. So it is
     # anchored here and aliased into the other two environments -- one
     # definition, three uses.
     #
-    # If you add a fourth environment, alias `*statsd` into it or it will
+    # If you add a fourth environment, alias `*datadog` into it or it will
     # measure nothing while looking healthy.
 
     # Stepped, not continuous: each arrival rate gets its own stable window,
     # so the knee is read off a table rather than eyeballed off a slope.
     # Eight minutes total.
     ramp:
-      plugins: &statsd
-        statsd:
-          host: localhost
-          port: 8125
-          prefix: "artillery-api"
+      plugins: &datadog
+        publish-metrics:
+          - type: datadog
+            apiKey: "{{ $processEnvironment.DATADOG_API_KEY }}"
+            # No apiHost: datadog-metrics reads the site from DATADOG_SITE,
+            # which run.sh requires.
+            prefix: "artillery."
+            tags:
+              - "test:baseline"
       phases:
         - { name: "step-010", duration: 60, arrivalRate: 10 }
         - { name: "step-025", duration: 60, arrivalRate: 25 }
@@ -54,29 +55,23 @@ config:
         - { name: "step-300", duration: 60, arrivalRate: 300 }
 
     # Meant to sit at 60% of the knee the ramp reads, so the percentiles are
-    # stable rather than marginal.
-    #
-    # The knee is 200 rps, read off `ramp` on the measuring machine at 1d9c32a:
-    # the last step served in full (199.2 ok/s, no timeouts), while at 300 the
-    # api sat at 97% of its CPU limit and served 175. 120 rps is 60% of it.
-    #
-    # The log still grows during the hold -- 48 exchanges a second -- so
-    # "steady" is the arrival rate, not the service's state.
+    # stable rather than marginal. 120 rps is tp1's (60% of its 200 rps knee
+    # in the base case); reset it from the Azure ramp before a steady run.
     steady:
-      plugins: *statsd
+      plugins: *datadog
       phases:
         - { name: "warmup", duration: 60, arrivalRate: 120 }
         - { name: "hold", duration: 300, arrivalRate: 120 }
 
     # Idle -> well above capacity -> back. Answers whether it recovers.
     #
-    # Twice the knee `steady` is set from. Whatever the peak, if the generator
-    # host saturates during it, the peak latency measures the generator and
-    # must not be quoted as the service's. The
-    # question this scenario exists to answer -- does it come back -- is still
-    # readable, because recovery happens in calm-after with the machine idle.
+    # Whatever the peak, if the generator host saturates during it, the peak
+    # latency measures the generator and must not be quoted as the service's.
+    # The question this scenario exists to answer -- does it come back -- is
+    # still readable, because recovery happens in calm-after with the machine
+    # idle.
     spike:
-      plugins: *statsd
+      plugins: *datadog
       phases:
         - { name: "calm-before", duration: 60, arrivalRate: 15 }
         - { name: "spike", duration: 60, arrivalRate: 400 }
@@ -98,10 +93,9 @@ config:
 # assignment's stub), so a mixed-traffic percentile is bimodal: read latency
 # per route off the HTTP dashboard, not off the client's aggregate.
 #
-# /accounts and /log are admin operations (H-15/H-16): they go to nginx's
-# admin listener, published on loopback only. An absolute url overrides
-# `target` for that request alone; the traffic is the same, only the nginx
-# server that takes it changes.
+# /accounts and /log are admin operations (H-15/H-16). In tp1 they went to
+# nginx's admin listener, on loopback only. Azure's load balancer publishes
+# every route, so here they go to the same target as the rest.
 scenarios:
   - name: exchange_ars_usd
     weight: 20
@@ -141,10 +135,10 @@ scenarios:
     weight: 20
     flow:
       - get:
-          url: 'https://127.0.0.1:5561/accounts'
+          url: '/accounts'
 
   - name: log_read
     weight: 10
     flow:
       - get:
-          url: 'https://127.0.0.1:5561/log'
+          url: '/log'
