@@ -1,0 +1,6 @@
+wlp2s0:wifi:connected
+lo:loopback:connected (externally)
+br-8d16d6e66567:bridge:connected (externally)
+docker0:bridge:connected (externally)
+p2p-dev-wlp2s0:wifi-p2p:disconnected
+enp1s0:ethernet:unavailable
