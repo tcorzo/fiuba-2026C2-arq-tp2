@@ -122,6 +122,18 @@ export function gaugeAccountBalance(currency, balance) {
   client?.gauge(stat, balance);
 }
 
+// ── ARCA ────────────────────────────────────────────────────────────────────
+
+// Every validation, whatever its outcome: a timer has no worker segment.
+export function recordArcaValidationDuration(ms) {
+  client?.timing("arca.validation.duration", ms);
+}
+
+// "approved", "rejected" or "error".
+export function countArcaValidation(outcome) {
+  client?.increment(perWorker(`arca.validation.${outcome}`));
+}
+
 // ── State write path ────────────────────────────────────────────────────────
 
 // Two timers, not one: serializing blocks the event loop, writing does not.

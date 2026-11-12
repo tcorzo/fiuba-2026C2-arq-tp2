@@ -16,8 +16,9 @@ output "vmss_name" {
 output "app_config" {
   description = "Runtime settings of the Node app, written to node/config.local.json on deploy."
   value = {
-    arcaUri     = local.foundation.arca_uri
-    databaseUrl = local.foundation.database_url
+    arcaUri       = local.foundation.arca_uri
+    arcaTimeoutMs = 2000
+    databaseUrl   = local.foundation.database_url
   }
   sensitive = true
 }

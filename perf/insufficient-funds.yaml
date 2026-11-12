@@ -58,6 +58,8 @@ scenarios:
             baseAccountId: 101
             counterAccountId: 103
             baseAmount: 10000
+            # A string, as ARCA takes it; a random DNI per request.
+            dni: '{{ $randomNumber(1000000, 99999999) }}'
 
   # 0.66 USD at 1513 is about 1000 ARS; the internal ARS account holds 120M.
   - name: exchange_usd_ars_accepted
@@ -71,3 +73,5 @@ scenarios:
             baseAccountId: 102
             counterAccountId: 101
             baseAmount: 0.66
+            # A string, as ARCA takes it; a random DNI per request.
+            dni: '{{ $randomNumber(1000000, 99999999) }}'

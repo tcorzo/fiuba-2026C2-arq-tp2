@@ -21,3 +21,13 @@ export function assertNonNegativeNumber(name, value) {
     throw new ValidationError(`${name} must be a number greater than or equal to 0`);
   }
 }
+
+// The client's DNI, as ARCA takes it: a string, an integer from 1000000 to
+// 99999999 written without leading zeros. ARCA itself checks only the length.
+export function assertDni(value) {
+  if (typeof value !== "string" || !/^[1-9]\d{6,7}$/.test(value)) {
+    throw new ValidationError(
+      "dni must be a string of digits from 1000000 to 99999999",
+    );
+  }
+}

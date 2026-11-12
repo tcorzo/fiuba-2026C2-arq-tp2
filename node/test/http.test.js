@@ -141,6 +141,7 @@ describe("H-34", () => {
           baseAccountId: 101,
           counterAccountId: 102,
           baseAmount,
+          dni: "12345678",
         }),
       });
       return { status: response.status, body: await response.json() };

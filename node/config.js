@@ -21,6 +21,9 @@ const generated = readGenerated();
 export default {
   // Base URI of the ARCA service
   arcaUri: process.env.ARCA_URI ?? generated.arcaUri ?? "",
+  // How long a DNI validation waits for ARCA before answering 502. ARCA's
+  // slowest observed answer was 502 ms (issue #14).
+  arcaTimeoutMs: Number(process.env.ARCA_TIMEOUT_MS ?? generated.arcaTimeoutMs ?? 2000),
   // Connection URL of the PostgreSQL store. Without one, pg falls back to
   // localhost:5432, as it did in tp1's Docker Compose.
   databaseUrl: process.env.DATABASE_URL ?? generated.databaseUrl ?? "",
