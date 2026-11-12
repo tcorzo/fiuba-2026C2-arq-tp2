@@ -73,6 +73,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     reintentos. Cada exchange valida el `dni` antes de mover fondos. Escribió
     tests contra un ARCA falso y sumó el `dni` aleatorio a los escenarios.
     Nosotros decidimos no reintentar y revisamos el diff.],
+
+  [Métricas del servicio en Datadog],
+  [El agente encontró, en el nodo y bajo carga, que la app mandaba sus
+    métricas a `graphite`, un nombre que no resuelve en Azure. Apuntó la app al
+    agente de Datadog y pasó la ruta y el resultado a tags. Escribió tests que
+    escuchan los datagramas por UDP. Nosotros revisamos el diff.],
 )
 
 == Propuestas incorrectas
