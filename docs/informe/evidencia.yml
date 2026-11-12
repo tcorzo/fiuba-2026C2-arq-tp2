@@ -22,10 +22,10 @@
   descripcion: Plan de destroy de `platform` con el commit `7a488fb`. Falla con `Unsupported attribute`, porque el state de `foundation` no tiene `database_url`.
   ubicacion: evidencia/uso-de-ia/platform-destroy-plan.txt
 - id: E-02
-  descripcion: "`diff -r` entre `app/` del TP 1 en `f6d14f1` y `node/` de este repositorio, sin `node_modules`. Sólo cambian la configuración, `GET /`, comentarios y el fin de línea de dos archivos de estado."
+  descripcion: "`diff -r` entre `app/` del TP 1 en `f6d14f1` y `node/` de este repositorio en `426e2fd`, sin `node_modules`. Sólo cambian la configuración, `GET /`, comentarios y el fin de línea de dos archivos de estado."
   ubicacion: evidencia/punto-de-partida/diff-app-node.txt
 - id: E-03
-  descripcion: "Salida de `npm test` en `node/`: 112 tests, 111 pasan, 0 fallan. Los de Postgres se omiten sin `TEST_DATABASE_URL`."
+  descripcion: "Salida de `npm test` en `node/`, en `426e2fd`: 112 tests, 111 pasan, 0 fallan. Los de Postgres se omiten sin `TEST_DATABASE_URL`."
   ubicacion: evidencia/punto-de-partida/npm-test-node.txt
 - id: E-04
   descripcion: "Módulo `database`: PostgreSQL Flexible Server 18, `B_Standard_B1ms`, subnet delegada y sin acceso público."
@@ -87,3 +87,12 @@
   ubicacion: infra/envs/prd/foundation/variables.tf
   lineas: "25-29"
   commit: 55a2922
+- id: E-18
+  descripcion: "`kill -9` del proceso de la app en el nodo, con un nodo desplegado: pm2 lo vuelve a levantar en el mismo segundo (reinicios de 0 a 1), y `GET /` responde `200` a través del load balancer."
+  ubicacion: evidencia/punto-de-partida/pm2-restart.txt
+- id: E-19
+  descripcion: "Requests y responses de las rutas de administración a través del load balancer, en HTTP al puerto 80: `GET /accounts` y `GET /log` responden `200`; `PUT /rates` y `PUT /accounts/101/balance`, con un body inválido, responden `400 VALIDATION_ERROR` de la app."
+  ubicacion: evidencia/punto-de-partida/rutas-admin-via-lb.txt
+- id: E-20
+  descripcion: "`GET /exchanges/:id` de un exchange aprobado y `GET /log` a través del load balancer: los dos devuelven el `dni` del cliente."
+  ubicacion: evidencia/punto-de-partida/dni-expuesto-via-lb.txt

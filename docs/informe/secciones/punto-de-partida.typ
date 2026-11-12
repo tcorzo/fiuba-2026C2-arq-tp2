@@ -3,13 +3,14 @@
 = Punto de partida desde el TP 1
 
 El servicio sale del TP 1, en el commit #sha("f6d14f1", repo: repositorio-tp1).
-Copiamos `app/` a `node/` sin cambios de lógica. El diff entre los dos
-directorios cambia la lectura de la configuración, agrega `GET /` y toca
-comentarios [E-02].
+Copiamos `app/` a `node/` sin cambios de lógica. En el commit #sha("426e2fd"),
+el diff entre los dos directorios cambia la lectura de la configuración, agrega
+`GET /` y toca comentarios [E-02]. Después, la integración con ARCA cambió
+`node/` (sección 6).
 
-La suite de tests del TP 1 corre sobre `node/`. Pasan 111 tests y ninguno falla
-[E-03]. Los tests de Postgres no corren sin una base, así que esta suite no
-verifica el adaptador de Postgres [E-03].
+En ese mismo commit, la suite de tests del TP 1 corre sobre `node/`. Pasan 111
+tests y ninguno falla [E-03]. Los tests de Postgres no corren sin una base, así
+que esta suite no verifica el adaptador de Postgres [E-03].
 
 El TP 1 tenía 27 tácticas. Las clasificamos según dónde estaba implementada
 cada una: en el código, en Docker Compose o en nginx. Según esa ubicación, una
@@ -62,12 +63,9 @@ registra cada nodo en el backend pool. La cantidad de nodos está escrita a mano
 en el módulo `app` de Terraform [E-05].
 
 *Restart Policy y Healthcheck (H-03).* pm2 reinicia el proceso de Node si
-termina con error.
-
-#pendiente[
-  Falta la ejecución que lo demuestra. Es matar el proceso en un nodo y mostrar
-  que pm2 lo vuelve a levantar. Requiere el stack `platform` desplegado.
-]
+termina. Lo probamos con un nodo: matamos el proceso con `kill -9`, y pm2 lo
+levantó en el mismo segundo. Después, `GET /` respondió `200` a través del load
+balancer [E-18].
 
 El load balancer prueba cada nodo con un probe. El probe no declara protocolo,
 y Azure usa TCP por defecto [E-05]. Un probe TCP sólo abre una conexión al
@@ -83,19 +81,23 @@ Reenvía TCP del puerto 80 al 3000 y no lee HTTP [E-05]. Ningún componente
 ejecuta las tres tácticas que estaban en nginx.
 
 *Encrypt Data (H-38).* Ningún componente termina TLS. El tráfico entre el
-cliente y el nodo viaja sin cifrar por internet [E-05].
+cliente y el nodo viaja sin cifrar por internet, en HTTP al puerto 80 [E-05]
+[E-19].
 
 *Rate Limiting (H-02).* Ningún componente limita los requests por cliente.
 
 *Limit Exposure (H-15, H-16).* El load balancer publica todas las rutas del
 servicio. Eso incluye `PUT /rates`, `PUT /accounts/:id/balance`,
-`GET /accounts` y `GET /log` [E-06].
+`GET /accounts` y `GET /log` [E-06]. A través del load balancer, `GET /accounts`
+y `GET /log` responden `200`. Los dos `PUT` llegan a la app: con un body
+inválido, responden su propio `400 VALIDATION_ERROR` [E-19]. Usamos un body
+inválido para no cambiar datos antes de las pruebas de carga.
+
+Desde la integración con ARCA, el log guarda el `dni` del cliente en cada
+exchange que ARCA aprueba. `GET /log` y `GET /exchanges/:id` lo devuelven a
+cualquier cliente [E-20].
 
 #pendiente[
-  Falta la ejecución que lo demuestra. Es un request a cada ruta de
-  administración contra el load balancer, con su response. Requiere el stack
-  `platform` desplegado.
-
   Falta la decisión del grupo para cada una de las tres tácticas. El grupo
   puede aceptar el riesgo, reimplementarla en otro componente o elegirla como
   táctica superadora. El servicio y Application Gateway son dos componentes
