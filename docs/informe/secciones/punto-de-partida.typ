@@ -113,7 +113,7 @@ cada nodo del VMSS. Estas cuatro tácticas resolvían problemas de Docker Compos
   nodos no tienen IP pública [E-05].
 - *Limit Access (H-40).* El deploy arranca pm2 con el usuario `azureuser`, sin
   root [E-08].
-- *Restrict Dependencies (H-42).* `node/zip` arma el paquete del deploy con
+- *Restrict Dependencies (H-42).* `node/zip.sh` arma el paquete del deploy con
   `*.js`, `*.json` y el estado inicial [E-09].
 - *Increase Cohesion (H-46).* En este despliegue no hay archivo de Docker
   Compose.

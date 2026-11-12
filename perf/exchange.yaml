@@ -71,6 +71,8 @@ scenarios:
             baseAccountId: 101
             counterAccountId: 102
             baseAmount: 1000
+            # A string, as ARCA takes it; a random DNI per request.
+            dni: '{{ $randomNumber(1000000, 99999999) }}'
 
   - name: exchange_usd_ars
     weight: 50
@@ -83,3 +85,5 @@ scenarios:
             baseAccountId: 102
             counterAccountId: 101
             baseAmount: 0.66
+            # A string, as ARCA takes it; a random DNI per request.
+            dni: '{{ $randomNumber(1000000, 99999999) }}'

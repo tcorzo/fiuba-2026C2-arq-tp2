@@ -1,23 +1,27 @@
 import { nanoid } from "nanoid";
 
 import {
+  ArcaRejectedError,
+  ArcaUnavailableError,
   NotFoundError,
   UnknownCurrencyError,
   UnsupportedPairError,
 } from "./errors.js";
 import {
+  countArcaValidation,
   countExchangeFailure,
   countExchangeOutcome,
   gaugeAccountBalance,
   msSince,
+  recordArcaValidationDuration,
   recordExchangeDuration,
 } from "./metrics.js";
 
 // Builds an exchange service over the given repositories and transfer
-// service. Each call returns an instance with its own state (H-22), and the
+// service, and the ARCA port (ports.js, ArcaPort). Each call returns an instance with its own state (H-22), and the
 // transfer it calls is the one it is handed (H-23). The service holds no state
 // of its own: every read and write goes through the ports in ports.js.
-export function createExchange({ repositories, atomically, transfer }) {
+export function createExchange({ repositories, atomically, transfer, arca }) {
   //returns all internal accounts
   async function getAccounts() {
     return repositories.accounts.all();
@@ -111,6 +115,12 @@ export function createExchange({ repositories, atomically, transfer }) {
     // (H-01 used to count it as attempted and never finish it).
     await assertTradablePair(baseCurrency, counterCurrency);
 
+    // Before any write or transfer: a rejected or failed validation moves no
+    // money and logs no exchange. Before "attempted" and the exchange timer
+    // too, so exchange.duration stays comparable with tp1's; ARCA's own time
+    // is arca.validation.duration.
+    const authorizationCode = await validateDni(exchangeRequest.dni);
+
     const startedAt = process.hrtime.bigint();
     countExchangeOutcome("attempted");
 
@@ -200,7 +210,43 @@ export function createExchange({ repositories, atomically, transfer }) {
     }
     recordExchangeDuration(msSince(startedAt));
 
-    return exchangeResult;
+    // The code goes back to the client under ARCA's own name. It is not part
+    // of the log entry: the exchanges table has no column for it.
+    return exchangeResult.ok
+      ? { ...exchangeResult, codigoAutorizacion: authorizationCode }
+      : exchangeResult;
+  }
+
+  // internal - asks ARCA, and writes one log line and its metrics for every
+  // outcome. Returns the authorization code, or throws.
+  async function validateDni(dni) {
+    const startedAt = process.hrtime.bigint();
+    let validation;
+    try {
+      validation = await arca.validate(dni);
+    } catch (error) {
+      recordArcaValidationDuration(msSince(startedAt));
+      countArcaValidation("error");
+      // Anything else the port throws is still ARCA not answering.
+      const unavailable =
+        error instanceof ArcaUnavailableError
+          ? error
+          : new ArcaUnavailableError("unexpected", { cause: error });
+      console.log(`arca.validation error reason=${unavailable.reason}`);
+      throw unavailable;
+    }
+    recordArcaValidationDuration(msSince(startedAt));
+
+    if (!validation.ok) {
+      countArcaValidation("rejected");
+      console.log("arca.validation rejected");
+      throw new ArcaRejectedError();
+    }
+    countArcaValidation("approved");
+    console.log(
+      `arca.validation approved codigoAutorizacion=${validation.authorizationCode}`,
+    );
+    return validation.authorizationCode;
   }
 
   // internal - the service can only trade what it holds, so a currency is known

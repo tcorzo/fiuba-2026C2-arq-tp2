@@ -2,19 +2,21 @@ import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
 
 import { createApp } from "../http.js";
-import { memoryService } from "./helpers.js";
+import { fakeArca, memoryService } from "./helpers.js";
 
 // GET / is the TP's baseline-latency target: it has to answer without
-// touching the store or the transfer service.
+// touching the store, the transfer service or ARCA.
 describe("GET /", () => {
   let server;
   let baseUrl;
   let storeTouched = false;
+  const arca = fakeArca();
 
   before(async () => {
     const exchange = memoryService(
       { accounts: [], rates: {}, log: [] },
       async () => true,
+      arca,
     );
     // Any call into the exchange service means the route reached the store.
     const guarded = new Proxy(exchange, {
@@ -38,5 +40,6 @@ describe("GET /", () => {
     assert.equal(response.status, 200);
     assert.equal(await response.text(), "Server is up.");
     assert.equal(storeTouched, false);
+    assert.deepEqual(arca.calls, []);
   });
 });

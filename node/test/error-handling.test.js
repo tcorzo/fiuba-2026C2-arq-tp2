@@ -24,6 +24,7 @@ const validExchange = {
   baseAccountId: 101,
   counterAccountId: 102,
   baseAmount: 1000,
+  dni: "12345678",
 };
 
 let server;

@@ -73,3 +73,22 @@ export class ExchangeFailedError extends AppError {
     super(status, code, exchangeResult.obs ?? "Exchange failed", exchangeResult);
   }
 }
+
+// ARCA turned the client's DNI down. A business rejection, not a fault: a 4xx,
+// and the exchange never started.
+export class ArcaRejectedError extends AppError {
+  constructor() {
+    super(403, "ARCA_REJECTED", "ARCA rejected the client's DNI");
+  }
+}
+
+// ARCA did not give a usable answer: a non-200, a body without a boolean `ok`,
+// or no answer within the timeout. The dependency's fault, so a 502. `reason`
+// is for our log line only; the client gets the code.
+export class ArcaUnavailableError extends AppError {
+  constructor(reason, options) {
+    super(502, "ARCA_UNAVAILABLE", "ARCA is unavailable");
+    this.reason = reason;
+    if (options?.cause) this.cause = options.cause;
+  }
+}

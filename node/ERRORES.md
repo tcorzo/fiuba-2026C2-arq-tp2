@@ -42,6 +42,8 @@ Todas las respuestas de error tienen la forma `{ "error": <mensaje>, "code": <c�
 | `ExchangeFailedError`: el cambio se ejecutó y la cuenta interna no tiene fondos | 409 | `INSUFFICIENT_INTERNAL_FUNDS` |
 | `ExchangeFailedError`: la cuenta del cliente rechazó el retiro | 422 | `WITHDRAW_REJECTED` |
 | `ExchangeFailedError`: la dependencia de transferencias no acreditó al cliente | 502 | `DEPOSIT_FAILED` |
+| `ArcaRejectedError`: ARCA rechazó el `dni` del cliente; el exchange no empezó | 403 | `ARCA_REJECTED` |
+| `ArcaUnavailableError`: ARCA respondió un no-`200`, un body sin `ok` booleano o nada dentro del timeout (sin reintentos) | 502 | `ARCA_UNAVAILABLE` |
 | `ExchangeFailedError`: con una causa que no está en la tabla de `errors.js` | 500 | `EXCHANGE_FAILED` |
 | Cualquier otra cosa: un defecto nuestro | 500 | `INTERNAL_ERROR` |
 

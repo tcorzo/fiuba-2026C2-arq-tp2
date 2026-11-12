@@ -12,7 +12,7 @@ import {
   createPgAtomically,
   createPgRepositories,
 } from "../pg-repositories.js";
-import { memoryService } from "./helpers.js";
+import { fakeArca, memoryService } from "./helpers.js";
 
 function seed() {
   return {
@@ -209,6 +209,7 @@ describe("H-14", () => {
         repositories,
         atomically: createMemoryAtomically(repositories),
         transfer,
+        arca: fakeArca(),
       });
     return [replica(), replica()];
   }

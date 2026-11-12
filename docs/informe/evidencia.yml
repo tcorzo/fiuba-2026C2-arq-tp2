@@ -44,9 +44,9 @@
   ubicacion: ansible/deploy.sh
   lineas: "17"
 - id: E-09
-  descripcion: "`node/zip` arma el paquete del deploy con `*.js`, `*.json` y `state/*.json`."
-  ubicacion: node/zip
-  lineas: "5-6"
+  descripcion: "`node/zip.sh` arma el paquete del deploy con `*.js`, `*.json` y `state/*.json`."
+  ubicacion: node/zip.sh
+  lineas: "12"
 - id: E-10
   descripcion: "`az postgres flexible-server list-skus -l eastus2`: aprovisionamiento restringido para la suscripción."
   ubicacion: evidencia/region/postgres-list-skus-eastus2.json

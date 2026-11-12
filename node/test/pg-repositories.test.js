@@ -13,6 +13,7 @@ import {
 } from "../pg-repositories.js";
 import { createSchema, loadState, seed } from "../seed.js";
 import { repositoryContract } from "./repositories.contract.js";
+import { fakeArca } from "./helpers.js";
 
 // A Postgres URL to run the suite against, e.g. a postgres:18 container:
 // TEST_DATABASE_URL=postgres://... mise run app:test. Without it the suite
@@ -182,6 +183,7 @@ describe("H-14", { skip }, () => {
           repositories: createPgRepositories(p),
           atomically: createPgAtomically(p),
           transfer: async () => true,
+          arca: fakeArca(),
         });
       const first = replica(pool);
       const second = replica(otherPool);
