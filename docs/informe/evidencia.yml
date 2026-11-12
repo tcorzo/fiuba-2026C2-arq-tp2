@@ -96,3 +96,123 @@
 - id: E-20
   descripcion: "`GET /exchanges/:id` de un exchange aprobado y `GET /log` a través del load balancer: los dos devuelven el `dni` del cliente."
   ubicacion: evidencia/punto-de-partida/dni-expuesto-via-lb.txt
+- id: E-21
+  descripcion: "Una moneda desconocida responde `422 UNKNOWN_CURRENCY`, y `GET /rates` sigue respondiendo `200`: el error no tumba el proceso."
+  ubicacion: doc/informe/evidencia/h-01-tactic.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-22
+  descripcion: "Un par sin tasa (USD/EUR) responde `422 UNSUPPORTED_PAIR`, y los saldos internos y el log no cambian."
+  ubicacion: doc/informe/evidencia/h-30-despues.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-23
+  descripcion: "Veinte exchanges sobre el mismo saldo, en secuencia, escalonados y concurrentes: en los tres se acepta uno, se rechazan 19 y el saldo no queda negativo."
+  ubicacion: doc/informe/evidencia/h-06-tactic.json
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-24
+  descripcion: "Sección de la táctica Validate Input (H-07): un importe negativo ya no llega al dominio. El TP 1 no tiene un archivo de ejecución para H-07."
+  ubicacion: doc/informe/secciones/tacticas/validate-input.typ
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-25
+  descripcion: "Ida y vuelta ARS → BRL → ARS: se envían 1.000 y vuelven 1.000."
+  ubicacion: doc/informe/evidencia/h-08-tactic.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-26
+  descripcion: "Carga sostenida con las transferencias concurrentes: 43.200 exchanges respondidos con `200`, mediana de 347 ms y p95 de 400 ms."
+  ubicacion: doc/informe/evidencia/h-12-tactic-steady.json
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-27
+  descripcion: "Tests: un exchange hecho en una réplica aparece en los saldos y el log de la otra. Pasan 3 de 3."
+  ubicacion: doc/informe/evidencia/h-14-tests.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-28
+  descripcion: "Sólo `app/metrics.js` importa el cliente de métricas, y una request por ruta emite sus métricas."
+  ubicacion: doc/informe/evidencia/h-19-despues.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-29
+  descripcion: "Salida de `npm test` con el reporter spec en el commit `171f37b`: los tests de H-01 pasan."
+  ubicacion: doc/informe/evidencia/h-20-despues.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-30
+  descripcion: "Importar cada uno de los 10 módulos de `app/` no produce efectos laterales. Pasan 10 de 10 tests."
+  ubicacion: doc/informe/evidencia/h-21-despues.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-31
+  descripcion: "Dos instancias del servicio en un proceso no comparten estado, y el store no toca nada hasta `init`."
+  ubicacion: doc/informe/evidencia/h-22-tests.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-32
+  descripcion: "`PUT /accounts/2/balance` con un valor no numérico o con texto numérico responde `400 VALIDATION_ERROR`."
+  ubicacion: doc/informe/evidencia/h-31-tactic.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-33
+  descripcion: "Sección de la táctica Tailor Interface (H-34): con la misma carga, los `500` de fondos insuficientes pasan a `409`. El TP 1 no tiene un archivo de ejecución para H-34."
+  ubicacion: doc/informe/secciones/tacticas/adaptar-interfaz.typ
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-34
+  descripcion: "Lecturas con 100.000 entradas en el log: 1.380 respuestas `200`, mediana de 1 ms y p95 de 2 ms."
+  ubicacion: doc/informe/evidencia/h-35-tactic-100000-artillery.json
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-35
+  descripcion: "Se mata el contenedor de Postgres a mitad de una carga: 35 exchanges respondidos, los 35 presentes después del reinicio y ninguno perdido."
+  ubicacion: doc/informe/evidencia/h-09-tactic.json
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-36
+  descripcion: "Réplicas de la `api` detrás de nginx: 40 de 40 exchanges respondidos con `200`, y los 40 presentes después."
+  ubicacion: doc/informe/evidencia/h-13-tactic-availability.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-37
+  descripcion: "Se mata el proceso de la `api`: el contenedor se recupera y vuelve a `healthy` en 6 s."
+  ubicacion: doc/informe/evidencia/h-03-tactic.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-38
+  descripcion: "Sección de la táctica Encrypt Data (H-38): nginx termina TLS. El TP 1 no tiene un archivo de ejecución para H-38."
+  ubicacion: doc/informe/secciones/tacticas/encrypt-data.typ
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-39
+  descripcion: "Flood de 200 rps de un cliente, sin rate limiting: 152 timeouts en 8.000 requests, mediana de 550 ms y p95 de 773 ms."
+  ubicacion: doc/informe/evidencia/h-02-base-flood.json
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-40
+  descripcion: "El listener público de nginx responde `404` a `GET /accounts`, `GET /log`, `PUT /rates` y `PUT /accounts/1/balance`. Sólo el listener de administración, en loopback, los atiende."
+  ubicacion: doc/informe/evidencia/h-15-tactic.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-41
+  descripcion: "Desde la LAN, Grafana pide autenticación, Graphite y cAdvisor no responden, y statsd descarta el counter."
+  ubicacion: doc/informe/evidencia/h-39-tactic.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-42
+  descripcion: "El proceso de la `api` corre como `node` (uid 1000) y no puede escribir en `/opt/app` ni en `/etc`."
+  ubicacion: doc/informe/evidencia/h-40-tactic.txt
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-43
+  descripcion: "Sección de la táctica Restrict Dependencies (H-42): la imagen deja de copiar archivos locales sin versionar. El TP 1 no tiene un archivo de ejecución para H-42."
+  ubicacion: doc/informe/secciones/tacticas/restringir-dependencias.typ
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-44
+  descripcion: "Sección de la táctica Increase Cohesion (H-46): nginx declara sólo los mounts que usa. El TP 1 no tiene un archivo de ejecución para H-46."
+  ubicacion: doc/informe/secciones/tacticas/coherencia-semantica.typ
+  repositorio: tp1
+  commit: f6d14f1

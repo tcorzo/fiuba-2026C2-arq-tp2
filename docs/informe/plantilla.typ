@@ -111,6 +111,9 @@
 // cita por líneas contra `main` se corre cada vez que `main` avanza, como con
 // `#codigo`. El índice enlaza el archivo en ese commit.
 //
+// `repositorio: tp1` ubica la evidencia en el repositorio del TP 1, y exige
+// `commit`. Así la sección 3 cita la evidencia del TP 1 sin copiarla.
+//
 // En la prosa se cita escribiendo el ID entre corchetes, como pide el
 // enunciado: `La mediana sube a 180 ms [E-01].` La regla `citar-evidencia` de
 // `informe` enlaza la cita a su fila del índice. Un ID que no está en
@@ -158,16 +161,20 @@
         if "commit" in e {
           // Fijada a un commit: el enlace y las líneas no se corren cuando
           // `main` avanza.
+          let repo = if e.at("repositorio", default: none) == "tp1" {
+            repositorio-tp1
+          } else { repositorio }
           let ancla = if "lineas" in e {
             let rango = str(e.lineas).split(",").first().split("-")
             "#L" + rango.first() + if rango.len() > 1 { "-L" + rango.last() }
           } else { "" }
+          if repo == repositorio-tp1 [TP 1: ]
           link(
-            repositorio + "/blob/" + e.commit + "/" + e.ubicacion + ancla,
+            repo + "/blob/" + e.commit + "/" + e.ubicacion + ancla,
             raw(e.ubicacion),
           )
           if "lineas" in e [, líneas #e.lineas]
-          [, en #sha(e.commit)]
+          [, en #sha(e.commit, repo: repo)]
         } else {
           raw(e.ubicacion)
           if "lineas" in e [, líneas #e.lineas]
