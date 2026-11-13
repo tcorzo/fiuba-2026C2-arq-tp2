@@ -84,6 +84,11 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
   [El agente juntó las ejecuciones a través del load balancer y fijó cada cita
     por líneas a un commit. Un subagente asoció cada táctica a un archivo de
     evidencia del TP 1. Escribió la sección 6. Nosotros revisamos cada cita.],
+
+  [Sección 4 y diagramas C\&C],
+  [El agente escribió los diagramas en PlantUML desde `infra/`, `ansible/` y
+    `node/`, y citó cada componente y conector por línea. Nosotros revisamos los
+    diagramas contra el código.],
 )
 
 == Propuestas incorrectas
