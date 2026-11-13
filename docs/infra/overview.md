@@ -11,7 +11,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | App tier | **Linux VM Scale Set** `tp2vmss`, 1 × `Standard_F1als_v7` (1 vCPU, 2 GiB, no CPU credits), Ubuntu 24.04, Node 24 + pm2 |
 | External dependency | **ARCA** mock, `arqsoft/arca:1.0.0` on **Azure Container Instances**, private IP, port 8080 |
 | Admin access | **Jumpbox** VM with a public IP. It is the only SSH entry point into the VNet |
-| Observability | Datadog agent on every VMSS instance (installed by Ansible) |
+| Observability | Datadog agent on every VMSS instance (installed by Ansible). The load test dashboard and the distributions' percentiles are the `observability` stack. See [Observability](#observability) |
 | Storage | **Azure Database for PostgreSQL Flexible Server** 18, `B_Standard_B1ms` (1 vCore, 2 GiB, CPU credits), 32 GB, private access only. The TP asks for Redis or another managed (PaaS) database; Postgres keeps tp1's repositories (H-09) |
 
 ## Resource inventory
@@ -88,6 +88,32 @@ the first apply failed with `SkuNotAvailable`. In `centralus`, it doesn't list
   NVMe. (`azurerm_linux_virtual_machine_scale_set` has no `disk_controller_type`.)
 - **Cost.** About USD 0.06/h per VM, the `eastus2` price (B1s: USD 0.01/h). The
   `centralus` price wasn't checked. Run `mise run down` when not working.
+
+## Observability
+
+The stack `infra/envs/prd/observability` (workspace `arvault-prd-observability`) manages what Datadog needs to show a load test. It holds no Azure resource and gets no Azure identity: its provider talks to Datadog only, with `DD_API_KEY` and `DD_APP_KEY` (an application key: the API key alone can submit data but not manage dashboards).
+
+| Terraform address | Datadog object | Why |
+|---|---|---|
+| `datadog_metric_tag_configuration.distribution["exchange.http.duration"]` | Tag configuration, tags `host`, `route`, percentiles on | Without percentiles, a distribution only has count, sum, min, max and avg, and every `p50:`/`p95:` query returns nothing |
+| `datadog_metric_tag_configuration.distribution["exchange.exchange.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
+| `datadog_metric_tag_configuration.distribution["exchange.arca.validation.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
+| `datadog_dashboard_json.load_test` | Dashboard *arVault load test* | Defined in `dashboards/load-test.json`, the format Datadog exports |
+
+The dashboard has two template variables: `$test` (Artillery's `test:<scenario>` tag, set in each `perf/*.yaml`) and `$host` (the VMSS instance, added by the agent). Its three groups:
+
+| Group | Source | Widgets |
+|---|---|---|
+| Client (Artillery) | `artillery.*`, from `publish-metrics` over the Datadog API, no `host` | Offered load (`vusers.created`) vs. served (`http.responses`) and failed users; responses by status (200, 403, 409, 500, 502) and network errors (`ETIMEDOUT`, `ECONNRESET`); median, p95 and p99 response time |
+| VMSS nodes | Agent's system check | CPU user + system, CPU steal and iowait, load, network, memory, by `host` |
+| Service | `exchange.*`, from `node/metrics.js` through DogStatsD | Server-side p50 and p95 by `route`; responses by route and status; ARCA validation and exchange duration; ARCA outcomes; exchange outcomes and failure causes; handled errors by code; event loop lag and RSS by `host`; internal account balances |
+
+Things to note:
+
+- **It outlives `mise run down`.** `down` destroys `platform` and `foundation` only, so the dashboard of a destroyed configuration can still be screenshotted and exported.
+- **Apply it after the first `exchange.*` sample arrives.** Deploy the app, run a short load (`mise run perf:run root ...`), check the metrics in Datadog, then `mise run infra:apply observability`.
+- **Edits made in the Datadog UI are overwritten** on the next apply. Change `dashboards/load-test.json` instead. The evidence of each case is still the JSON exported from Datadog next to its screenshots, as the assignment asks.
+- **Artillery's percentiles are per 10-second window.** Over a longer range, Datadog averages them; that average is not the run's p95. The run's p95 comes from the raw report in `perf/results/`.
 
 ## Network topology
 
@@ -218,7 +244,7 @@ Some consequences of this design:
 - **Outputs can't go stale on disk.** Every script reads the latest applied state when it runs. `app_config` is computed by `platform` from `foundation`'s outputs, so apply `platform` after any `foundation` change.
 - **The VMSS instance count is set in two places.** Terraform's `instances` sets the count, but Ansible configures whatever `az vmss nic list` returns. Re-run `mise run ansible:setup` and `mise run app:deploy` after scaling (the README says so too).
 - **The VMSS has no custom image or cloud-init.** If Azure replaces an instance (automatic upgrade or autoscale), the new instance boots without Node or the app until Ansible runs again. This matters for any autoscaling design.
-- **Where secrets live.** The Docker Hub token is a sensitive workspace variable, and HCP Terraform's state (encrypted at rest) holds it in plain text. The bootstrap stack's local state holds it too. The database password is a `random_password`: it lives in the state of `foundation` and `platform`, and in `node/config.local.json` (gitignored) on the machine that deploys and on every instance. The Datadog key never reaches Terraform: it lives in `DATADOG_API_KEY`. Keep `terraform output` and run logs out of evidence files unless you read them first.
+- **Where secrets live.** The Docker Hub token is a sensitive workspace variable, and HCP Terraform's state (encrypted at rest) holds it in plain text. The bootstrap stack's local state holds it too. The database password is a `random_password`: it lives in the state of `foundation` and `platform`, and in `node/config.local.json` (gitignored) on the machine that deploys and on every instance. The Datadog keys reach Terraform only as write-only, sensitive variables of the `observability` workspace (`DD_API_KEY`, `DD_APP_KEY`), set by `infra/bootstrap`; Ansible and Artillery read `DATADOG_API_KEY`. Keep `terraform output` and run logs out of evidence files unless you read them first.
 
 ## What the TP will change
 

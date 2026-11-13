@@ -1,6 +1,6 @@
 {
   "title": "arVault load test",
-  "description": "Client side (Artillery, tagged test:<scenario>) next to the VMSS nodes (Datadog agent) and the service's own metrics (exchange.*, tagged by host, route, status and outcome). Import it in Datadog: Dashboards > New Dashboard > Import dashboard JSON. The durations are distributions: enable percentiles on exchange.http.duration, exchange.exchange.duration and exchange.arca.validation.duration (Metrics > Summary) for the p50/p95 queries. Set the time range to the run's before taking a screenshot.",
+  "description": "Managed by Terraform (infra/envs/prd/observability): edits made here are overwritten on the next apply. Client side (Artillery, tagged test:<scenario>) next to the VMSS nodes (Datadog agent) and the service's own metrics (exchange.*, tagged by host, route, status, outcome). Set the time range to the run's before taking a screenshot, and export this JSON with it.",
   "layout_type": "ordered",
   "template_variables": [
     {
@@ -8,19 +8,25 @@
       "prefix": "test",
       "available_values": [],
       "default": "baseline"
+    },
+    {
+      "name": "host",
+      "prefix": "host",
+      "available_values": [],
+      "default": "*"
     }
   ],
   "widgets": [
     {
       "definition": {
         "type": "group",
-        "title": "Client (Artillery)",
+        "title": "Client (Artillery), filtered by $test",
         "layout_type": "ordered",
         "widgets": [
           {
             "definition": {
               "type": "timeseries",
-              "title": "Requests and responses per second, by status",
+              "title": "Offered and served load (per second)",
               "show_legend": true,
               "requests": [
                 {
@@ -29,50 +35,112 @@
                   "queries": [
                     {
                       "data_source": "metrics",
-                      "name": "requests",
-                      "query": "sum:artillery.http.requests{$test}.as_rate()"
+                      "name": "arrivals",
+                      "query": "sum:artillery.vusers.created{$test}.as_rate()"
                     },
                     {
                       "data_source": "metrics",
-                      "name": "ok_200",
-                      "query": "sum:artillery.http.codes.200{$test}.as_rate()"
+                      "name": "responses",
+                      "query": "sum:artillery.http.responses{$test}.as_rate()"
                     },
                     {
                       "data_source": "metrics",
-                      "name": "rejected_403",
-                      "query": "sum:artillery.http.codes.403{$test}.as_rate()"
-                    },
-                    {
-                      "data_source": "metrics",
-                      "name": "arca_502",
-                      "query": "sum:artillery.http.codes.502{$test}.as_rate()"
-                    },
-                    {
-                      "data_source": "metrics",
-                      "name": "timeouts",
-                      "query": "sum:artillery.errors.ETIMEDOUT{$test}.as_rate()"
+                      "name": "failed",
+                      "query": "sum:artillery.vusers.failed{$test}.as_rate()"
                     }
                   ],
                   "formulas": [
                     {
-                      "formula": "requests",
-                      "alias": "requests/s"
+                      "formula": "arrivals",
+                      "alias": "arrivals/s (offered)"
                     },
                     {
-                      "formula": "ok_200",
+                      "formula": "responses",
+                      "alias": "responses/s (served)"
+                    },
+                    {
+                      "formula": "failed",
+                      "alias": "failed users/s"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Responses and errors per second, by status",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "bars",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "c200",
+                      "query": "sum:artillery.http.codes.200{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "c403",
+                      "query": "sum:artillery.http.codes.403{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "c409",
+                      "query": "sum:artillery.http.codes.409{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "c500",
+                      "query": "sum:artillery.http.codes.500{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "c502",
+                      "query": "sum:artillery.http.codes.502{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "etimedout",
+                      "query": "sum:artillery.errors.ETIMEDOUT{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "econnreset",
+                      "query": "sum:artillery.errors.ECONNRESET{$test}.as_rate()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "c200",
                       "alias": "200/s"
                     },
                     {
-                      "formula": "rejected_403",
-                      "alias": "403/s"
+                      "formula": "c403",
+                      "alias": "403/s ARCA rejected"
                     },
                     {
-                      "formula": "arca_502",
-                      "alias": "502/s"
+                      "formula": "c409",
+                      "alias": "409/s insufficient funds"
                     },
                     {
-                      "formula": "timeouts",
-                      "alias": "timeouts/s"
+                      "formula": "c500",
+                      "alias": "500/s"
+                    },
+                    {
+                      "formula": "c502",
+                      "alias": "502/s ARCA or deposit"
+                    },
+                    {
+                      "formula": "etimedout",
+                      "alias": "ETIMEDOUT/s"
+                    },
+                    {
+                      "formula": "econnreset",
+                      "alias": "ECONNRESET/s"
                     }
                   ]
                 }
@@ -122,59 +190,6 @@
                 }
               ]
             }
-          },
-          {
-            "definition": {
-              "type": "timeseries",
-              "title": "Response time by route, median and p95 (ms)",
-              "show_legend": true,
-              "requests": [
-                {
-                  "response_format": "timeseries",
-                  "display_type": "line",
-                  "queries": [
-                    {
-                      "data_source": "metrics",
-                      "name": "ex50",
-                      "query": "avg:artillery.plugins.metrics_by_endpoint.response_time._exchange.median{$test}"
-                    },
-                    {
-                      "data_source": "metrics",
-                      "name": "ex95",
-                      "query": "avg:artillery.plugins.metrics_by_endpoint.response_time._exchange.p95{$test}"
-                    },
-                    {
-                      "data_source": "metrics",
-                      "name": "ra50",
-                      "query": "avg:artillery.plugins.metrics_by_endpoint.response_time._rates.median{$test}"
-                    },
-                    {
-                      "data_source": "metrics",
-                      "name": "ra95",
-                      "query": "avg:artillery.plugins.metrics_by_endpoint.response_time._rates.p95{$test}"
-                    }
-                  ],
-                  "formulas": [
-                    {
-                      "formula": "ex50",
-                      "alias": "/exchange median"
-                    },
-                    {
-                      "formula": "ex95",
-                      "alias": "/exchange p95"
-                    },
-                    {
-                      "formula": "ra50",
-                      "alias": "/rates median"
-                    },
-                    {
-                      "formula": "ra95",
-                      "alias": "/rates p95"
-                    }
-                  ]
-                }
-              ]
-            }
           }
         ]
       }
@@ -182,13 +197,13 @@
     {
       "definition": {
         "type": "group",
-        "title": "VMSS nodes (Datadog agent)",
+        "title": "VMSS nodes (Datadog agent), filtered by $host",
         "layout_type": "ordered",
         "widgets": [
           {
             "definition": {
               "type": "timeseries",
-              "title": "CPU by node (%)",
+              "title": "CPU user + system by node (%)",
               "show_legend": true,
               "requests": [
                 {
@@ -198,12 +213,12 @@
                     {
                       "data_source": "metrics",
                       "name": "user",
-                      "query": "avg:system.cpu.user{*} by {host}"
+                      "query": "avg:system.cpu.user{$host} by {host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "sys",
-                      "query": "avg:system.cpu.system{*} by {host}"
+                      "query": "avg:system.cpu.system{$host} by {host}"
                     }
                   ],
                   "formulas": [
@@ -223,6 +238,41 @@
           {
             "definition": {
               "type": "timeseries",
+              "title": "CPU steal and iowait by node (%)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "steal",
+                      "query": "avg:system.cpu.stolen{$host} by {host}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "iowait",
+                      "query": "avg:system.cpu.iowait{$host} by {host}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "steal",
+                      "alias": "steal"
+                    },
+                    {
+                      "formula": "iowait",
+                      "alias": "iowait"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
               "title": "Load average (1 min) by node",
               "show_legend": true,
               "requests": [
@@ -233,7 +283,7 @@
                     {
                       "data_source": "metrics",
                       "name": "load",
-                      "query": "avg:system.load.1{*} by {host}"
+                      "query": "avg:system.load.1{$host} by {host}"
                     }
                   ],
                   "formulas": [
@@ -258,12 +308,12 @@
                     {
                       "data_source": "metrics",
                       "name": "rx",
-                      "query": "avg:system.net.bytes_rcvd{*} by {host}"
+                      "query": "sum:system.net.bytes_rcvd{$host} by {host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "tx",
-                      "query": "avg:system.net.bytes_sent{*} by {host}"
+                      "query": "sum:system.net.bytes_sent{$host} by {host}"
                     }
                   ],
                   "formulas": [
@@ -293,7 +343,7 @@
                     {
                       "data_source": "metrics",
                       "name": "mem",
-                      "query": "avg:system.mem.used{*} by {host}"
+                      "query": "avg:system.mem.used{$host} by {host}"
                     }
                   ],
                   "formulas": [
@@ -311,9 +361,84 @@
     {
       "definition": {
         "type": "group",
-        "title": "Service (exchange.*, from the app through DogStatsD)",
+        "title": "Service (exchange.*, from the app through DogStatsD), filtered by $host",
         "layout_type": "ordered",
         "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Server-side duration by route, p50 (ms)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "h50",
+                      "query": "p50:exchange.http.duration{$host} by {route}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "h50"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Server-side duration by route, p95 (ms)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "h95",
+                      "query": "p95:exchange.http.duration{$host} by {route}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "h95"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Responses per second by route and status",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:exchange.http.responses{$host} by {route,status}.as_rate()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
           {
             "definition": {
               "type": "timeseries",
@@ -327,22 +452,22 @@
                     {
                       "data_source": "metrics",
                       "name": "a50",
-                      "query": "p50:exchange.arca.validation.duration{*}"
+                      "query": "p50:exchange.arca.validation.duration{$host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "a95",
-                      "query": "p95:exchange.arca.validation.duration{*}"
+                      "query": "p95:exchange.arca.validation.duration{$host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "e50",
-                      "query": "p50:exchange.exchange.duration{*}"
+                      "query": "p50:exchange.exchange.duration{$host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "e95",
-                      "query": "p95:exchange.exchange.duration{*}"
+                      "query": "p95:exchange.exchange.duration{$host}"
                     }
                   ],
                   "formulas": [
@@ -380,7 +505,7 @@
                     {
                       "data_source": "metrics",
                       "name": "v",
-                      "query": "sum:exchange.arca.validation.outcomes{*} by {outcome}.as_rate()"
+                      "query": "sum:exchange.arca.validation.outcomes{$host} by {outcome}.as_rate()"
                     }
                   ],
                   "formulas": [
@@ -395,22 +520,30 @@
           {
             "definition": {
               "type": "timeseries",
-              "title": "Server-side duration by route, p50 (ms)",
+              "title": "Exchanges per second, by outcome and failure cause",
               "show_legend": true,
               "requests": [
                 {
                   "response_format": "timeseries",
-                  "display_type": "line",
+                  "display_type": "bars",
                   "queries": [
                     {
                       "data_source": "metrics",
-                      "name": "h",
-                      "query": "p50:exchange.http.duration{*} by {route}"
+                      "name": "o",
+                      "query": "sum:exchange.exchange.outcomes{$host} by {outcome}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "x",
+                      "query": "sum:exchange.exchange.failures{$host} by {cause}.as_rate()"
                     }
                   ],
                   "formulas": [
                     {
-                      "formula": "h"
+                      "formula": "o"
+                    },
+                    {
+                      "formula": "x"
                     }
                   ]
                 }
@@ -420,22 +553,22 @@
           {
             "definition": {
               "type": "timeseries",
-              "title": "Responses per second by route and status",
+              "title": "Handled errors per second, by code",
               "show_legend": true,
               "requests": [
                 {
                   "response_format": "timeseries",
-                  "display_type": "line",
+                  "display_type": "bars",
                   "queries": [
                     {
                       "data_source": "metrics",
-                      "name": "r",
-                      "query": "sum:exchange.http.responses{*} by {route,status}.as_rate()"
+                      "name": "e",
+                      "query": "sum:exchange.http.errors{$host} by {code}.as_rate()"
                     }
                   ],
                   "formulas": [
                     {
-                      "formula": "r"
+                      "formula": "e"
                     }
                   ]
                 }
@@ -445,7 +578,7 @@
           {
             "definition": {
               "type": "timeseries",
-              "title": "Event loop lag p99 by node (ms)",
+              "title": "Event loop lag by node (ms)",
               "show_legend": true,
               "requests": [
                 {
@@ -454,13 +587,73 @@
                   "queries": [
                     {
                       "data_source": "metrics",
-                      "name": "l",
-                      "query": "avg:exchange.runtime.eventloop.lag.p99{*} by {host}"
+                      "name": "l99",
+                      "query": "avg:exchange.runtime.eventloop.lag.p99{$host} by {host}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "lmax",
+                      "query": "max:exchange.runtime.eventloop.lag.max{$host} by {host}"
                     }
                   ],
                   "formulas": [
                     {
-                      "formula": "l"
+                      "formula": "l99",
+                      "alias": "p99"
+                    },
+                    {
+                      "formula": "lmax",
+                      "alias": "max"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Process RSS by node (bytes)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "rss",
+                      "query": "avg:exchange.runtime.heap.rss{$host} by {host}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "rss"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Internal account balances, by currency",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "b",
+                      "query": "avg:exchange.accounts.balance{$host} by {currency}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "b"
                     }
                   ]
                 }
