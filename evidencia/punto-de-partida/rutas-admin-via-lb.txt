@@ -1,0 +1,102 @@
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 41970 
+* using HTTP/1.x
+> GET /accounts HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 173
+< ETag: W/"ad-qfNU7cKcsYR5PNzUsolQHjZDZ6w"
+< Date: Thu, 12 Nov 2026 21:52:00 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [173 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+[{"id":1,"currency":"ARS","balance":120000000},{"id":2,"currency":"USD","balance":60000},{"id":3,"currency":"EUR","balance":40000},{"id":4,"currency":"BRL","balance":60000}]
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 41980 
+* using HTTP/1.x
+> GET /log HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 24
+< ETag: W/"18-7Y44diwuTA9zIT0jAjZYGI0XU1c"
+< Date: Thu, 12 Nov 2026 21:52:00 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [24 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"items":[],"next":null}
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 32984 
+* using HTTP/1.x
+> PUT /rates HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 2
+> 
+} [2 bytes data]
+* upload completely sent off: 2 bytes
+< HTTP/1.1 400 Bad Request
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 55
+< ETag: W/"37-YTtvDRL7XGixpjPYQtMwFG5W8T0"
+< Date: Thu, 12 Nov 2026 21:52:00 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [55 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"Malformed request","code":"VALIDATION_ERROR"}
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 32994 
+* using HTTP/1.x
+> PUT /accounts/101/balance HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 14
+> 
+} [14 bytes data]
+* upload completely sent off: 14 bytes
+< HTTP/1.1 400 Bad Request
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 89
+< ETag: W/"59-+xL4jCjit6FyCrc75ruWM8fjZrE"
+< Date: Thu, 12 Nov 2026 21:52:01 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [89 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"balance must be a number greater than or equal to 0","code":"VALIDATION_ERROR"}

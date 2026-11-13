@@ -1,0 +1,48 @@
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 38042 
+* using HTTP/1.x
+> GET /exchanges/nHSFgE_TJmGb0xno34e2G HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 305
+< ETag: W/"131-h4yUD3F30NyXEG3EkLvtzwDTsgc"
+< Date: Thu, 12 Nov 2026 21:55:13 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [305 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"id":"nHSFgE_TJmGb0xno34e2G","ts":"2026-11-12T21:54:20.305Z","ok":true,"request":{"dni":"12345678","baseAmount":1000,"baseCurrency":"ARS","baseAccountId":101,"counterCurrency":"USD","counterAccountId":102},"exchangeRate":0.0006609385327164573,"counterAmount":0.6609385327164573,"obs":null,"failure":null}
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 38048 
+* using HTTP/1.x
+> GET /log HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 1247
+< ETag: W/"4df-aFGTP4AQWGn5EPzDm+CuO3IedLc"
+< Date: Thu, 12 Nov 2026 21:55:14 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [1247 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"items":[{"id":"nHSFgE_TJmGb0xno34e2G","ts":"2026-11-12T21:54:20.305Z","ok":true,"request":{"dni":"12345678","baseAmount":1000,"baseCurrency":"ARS","baseAccountId":101,"counterCurrency":"USD","counterAccountId":102},"exchangeRate":0.0006609385327164573,"counterAmount":0.6609385327164573,"obs":null,"failure":null},{"id":"iRiySwSUW5bCeFwMpSCLc","ts":"2026-11-12T21:54:21.334Z","ok":true,"request":{"dni":"12345678","baseAmount":1000,"baseCurrency":"ARS","baseAccountId":101,"counterCurrency":"USD","counterAccountId":102},"exchangeRate":0.0006609385327164573,"counterAmount":0.6609385327164573,"obs":null,"failure":null},{"id":"TFcfmGqPXGIC6068CmwBw","ts":"2026-11-12T21:54:23.149Z","ok":true,"request":{"dni":"12345678","baseAmount":1000,"baseCurrency":"ARS","baseAccountId":101,"counterCurrency":"USD","counterAccountId":102},"exchangeRate":0.0006609385327164573,"counterAmount":0.6609385327164573,"obs":null,"failure":null},{"id":"_uHnBxRvnGFcViTiJaUKG","ts":"2026-11-12T21:54:24.502Z","ok":true,"request":{"dni":"12345678","baseAmount":1000,"baseCurrency":"ARS","baseAccountId":101,"counterCurrency":"USD","counterAccountId":102},"exchangeRate":0.0006609385327164573,"counterAmount":0.6609385327164573,"obs":null,"failure":null}],"next":null}

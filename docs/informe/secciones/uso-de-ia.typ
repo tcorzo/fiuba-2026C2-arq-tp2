@@ -73,6 +73,17 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     reintentos. Cada exchange valida el `dni` antes de mover fondos. Escribió
     tests contra un ARCA falso y sumó el `dni` aleatorio a los escenarios.
     Nosotros decidimos no reintentar y revisamos el diff.],
+
+  [Borrador de las secciones 3 y 10],
+  [El agente recorrió el informe del TP 1 y clasificó sus 27 tácticas. Generó el diff de `app/` contra `node/` y corrió
+    `npm test`. Verificó en la documentación del provider que el probe usa TCP
+    por defecto. Encontró que el load balancer publica las rutas de
+    administración. Nosotros revisamos el texto contra la evidencia.],
+
+  [Evidencia de las secciones 3 y 6],
+  [El agente juntó las ejecuciones a través del load balancer y fijó cada cita
+    por líneas a un commit. Un subagente asoció cada táctica a un archivo de
+    evidencia del TP 1. Escribió la sección 6. Nosotros revisamos cada cita.],
 )
 
 == Propuestas incorrectas
