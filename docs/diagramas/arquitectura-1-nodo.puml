@@ -1,0 +1,9 @@
+@startuml arquitectura-1-nodo
+' arVault — TP 2. Componentes y conectores, caso de 1 nodo.
+' Render: mise run diagrams
+
+
+!$nodos = 1
+!include arquitectura.iuml
+
+@enduml
