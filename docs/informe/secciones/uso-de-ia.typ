@@ -79,6 +79,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     métricas a `graphite`, un nombre que no resuelve en Azure. Apuntó la app al
     agente de Datadog y pasó la ruta y el resultado a tags. Escribió tests que
     escuchan los datagramas por UDP. Nosotros revisamos el diff.],
+
+  [Dashboard de Datadog en Terraform],
+  [El agente pasó el dashboard a un stack de Terraform, `observability`, con los
+    percentiles de las tres distribuciones. Encontró que el widget de latencia
+    por ruta del cliente leía métricas que ningún escenario publica. Nosotros
+    revisamos el diff.],
 )
 
 == Propuestas incorrectas
