@@ -269,3 +269,48 @@
   ubicacion: node/exchange.js
   lineas: "220-250"
   commit: 55a2922
+- id: E-58
+  descripcion: "VNet `10.0.0.0/16`, sus cuatro subnets (las de ARCA y Postgres, delegadas) y el NSG que abre SSH en el puerto 22."
+  ubicacion: infra/modules/network/main.tf
+  lineas: "1-73"
+  commit: 28031b3
+- id: E-59
+  descripcion: "Contenedor de ARCA en Azure Container Instances: `arqsoft/arca:1.0.0`, IP privada, 0,5 vCPU, 0,5 GiB y puerto 8080."
+  ubicacion: infra/modules/arca/main.tf
+  lineas: "10-29"
+  commit: 28031b3
+- id: E-60
+  descripcion: "Tamaño de cada nodo del VMSS: `Standard_F1als_v7`."
+  ubicacion: infra/envs/prd/platform/variables.tf
+  lineas: "34"
+  commit: 28031b3
+- id: E-61
+  descripcion: "El deploy arranca la app con `pm2 start server.js`: un proceso por nodo."
+  ubicacion: ansible/vmss_deploy.yml
+  lineas: "25"
+  commit: 28031b3
+- id: E-62
+  descripcion: "Cada proceso crea un pool de conexiones a Postgres."
+  ubicacion: node/pg-repositories.js
+  lineas: "217"
+  commit: 28031b3
+- id: E-63
+  descripcion: "La dependencia de transferencias: una espera de 200 a 400 ms que siempre devuelve éxito."
+  ubicacion: node/transfer.js
+  lineas: "1-11"
+  commit: 28031b3
+- id: E-64
+  descripcion: "Jumpbox: IP pública estática, NIC con el NSG de SSH y la VM."
+  ubicacion: infra/modules/jumpbox/main.tf
+  lineas: "9-41"
+  commit: 28031b3
+- id: E-65
+  descripcion: "URL de conexión a Postgres, con `sslmode=verify-full`."
+  ubicacion: infra/modules/database/outputs.tf
+  lineas: "5"
+  commit: 28031b3
+- id: E-66
+  descripcion: "El inventario de Ansible llega a cada nodo por SSH a través del jumpbox (`ProxyCommand`)."
+  ubicacion: ansible/update_vmss_inventory.sh
+  lineas: "20"
+  commit: 28031b3
