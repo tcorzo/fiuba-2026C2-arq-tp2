@@ -95,6 +95,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     métricas a `graphite`, un nombre que no resuelve en Azure. Apuntó la app al
     agente de Datadog y pasó la ruta y el resultado a tags. Escribió tests que
     escuchan los datagramas por UDP. Nosotros revisamos el diff.],
+
+  [Dashboard de Datadog en Terraform],
+  [El agente pasó el dashboard a un stack de Terraform, `observability`, con los
+    percentiles de las tres distribuciones. Encontró que el widget de latencia
+    por ruta del cliente leía métricas que ningún escenario publica. Nosotros
+    revisamos el diff.],
 )
 
 == Propuestas incorrectas
@@ -115,3 +121,43 @@ nada [E-01].
 
 En su lugar, destruimos con el código que creó esa infraestructura, el commit
 #sha("7d6e8c3"). Después aplicamos la branch nueva con `mise run up`.
+
+=== Prefijo de métricas reservado por Datadog
+
+En #sha("02e712f"), el agente mantuvo el prefijo `exchange.` de las métricas del
+TP 1. En Graphite no había conflicto. Datadog reserva `exchange.*` para su
+integración de Microsoft Exchange Server.
+
+Lo detectó el `apply` del stack `observability`. Datadog rechazó la configuración
+de tags de las tres distribuciones: `Cannot configure tags on metric because
+metric is an integration metric`. Sin esa configuración, no hay percentiles.
+
+El agente confirmó la causa en el `metadata.csv` de la integración. En
+#sha("ca6a3f3"), cambiamos el prefijo a `arvault.`. El siguiente `apply` terminó
+sin errores.
+
+=== Orden de aplicación incompleto
+
+El agente indicó aplicar `observability` después de ver `exchange.http.duration`
+en Datadog. Ese orden no alcanzaba. La API rechaza los tags de una métrica que
+todavía no recibió datos.
+
+El primer `apply` falló en las tres distribuciones. El agente atribuyó la falla a
+la falta de un exchange. Al revisar el state de HCP Terraform, vio que la
+infraestructura estaba destruida y que ninguna métrica había llegado.
+
+Separamos el dashboard de los percentiles en #sha("e268f46"). Documentamos el
+orden verificado en `docs/infra/overview.md`.
+
+=== Diagnóstico refutado de una métrica sin percentiles
+
+Datadog aceptaba la configuración de tags de `arvault.exchange.duration` y la
+descartaba en menos de un minuto. Tampoco se podía activar desde la UI.
+
+El agente supuso que la causa era el segmento `exchange` del nombre. Lo probamos
+con dos distribuciones nuevas, con y sin ese segmento. Las dos aceptaron
+percentiles, así que la hipótesis era falsa.
+
+No encontramos la causa. En #sha("e1c1b6e"), renombramos la métrica a
+`arvault.exchange.processing.duration`. Un `plan -refresh-only` confirmó que su
+configuración se mantiene.

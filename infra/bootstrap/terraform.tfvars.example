@@ -7,3 +7,9 @@ azure_sid = "<Subscription ID de Azure>"
 # Docker Hub account and a Public Repo Read-only access token
 dockerhub_username = "<Nombre de usuario>"
 dockerhub_token    = "<Token>"
+
+# Datadog: the same API key and site as DATADOG_API_KEY and DATADOG_SITE, plus an
+# application key (Organization Settings > Application Keys)
+datadog_api_key = "<Datadog API key>"
+datadog_app_key = "<Datadog application key>"
+datadog_site    = "<Datadog site, e.g. us5.datadoghq.com>"

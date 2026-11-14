@@ -6,7 +6,7 @@
 #   - An Entra ID application that the remote runs authenticate as, through
 #     dynamic provider credentials (OIDC): no client secret exists anywhere
 #   - Contributor on the subscription for that application
-#   - The workspaces' variables: Azure auth, subscription, Docker Hub
+#   - The workspaces' variables: Azure auth, subscription, Docker Hub, Datadog
 #
 # Apply it once, before the first `terraform init` of a prd stack. Destroying it
 # deletes the workspaces and their state: destroy the prd stacks first.
@@ -16,11 +16,15 @@ locals {
   # Stack name → workspace name. Workspace names are unique per organization, so each
   # one is the project's name plus the stack's: <project>-foundation, <project>-platform.
   # Each name is also written, as a literal, in the stack's `cloud` block.
-  workspaces = { for stack in ["foundation", "platform"] : stack => "${var.hcp_project}-${stack}" }
+  workspaces = { for stack in ["foundation", "platform", "observability"] : stack => "${var.hcp_project}-${stack}" }
+
+  # The stacks that deploy to Azure. observability only talks to Datadog, so it gets
+  # no Azure identity and no Azure variables.
+  azure_stacks = ["foundation", "platform"]
 
   # HCP Terraform signs a token per run phase; Entra ID matches the subject exactly.
   federated_subjects = {
-    for pair in setproduct(keys(local.workspaces), ["plan", "apply"]) :
+    for pair in setproduct(local.azure_stacks, ["plan", "apply"]) :
     "${pair[0]}-${pair[1]}" => "organization:${var.hcp_organization}:project:${var.hcp_project}:workspace:${local.workspaces[pair[0]]}:run_phase:${pair[1]}"
   }
 }
@@ -109,6 +113,14 @@ resource "tfe_workspace_settings" "platform" {
   remote_state_consumer_ids = []
 }
 
+resource "tfe_workspace_settings" "observability" {
+  workspace_id   = tfe_workspace.this["observability"].id
+  execution_mode = "remote"
+
+  global_remote_state       = false
+  remote_state_consumer_ids = []
+}
+
 ###############################################################################
 # Workspace variables
 ###############################################################################
@@ -122,14 +134,14 @@ locals {
   }
 
   env_variables = merge([
-    for stack in keys(local.workspaces) : {
+    for stack in local.azure_stacks : {
       for key, value in local.azure_env : "${stack}/${key}" => { stack = stack, key = key, value = value }
     }
   ]...)
 
   # All sensitive. The keys are not, which for_each needs.
   terraform_variables = merge(
-    { for stack in keys(local.workspaces) : "${stack}/azure_sid" => var.azure_sid },
+    { for stack in local.azure_stacks : "${stack}/azure_sid" => var.azure_sid },
     {
       "foundation/dockerhub_username" = var.dockerhub_username
       "foundation/dockerhub_token"    = var.dockerhub_token
@@ -156,4 +168,30 @@ resource "tfe_variable" "terraform" {
   key          = split("/", each.key)[1]
   value_wo     = local.terraform_variables[each.key]
   sensitive    = true
+}
+
+# The Datadog provider reads its keys from these environment variables, so the
+# observability stack declares no secret variable and its plans never print one.
+locals {
+  datadog_env = {
+    DD_API_KEY = var.datadog_api_key
+    DD_APP_KEY = var.datadog_app_key
+  }
+}
+
+resource "tfe_variable" "datadog_env" {
+  for_each = toset(keys(local.datadog_env))
+
+  workspace_id = tfe_workspace.this["observability"].id
+  category     = "env"
+  key          = each.key
+  value_wo     = local.datadog_env[each.key]
+  sensitive    = true
+}
+
+resource "tfe_variable" "datadog_site" {
+  workspace_id = tfe_workspace.this["observability"].id
+  category     = "terraform"
+  key          = "datadog_site"
+  value        = var.datadog_site
 }

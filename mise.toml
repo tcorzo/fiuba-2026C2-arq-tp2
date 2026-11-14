@@ -204,7 +204,7 @@ TFLINT_CONFIG_FILE = "{{config_root}}/infra/.tflint.hcl"
 
 [tasks."infra:init"]
 description = "Initializes a stack's backend and downloads the providers"
-usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform"; }'
+usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform" "observability"; }'
 run = 'terraform -chdir="infra/envs/prd/${usage_stack}" init'
 
 [tasks."infra:bootstrap"]
@@ -221,7 +221,7 @@ terraform -chdir=infra/bootstrap apply
 [tasks."infra:validate"]
 description = "Validates every stack, bootstrap included"
 run = '''
-for dir in infra/bootstrap infra/envs/prd/foundation infra/envs/prd/platform; do
+for dir in infra/bootstrap infra/envs/prd/foundation infra/envs/prd/platform infra/envs/prd/observability; do
   terraform -chdir="$dir" init -backend=false -input=false >/dev/null || exit 1
   terraform -chdir="$dir" validate || exit 1
 done
@@ -229,17 +229,17 @@ done
 
 [tasks."infra:plan"]
 description = "Shows a stack's plan"
-usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform"; }'
+usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform" "observability"; }'
 run = 'terraform -chdir="infra/envs/prd/${usage_stack}" plan'
 
 [tasks."infra:apply"]
 description = "Applies a stack. Apply foundation before platform"
-usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform"; }'
+usage = 'arg "[stack]" default="foundation" { choices "foundation" "platform" "observability"; }'
 run = 'terraform -chdir="infra/envs/prd/${usage_stack}" apply'
 
 [tasks."infra:destroy"]
 description = "Destroys a stack. Destroy platform before foundation"
-usage = 'arg "[stack]" default="platform" { choices "foundation" "platform"; }'
+usage = 'arg "[stack]" default="platform" { choices "foundation" "platform" "observability"; }'
 run = 'terraform -chdir="infra/envs/prd/${usage_stack}" destroy'
 
 [tasks."infra:fmt"]

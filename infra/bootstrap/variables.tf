@@ -16,6 +16,24 @@ variable "dockerhub_token" {
   sensitive   = true
 }
 
+variable "datadog_api_key" {
+  description = "Datadog API key, the same as DATADOG_API_KEY. Set on the observability workspace as DD_API_KEY."
+  type        = string
+  sensitive   = true
+}
+
+variable "datadog_app_key" {
+  description = "Datadog application key (Organization Settings > Application Keys). Set on the observability workspace as DD_APP_KEY. Managing dashboards needs it; the API key alone only submits data."
+  type        = string
+  sensitive   = true
+}
+
+# No default on purpose, like DATADOG_SITE: keys sent to the wrong site fail.
+variable "datadog_site" {
+  description = "Datadog site of the keys' account (e.g. us5.datadoghq.com), the same as DATADOG_SITE. Set on the observability workspace."
+  type        = string
+}
+
 variable "resource_group_name" {
   description = "Resource group the prd stacks deploy into. Its name is also the default of foundation's resource_group_name."
   type        = string

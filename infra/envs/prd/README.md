@@ -6,6 +6,7 @@ Two stacks, one Terraform state each:
 |---|---|---|
 | `foundation` | Network (VNet, subnets, NSGs), jumpbox, ARCA on Container Instances | Rarely. It's what the app tier stands on |
 | `platform` | Public load balancer and the VM Scale Set running the Node app | With every infrastructure configuration the TP measures |
+| `observability` | Datadog only: the load test dashboard and the percentiles of the service's distributions | When the dashboard changes. Not destroyed by `mise run down` |
 
 ```text
 foundation ◀── platform      (platform reads foundation's outputs)
@@ -60,6 +61,7 @@ workspace: organization `gaudi-followers`, project `arvault-prd`.
 |---|---|
 | `foundation` | `arvault-prd-foundation` |
 | `platform` | `arvault-prd-platform` |
+| `observability` | `arvault-prd-observability` |
 
 [`infra/bootstrap`](../../bootstrap/README.md) creates both workspaces, their variables,
 and the Azure identity the runs authenticate as. Apply it once per group before
@@ -86,7 +88,11 @@ workspace. Each value is the one in the latest applied state.
 | `database_url` (sensitive) | `foundation` | `platform`, into `app_config` |
 | `lb_fqdn` | `platform` | `perf/run.sh` |
 | `app_config` (sensitive) | `platform` | `ansible/deploy.sh`, which writes it to `node/config.local.json` (gitignored) |
+| `dashboard_url` | `observability` | People: the dashboard to screenshot and export |
 
-The Datadog API key doesn't go through Terraform: `ansible/vmss_setup.yml` reads it
-from `DATADOG_API_KEY`, the same variable `perf/run.sh` uses. Both require the site in
-`DATADOG_SITE`.
+`ansible/vmss_setup.yml` and `perf/run.sh` read the Datadog API key from
+`DATADOG_API_KEY` and the site from `DATADOG_SITE`. The `observability` stack reads the
+same key, plus an application key, from its workspace's `DD_API_KEY` and `DD_APP_KEY`,
+which `infra/bootstrap` sets. `observability` doesn't depend on the other two stacks:
+apply it in any order, after the first `arvault.*` metric reached Datadog (see
+[`docs/infra/overview.md`](../../../docs/infra/overview.md#observability)).
