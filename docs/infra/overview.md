@@ -143,6 +143,8 @@ Things to note:
 - **The prefix is `arvault.`, never `exchange.`.** Datadog reserves `exchange.*` for its Microsoft Exchange Server integration and treats every metric under it as an integration metric: `400 Cannot configure tags on metric because metric is an integration metric`. A new namespace must not collide with an integration's either.
 - **Edits made in the Datadog UI are overwritten** on the next apply. Change `dashboards/load-test.json` instead. The evidence of each case is still the JSON exported from Datadog next to its screenshots, as the assignment asks.
 - **Artillery's percentiles are per 10-second window.** Over a longer range, Datadog averages them; that average is not the run's p95. The run's p95 comes from the raw report in `perf/results/`.
+- **Metric names are frozen from the 1-node run to the last tactic.** A custom metric can't be deleted or renamed in Datadog: its data stays under the old name for 15 months, and the dashboard only queries the new one. A rename between two measured cases breaks their comparison on the same widget. If a name must change, change it before the first measured run, or re-run every case it touches.
+- **Probe metrics go under `arvault.probe.*`, and never during a measured run.** The organization is shared: the prefix tells everyone a series is not the service's, and keeps it out of every dashboard query. A probe sent during a run lands in that run's time range and its screenshots. Turn off any percentiles enabled on a probe when done; the metric itself stops reporting on its own.
 
 ## Network topology
 
