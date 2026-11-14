@@ -16,7 +16,7 @@ How the report's prose is written. It applies to every `.typ` file under this di
 | **No repetition.** Don't repeat a noun in consecutive sentences, and don't restate in prose what a table next to it already shows. | `…a través del load balancer. … detrás del load balancer.` / `Las 60 respuestas fueron 200.` under a table with `Errores: 0` | One sentence: `…a través del load balancer, que tenía un solo nodo detrás.` |
 | **No redundant intensifiers.** | `este mismo equipo y esta misma red` | `este equipo y esta red` |
 | **Each citation backs its own claim.** If a sentence carries two facts from two sources, it cites both. | `…había un nodo detrás del load balancer [E-70]` (E-70 is the Artillery report, it doesn't show the node count) | `…que tenía un solo nodo detrás [E-71] [E-73]` (E-73 is `az vmss list-instances`) |
-| **Plain word order.** Subject, verb, object. Avoid fronted objects with a resumptive pronoun. | `Una diferencia de latencia menor que ese rango entre dos ejecuciones la tratamos como ruido.` | `Una diferencia menor entre dos ejecuciones la consideramos ruido.` — or better, `Tomamos como ruido…` |
+| **Plain word order.** Subject, verb, object. Avoid fronted objects with a resumptive pronoun. | `Una diferencia de latencia menor que ese rango entre dos ejecuciones la tratamos como ruido.` | `Tomamos como ruido una diferencia menor entre dos ejecuciones.` |
 | **es-AR number format.** Decimal comma, period for thousands, space before `%` and units. | `179.5ms`, `1,050 ms`, `70%` | `179,5 ms`, `1.050 ms`, `70 %` |
 
 ## AI slop: never write these
