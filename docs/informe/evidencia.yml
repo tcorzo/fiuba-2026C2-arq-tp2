@@ -334,3 +334,6 @@
   ubicacion: node/http.js
   lineas: "99-107"
   commit: e0cbe46
+- id: E-73
+  descripcion: "Instancias del VMSS durante la configuración de 1 nodo: una instancia `Standard_F1als_v7`."
+  ubicacion: evidencia/1-node/az-vmss-list-instances.txt

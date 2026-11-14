@@ -23,9 +23,10 @@ misma red.
 
 == Latencia de red de base
 
-Medimos la latencia de base el 12 de noviembre, con la configuración de 1 nodo
-desplegada y sin otra carga [E-70]. Artillery mandó un `GET /` por segundo
-durante 60 s, a través del load balancer [E-71].
+Medimos la latencia de base el 12 de noviembre, antes de las pruebas de carga y
+sin otra carga sobre el sistema [E-70]. En ese momento había un nodo detrás del
+load balancer [E-73]. Artillery mandó un `GET /` por segundo durante 60 s, a
+través del load balancer [E-71].
 
 El handler de `/` responde un texto fijo. No consulta Postgres ni llama a
 ARCA [E-72]. Así, la medición incluye la red y el load balancer, pero no el
