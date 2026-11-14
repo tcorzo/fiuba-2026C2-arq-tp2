@@ -101,6 +101,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     percentiles de las tres distribuciones. Encontró que el widget de latencia
     por ruta del cliente leía métricas que ningún escenario publica. Nosotros
     revisamos el diff.],
+
+  [Caso de 1 nodo],
+  [El agente levantó la infraestructura, capturó su evidencia, midió la latencia
+    de base y corrió la rampa. Activó la métrica de esperas de Postgres a pedido
+    nuestro. Actualizó la predicción antes de medir, y nosotros la revisamos antes
+    del commit.],
 )
 
 == Propuestas incorrectas
@@ -161,3 +167,26 @@ percentiles, así que la hipótesis era falsa.
 No encontramos la causa. En #sha("e1c1b6e"), renombramos la métrica a
 `arvault.exchange.processing.duration`. Un `plan -refresh-only` confirmó que su
 configuración se mantiene.
+
+=== `-target` no aísla un recurso
+
+El plan de `foundation` agregaba el parámetro de métricas de Postgres y cambiaba
+dos subnets por drift. El agente propuso aplicar sólo el parámetro con `-target`.
+Dijo que así las subnets no cambiaban.
+
+Terraform también aplica las dependencias del target, y la subnet de Postgres es
+una de ellas. El apply le quitó un service endpoint `Microsoft.Storage` que
+Azure había agregado. Lo vimos en la salida del apply.
+
+Después del apply, verificamos que la app leía y escribía en Postgres. Aplicamos
+el parámetro de #sha("0fdb4ef") antes de capturar la evidencia del caso.
+
+=== Outputs sensibles en texto plano
+
+Para la evidencia de infraestructura, el agente leyó cada output con
+`terraform output <nombre>`. Con un nombre, Terraform muestra el valor de un output
+sensible. Dos archivos quedaron con la contraseña de Postgres.
+
+El agente lo detectó al leer los archivos antes del `git add`. Los borró sin
+commitearlos. En #sha("a3c51fe"), los capturó con `terraform output`, que
+muestra `<sensitive>`.
