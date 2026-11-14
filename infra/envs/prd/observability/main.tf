@@ -19,9 +19,9 @@ locals {
   # `tags` is the allow-list of tags the metric can be queried by: the agent adds
   # `host`, metrics.js adds the rest. A tag missing here can't be used in a query.
   distributions = {
-    "arvault.http.duration"            = ["host", "route"]
-    "arvault.exchange.duration"        = ["host"]
-    "arvault.arca.validation.duration" = ["host"]
+    "arvault.http.duration"                = ["host", "route"]
+    "arvault.exchange.processing.duration" = ["host"]
+    "arvault.arca.validation.duration"     = ["host"]
   }
 }
 

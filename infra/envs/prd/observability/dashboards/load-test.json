@@ -462,12 +462,12 @@
                     {
                       "data_source": "metrics",
                       "name": "e50",
-                      "query": "p50:arvault.exchange.duration{$host}"
+                      "query": "p50:arvault.exchange.processing.duration{$host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "e95",
-                      "query": "p95:arvault.exchange.duration{$host}"
+                      "query": "p95:arvault.exchange.processing.duration{$host}"
                     }
                   ],
                   "formulas": [
