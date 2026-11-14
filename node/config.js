@@ -27,4 +27,10 @@ export default {
   // Connection URL of the PostgreSQL store. Without one, pg falls back to
   // localhost:5432, as it did in tp1's Docker Compose.
   databaseUrl: process.env.DATABASE_URL ?? generated.databaseUrl ?? "",
+  // Where metrics.js sends its metrics: the Datadog agent's DogStatsD, which
+  // Ansible installs on every VMSS instance and which listens on loopback
+  // only. tp1 defaulted to "graphite", its Compose service, which does not
+  // resolve here: every metric was dropped without an error.
+  metricsHost: process.env.METRICS_HOST ?? generated.metricsHost ?? "127.0.0.1",
+  metricsPort: Number(process.env.METRICS_PORT ?? generated.metricsPort ?? 8125),
 };

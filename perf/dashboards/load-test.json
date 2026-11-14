@@ -1,0 +1,474 @@
+{
+  "title": "arVault load test",
+  "description": "Client side (Artillery, tagged test:<scenario>) next to the VMSS nodes (Datadog agent) and the service's own metrics (arvault.*, tagged by host, route, status and outcome). Import it in Datadog: Dashboards > New Dashboard > Import dashboard JSON. The durations are distributions: enable percentiles on arvault.http.duration, arvault.exchange.processing.duration and arvault.arca.validation.duration (Metrics > Summary) for the p50/p95 queries. Set the time range to the run's before taking a screenshot.",
+  "layout_type": "ordered",
+  "template_variables": [
+    {
+      "name": "test",
+      "prefix": "test",
+      "available_values": [],
+      "default": "baseline"
+    }
+  ],
+  "widgets": [
+    {
+      "definition": {
+        "type": "group",
+        "title": "Client (Artillery)",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Requests and responses per second, by status",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "requests",
+                      "query": "sum:artillery.http.requests{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "ok_200",
+                      "query": "sum:artillery.http.codes.200{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "rejected_403",
+                      "query": "sum:artillery.http.codes.403{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "arca_502",
+                      "query": "sum:artillery.http.codes.502{$test}.as_rate()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "timeouts",
+                      "query": "sum:artillery.errors.ETIMEDOUT{$test}.as_rate()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "requests",
+                      "alias": "requests/s"
+                    },
+                    {
+                      "formula": "ok_200",
+                      "alias": "200/s"
+                    },
+                    {
+                      "formula": "rejected_403",
+                      "alias": "403/s"
+                    },
+                    {
+                      "formula": "arca_502",
+                      "alias": "502/s"
+                    },
+                    {
+                      "formula": "timeouts",
+                      "alias": "timeouts/s"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Response time, all routes (ms)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "p50",
+                      "query": "avg:artillery.http.response_time.median{$test}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "p95",
+                      "query": "avg:artillery.http.response_time.p95{$test}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "p99",
+                      "query": "avg:artillery.http.response_time.p99{$test}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "p50",
+                      "alias": "median"
+                    },
+                    {
+                      "formula": "p95",
+                      "alias": "p95"
+                    },
+                    {
+                      "formula": "p99",
+                      "alias": "p99"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Response time by route, median and p95 (ms)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "ex50",
+                      "query": "avg:artillery.plugins.metrics_by_endpoint.response_time._exchange.median{$test}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "ex95",
+                      "query": "avg:artillery.plugins.metrics_by_endpoint.response_time._exchange.p95{$test}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "ra50",
+                      "query": "avg:artillery.plugins.metrics_by_endpoint.response_time._rates.median{$test}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "ra95",
+                      "query": "avg:artillery.plugins.metrics_by_endpoint.response_time._rates.p95{$test}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "ex50",
+                      "alias": "/exchange median"
+                    },
+                    {
+                      "formula": "ex95",
+                      "alias": "/exchange p95"
+                    },
+                    {
+                      "formula": "ra50",
+                      "alias": "/rates median"
+                    },
+                    {
+                      "formula": "ra95",
+                      "alias": "/rates p95"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "VMSS nodes (Datadog agent)",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "CPU by node (%)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "user",
+                      "query": "avg:system.cpu.user{*} by {host}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "sys",
+                      "query": "avg:system.cpu.system{*} by {host}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "user + sys",
+                      "alias": "user + system"
+                    }
+                  ]
+                }
+              ],
+              "yaxis": {
+                "min": "0",
+                "max": "100"
+              }
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Load average (1 min) by node",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "load",
+                      "query": "avg:system.load.1{*} by {host}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "load"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Network by node (bytes/s)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "rx",
+                      "query": "avg:system.net.bytes_rcvd{*} by {host}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "tx",
+                      "query": "avg:system.net.bytes_sent{*} by {host}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "rx",
+                      "alias": "received"
+                    },
+                    {
+                      "formula": "tx",
+                      "alias": "sent"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Memory used by node (bytes)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "mem",
+                      "query": "avg:system.mem.used{*} by {host}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "mem"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Service (arvault.*, from the app through DogStatsD)",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "ARCA validation and exchange duration (ms)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "a50",
+                      "query": "p50:arvault.arca.validation.duration{*}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "a95",
+                      "query": "p95:arvault.arca.validation.duration{*}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "e50",
+                      "query": "p50:arvault.exchange.processing.duration{*}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "e95",
+                      "query": "p95:arvault.exchange.processing.duration{*}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "a50",
+                      "alias": "arca.validation p50"
+                    },
+                    {
+                      "formula": "a95",
+                      "alias": "arca.validation p95"
+                    },
+                    {
+                      "formula": "e50",
+                      "alias": "exchange (without ARCA) p50"
+                    },
+                    {
+                      "formula": "e95",
+                      "alias": "exchange (without ARCA) p95"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "ARCA validations per second, by outcome",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "bars",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "v",
+                      "query": "sum:arvault.arca.validation.outcomes{*} by {outcome}.as_rate()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "v"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Server-side duration by route, p50 (ms)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "h",
+                      "query": "p50:arvault.http.duration{*} by {route}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "h"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Responses per second by route and status",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:arvault.http.responses{*} by {route,status}.as_rate()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Event loop lag p99 by node (ms)",
+              "show_legend": true,
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "l",
+                      "query": "avg:arvault.runtime.eventloop.lag.p99{*} by {host}"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "l"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

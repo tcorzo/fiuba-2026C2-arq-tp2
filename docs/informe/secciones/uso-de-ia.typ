@@ -89,6 +89,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
   [El agente escribió los diagramas en PlantUML desde `infra/`, `ansible/` y
     `node/`, y citó cada componente y conector por línea. Nosotros revisamos los
     diagramas contra el código.],
+
+  [Métricas del servicio en Datadog],
+  [El agente encontró, en el nodo y bajo carga, que la app mandaba sus
+    métricas a `graphite`, un nombre que no resuelve en Azure. Apuntó la app al
+    agente de Datadog y pasó la ruta y el resultado a tags. Escribió tests que
+    escuchan los datagramas por UDP. Nosotros revisamos el diff.],
 )
 
 == Propuestas incorrectas
