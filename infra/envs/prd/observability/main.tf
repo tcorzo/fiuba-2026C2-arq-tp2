@@ -36,9 +36,12 @@ resource "datadog_metric_tag_configuration" "distribution" {
 
 # Kept as the JSON Datadog exports, so the file in this stack and the export that
 # goes with each screenshot (evidencia/<case>/) can be diffed against each other.
+#
+# No depends_on on the tag configurations: the dashboard reads nothing from them,
+# and Datadog rejects a tag configuration for a metric it has not received yet
+# ("Cannot configure tags on a metric that does not exist."). Independent, the
+# dashboard is created even before the first deploy; its p50/p95 widgets stay
+# empty until the percentiles exist.
 resource "datadog_dashboard_json" "load_test" {
   dashboard = file("${path.module}/dashboards/load-test.json")
-
-  # The queries need the percentiles to exist.
-  depends_on = [datadog_metric_tag_configuration.distribution]
 }
