@@ -107,6 +107,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     de base y corrió la rampa. Activó la métrica de esperas de Postgres a pedido
     nuestro. Actualizó la predicción antes de medir, y nosotros la revisamos antes
     del commit.],
+
+  [Post-mortem y segunda ejecución del caso de 1 nodo],
+  [El agente analizó el quiebre de la primera ejecución con contadores TCP del
+    kernel, métricas del load balancer y un benchmark de DNS. Nosotros propusimos
+    resolver el load balancer desde `/etc/hosts`. El agente escribió el escenario
+    de sesiones, redactó las predicciones S1 a S6 y corrió la segunda ejecución.],
 )
 
 == Propuestas incorrectas
@@ -190,3 +196,33 @@ sensible. Dos archivos quedaron con la contraseña de Postgres.
 El agente lo detectó al leer los archivos antes del `git add`. Los borró sin
 commitearlos. En #sha("a3c51fe"), los capturó con `terraform output`, que
 muestra `<sensitive>`.
+
+=== Causa refutada del quiebre de la primera ejecución
+
+La primera ejecución del caso de 1 nodo se quebró a 200 rps. El agente y un
+subagente revisor atribuyeron el quiebre a la tabla NAT del router del
+generador y al swap del generador.
+
+Los contadores del kernel lo refutaron. Las conexiones nuevas del nodo
+(`TcpPassiveOpens`) coincidían con los requests atendidos. Los requests con
+timeout nunca mandaron su SYN. El agente midió entonces la resolución de
+nombres en el generador: 134 `dns.lookup` por segundo (#sha("4a679f3")).
+
+Artillery resuelve el nombre del load balancer en cada conexión nueva, sobre
+4 threads de libuv. Con el nombre en `/etc/hosts` (#sha("32eaed5")), el
+escalón de 200 rps no tuvo timeouts (#sha("353902f")).
+
+=== Una diferencia de código que no existe
+
+Las predicciones de la segunda ejecución (#sha("b367b21")) dicen que el hot row
+del TP 1 retenía el lock durante las transferencias. El agente lo escribió y
+nosotros no lo verificamos antes del commit.
+
+Al comparar la ejecución con el TP 1, el agente usó esa misma diferencia para
+explicar la mejora. Le pedimos que lo verificara contra el código. Comparó
+`app/` del TP 1 en `e4f2848`, el commit de su ejecución final, con `node/`.
+
+`app/` no cambió entre `e4f2848` y `f6d14f1`, y el diff contra `node/` no cambia
+la lógica [E-02]. La validación con ARCA es el único cambio posterior. En el TP 1
+las transferencias ya corrían fuera de la transacción. La predicción no se edita: la
+sección 7 compara con el TP 1 sin esa diferencia.
