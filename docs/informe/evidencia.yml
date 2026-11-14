@@ -314,3 +314,23 @@
   ubicacion: ansible/update_vmss_inventory.sh
   lineas: "20"
   commit: 28031b3
+- id: E-67
+  descripcion: "Interfaces de red del generador de carga: WiFi conectado, ethernet no disponible."
+  ubicacion: evidencia/entorno/conexion.txt
+- id: E-68
+  descripcion: "Enlace WiFi del generador de carga: 5300 MHz, 1170 Mbit/s, señal del 70 %."
+  ubicacion: evidencia/entorno/wifi.txt
+- id: E-69
+  descripcion: "Ancho de banda del generador de carga con `speedtest-cli`: 66 Mbit/s de bajada, 46 Mbit/s de subida."
+  ubicacion: evidencia/entorno/speedtest.txt
+- id: E-70
+  descripcion: "Reporte de Artillery de la latencia de base contra `/`: 60 requests, mediana de 179,5 ms y p95 de 183,1 ms."
+  ubicacion: perf/results/baseline/root.json
+- id: E-71
+  descripcion: "Escenario de la latencia de base: `GET /` a 1 request por segundo durante 60 s."
+  ubicacion: perf/root.yaml
+- id: E-72
+  descripcion: "El handler de `/` responde un texto fijo, sin Postgres ni ARCA."
+  ubicacion: node/http.js
+  lineas: "99-107"
+  commit: e0cbe46

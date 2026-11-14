@@ -101,6 +101,12 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     percentiles de las tres distribuciones. Encontró que el widget de latencia
     por ruta del cliente leía métricas que ningún escenario publica. Nosotros
     revisamos el diff.],
+
+  [Sección 2],
+  [El agente redactó la sección desde la evidencia de `evidencia/entorno/` y
+    de la latencia de base. Dejó afuera los tiempos de `curl`, porque el
+    archivo no registra el formato de cada columna. Nosotros revisamos el
+    texto contra la evidencia.],
 )
 
 == Propuestas incorrectas
