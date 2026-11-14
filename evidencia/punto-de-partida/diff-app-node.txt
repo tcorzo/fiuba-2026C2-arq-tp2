@@ -1,0 +1,138 @@
+diff -r tp1-app/compose.js tp2-node/compose.js
+0a1
+> import config from "./config.js";
+15c16
+<   const pool = await connectStore(process.env.DATABASE_URL);
+---
+>   const pool = await connectStore(config.databaseUrl);
+Only in tp2-node: config.js
+Only in tp1-app: Dockerfile
+Only in tp1-app: .dockerignore
+diff -r tp1-app/ERRORES.md tp2-node/ERRORES.md
+77c77
+< - `app/test/error-handling.test.js` recorre el router y falla si alguna ruta no está
+---
+> - `node/test/error-handling.test.js` recorre el router y falla si alguna ruta no está
+79c79
+<   middleware. `npm test --prefix app` lo corre sin docker.
+---
+>   middleware. `mise run app:test` lo corre sin levantar nada.
+diff -r tp1-app/errors.js tp2-node/errors.js
+8c8
+< // handler or the domain code, and stop. See app/ERRORES.md.
+---
+> // handler or the domain code, and stop. See node/ERRORES.md.
+diff -r tp1-app/http.js tp2-node/http.js
+25a26
+>   ["GET /", "root_get"],
+93a95,104
+>   // The baseline-latency target: the TP measures the network round trip
+>   // against `/` with no load, without reaching ARCA or the database. It
+>   // touches neither, so it stays cheap even when they are slow or down.
+>   app.get(
+>     "/",
+>     asyncHandler(async (req, res) => {
+>       res.status(200).send("Server is up.");
+>     }),
+>   );
+> 
+159,161c170,173
+<   // account. The whole log stays behind the admin listener; nginx only
+<   // publishes these. The collection is never returned whole, even if nginx
+<   // let it through.
+---
+>   // account. In tp1 the whole log stayed behind nginx's admin listener and
+>   // nginx published only these. Behind Azure's L4 load balancer nothing
+>   // filters routes, so GET /log is public too. The collection is never
+>   // returned whole through these two routes.
+diff -r tp1-app/metrics.js tp2-node/metrics.js
+1c1
+< // The only module in app/ that talks to statsd. The rest of the service calls
+---
+> // The only module in node/ that talks to statsd. The rest of the service calls
+18,20c18,20
+< // a scaled service gets the same environment, so docker-compose.perf.yml
+< // leaves it unset there and this falls back to the container's hostname,
+< // which Docker gives a distinct value per replica.
+---
+> // a scaled service gets the same environment, so it stays unset there and
+> // this falls back to the hostname: one per VMSS instance here, one per
+> // container in tp1's docker-compose.perf.yml.
+diff -r tp1-app/pg-repositories.js tp2-node/pg-repositories.js
+215c215
+< // never answers from an empty store (H-04). Seeding is `mise run db:seed`.
+---
+> // never answers from an empty store (H-04). `mise run app:deploy` seeds it.
+231c231
+<         `the store is not seeded (${rows[0].accounts} accounts, ${rows[0].rates} rates): run mise run db:seed`,
+---
+>         `the store is not seeded (${rows[0].accounts} accounts, ${rows[0].rates} rates): run mise run app:deploy`,
+diff -r tp1-app/ports.js tp2-node/ports.js
+2c2
+< // these methods, and app/test/repositories.contract.js is what checks that two
+---
+> // these methods, and node/test/repositories.contract.js is what checks that two
+diff -r tp1-app/runtime-metrics.js tp2-node/runtime-metrics.js
+22,25c22,25
+< // cgroup v2, as mounted inside the container: the same files
+< // `mise run verify-limits` reads. "max" means no limit, which is how the
+< // received docker-compose.yml runs; the gauge is then left out rather than
+< // sent as a number no percentage can be taken against.
+---
+> // cgroup v2, as tp1 read it inside its containers. "max" means no limit,
+> // which is how tp1's received docker-compose.yml ran, and pm2 on a VMSS
+> // instance sets none either; the gauge is then left out rather than sent as
+> // a number no percentage can be taken against.
+diff -r tp1-app/schema.js tp2-node/schema.js
+1c1
+< // The Postgres schema. A .js file so that app/Dockerfile's `COPY *.js` ships it.
+---
+> // The Postgres schema. A .js file so that node/zip (`zip src.zip *.js *.json`) ships it.
+diff -r tp1-app/seed.js tp2-node/seed.js
+6a7
+> import config from "./config.js";
+72c73
+<           "the store already has accounts: recreate db with mise run reset-state",
+---
+>           "the store already has accounts: seed only an empty database",
+90c91,92
+< // `node seed.js [--if-empty]`, run by `mise run db:seed` inside the api image.
+---
+> // `node seed.js [--if-empty]`. ansible/vmss_deploy.yml runs it with --if-empty
+> // on one VMSS instance: the database is reachable only from inside the VNet.
+94c96
+<       connectionString: process.env.DATABASE_URL,
+---
+>       connectionString: config.databaseUrl,
+diff -r tp1-app/state/accounts.json tp2-node/state/accounts.json
+22c22
+< ]
+\ No newline at end of file
+---
+> ]
+diff -r tp1-app/state/log.json tp2-node/state/log.json
+1c1
+< []
+\ No newline at end of file
+---
+> []
+Only in tp2-node/test: config.test.js
+diff -r tp1-app/test/pg-repositories.test.js tp2-node/test/pg-repositories.test.js
+17,18c17,19
+< // Set by `mise run test:pg`. Without it the suite skips, so `npm test` needs
+< // no database.
+---
+> // A Postgres URL to run the suite against, e.g. a postgres:18 container:
+> // TEST_DATABASE_URL=postgres://... mise run app:test. Without it the suite
+> // skips, so the tests need no database.
+20c21
+< const skip = !url && "TEST_DATABASE_URL is not set (mise run test:pg)";
+---
+> const skip = !url && "TEST_DATABASE_URL is not set";
+Only in tp2-node/test: root.test.js
+diff -r tp1-app/test/side-effect-free-import.test.js tp2-node/test/side-effect-free-import.test.js
+63c63
+<         effects.push("rewrote app/state/");
+---
+>         effects.push("rewrote node/state/");
+Only in tp2-node: zip

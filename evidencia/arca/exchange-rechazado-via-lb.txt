@@ -1,0 +1,112 @@
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 60612 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 403 Forbidden
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 65
+< ETag: W/"41-hhZAMfPLw3NRUGcPMWyq6iYSLJQ"
+< Date: Thu, 12 Nov 2026 21:54:36 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [65 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA rejected the client's DNI","code":"ARCA_REJECTED"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 60624 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 403 Forbidden
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 65
+< ETag: W/"41-hhZAMfPLw3NRUGcPMWyq6iYSLJQ"
+< Date: Thu, 12 Nov 2026 21:54:37 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [65 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA rejected the client's DNI","code":"ARCA_REJECTED"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 60636 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 403 Forbidden
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 65
+< ETag: W/"41-hhZAMfPLw3NRUGcPMWyq6iYSLJQ"
+< Date: Thu, 12 Nov 2026 21:54:38 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [65 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA rejected the client's DNI","code":"ARCA_REJECTED"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 60642 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 403 Forbidden
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 65
+< ETag: W/"41-hhZAMfPLw3NRUGcPMWyq6iYSLJQ"
+< Date: Thu, 12 Nov 2026 21:54:39 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [65 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA rejected the client's DNI","code":"ARCA_REJECTED"}

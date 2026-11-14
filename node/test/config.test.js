@@ -40,4 +40,10 @@ describe("config", () => {
   test("ARCA_TIMEOUT_MS overrides the deployed arcaTimeoutMs", () => {
     assert.equal(configWith({ ARCA_TIMEOUT_MS: "750" }).arcaTimeoutMs, 750);
   });
+
+  test("metrics go to the local Datadog agent by default", () => {
+    const config = configWith({});
+    assert.equal(config.metricsHost, "127.0.0.1");
+    assert.equal(config.metricsPort, 8125);
+  });
 });

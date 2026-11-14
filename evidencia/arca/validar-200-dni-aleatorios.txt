@@ -1,0 +1,202 @@
+2026-11-08T22:07:18Z
+1 68207233 {"ok":true,"codigoAutorizacion":"f66778d2-e6f2-4083-8594-e572b6d4dc37"} 200 0.237186
+2 20249530  500 0.002274
+3 63316285 {"ok":false,"codigoAutorizacion":null} 200 0.485801
+4 90016045 {"ok":true,"codigoAutorizacion":"17d471ed-42f8-4005-a556-a94471a70561"} 200 0.388254
+5 19568451 {"ok":true,"codigoAutorizacion":"9279e22b-d07c-4c20-a42b-d819ef779b9d"} 200 0.465034
+6 4122260 {"ok":true,"codigoAutorizacion":"5ff72a59-8a6b-4e58-ab2e-0a88dfa033df"} 200 0.313966
+7 70730177 {"ok":false,"codigoAutorizacion":null} 200 0.463329
+8 27845166 {"ok":true,"codigoAutorizacion":"b41278b7-579a-4b2e-a843-cb4d86e48e3e"} 200 0.483479
+9 45197222  500 0.002140
+10 88823661 {"ok":false,"codigoAutorizacion":null} 200 0.402610
+11 13528674 {"ok":true,"codigoAutorizacion":"f141403d-7796-44ad-9828-1bfa42d50ad9"} 200 0.234457
+12 14980398 {"ok":false,"codigoAutorizacion":null} 200 0.348649
+13 82205542 {"ok":true,"codigoAutorizacion":"10a1e008-6634-4438-9876-1c89e1f8816c"} 200 0.416861
+14 71551307 {"ok":false,"codigoAutorizacion":null} 200 0.486875
+15 42721750 {"ok":false,"codigoAutorizacion":null} 200 0.245739
+16 30192578  500 0.003909
+17 41793969  500 0.011342
+18 40266082 {"ok":true,"codigoAutorizacion":"c25f3181-3ee1-4ce1-9c44-ce892df46f25"} 200 0.210588
+19 70565352 {"ok":false,"codigoAutorizacion":null} 200 0.316295
+20 86421069 {"ok":true,"codigoAutorizacion":"f51c409a-440a-44d3-bdab-4ab6f1b2964e"} 200 0.298839
+21 99633026 {"ok":true,"codigoAutorizacion":"46efda6d-7d82-47a2-8fd5-5515411743fe"} 200 0.418257
+22 6101642 {"ok":true,"codigoAutorizacion":"0e66e165-010d-407c-a9c3-d29edf773dbc"} 200 0.372146
+23 59902066 {"ok":true,"codigoAutorizacion":"a22bb58f-12ad-4bd7-8370-d0fcf93f7a73"} 200 0.388414
+24 2077139 {"ok":false,"codigoAutorizacion":null} 200 0.317597
+25 14387255 {"ok":false,"codigoAutorizacion":null} 200 0.465740
+26 73266804  500 0.003640
+27 75910990  500 0.001661
+28 36397746 {"ok":true,"codigoAutorizacion":"6fb90198-a891-4e82-a1d0-1c7221072ad8"} 200 0.342380
+29 93741213  500 0.002121
+30 80031158 {"ok":false,"codigoAutorizacion":null} 200 0.485392
+31 49950745 {"ok":true,"codigoAutorizacion":"a53e069f-a193-4164-a945-75daf77ecdb5"} 200 0.417689
+32 72738856  500 0.001778
+33 33218596 {"ok":true,"codigoAutorizacion":"6e8a30c0-5a7b-42f9-9dba-c76de5df9216"} 200 0.443428
+34 80417549 {"ok":true,"codigoAutorizacion":"d496ea42-b20d-4cea-a0ea-b77d637fbfbe"} 200 0.216330
+35 47730759 {"ok":false,"codigoAutorizacion":null} 200 0.376105
+36 30090392 {"ok":true,"codigoAutorizacion":"0e9e3a1e-4652-421f-a985-9e5e6f5f545b"} 200 0.247308
+37 4568402 {"ok":true,"codigoAutorizacion":"347c21e4-5281-4956-9960-66aac043776e"} 200 0.501397
+38 1832478 {"ok":false,"codigoAutorizacion":null} 200 0.489213
+39 2294490 {"ok":true,"codigoAutorizacion":"f004f7dd-08c0-4ae1-bc3a-93eea095ce6a"} 200 0.502185
+40 57135593 {"ok":true,"codigoAutorizacion":"15916bc3-1933-4ff2-8406-e7748e5d8d4c"} 200 0.401070
+41 66391415  500 0.004095
+42 93278505 {"ok":true,"codigoAutorizacion":"25190d30-3b0a-4098-8b86-b13f734324b1"} 200 0.465799
+43 13833642 {"ok":false,"codigoAutorizacion":null} 200 0.459822
+44 39181548 {"ok":true,"codigoAutorizacion":"d3ad8c33-300e-4fbe-911f-c4a93b82fd93"} 200 0.370331
+45 29383550 {"ok":false,"codigoAutorizacion":null} 200 0.370652
+46 51782258 {"ok":true,"codigoAutorizacion":"00d0fd0c-dd20-45ee-a1ff-7da49146575b"} 200 0.233118
+47 96793360 {"ok":true,"codigoAutorizacion":"eafa66ae-2f96-45f2-8bbb-64c08f651c3b"} 200 0.365089
+48 10907108  500 0.002664
+49 48890855 {"ok":true,"codigoAutorizacion":"de01a161-1316-459b-bc1d-1b60a70b53cf"} 200 0.480767
+50 6341579  500 0.011280
+51 89746672  500 0.001952
+52 27384654 {"ok":true,"codigoAutorizacion":"739aa49b-f994-4753-bfdf-d972257ad468"} 200 0.411655
+53 88065822 {"ok":false,"codigoAutorizacion":null} 200 0.321937
+54 69533699  500 0.006149
+55 68036162  500 0.002485
+56 51342341  500 0.002320
+57 84416212 {"ok":true,"codigoAutorizacion":"5710a491-cd34-43a1-bc59-3f3b1a352bcf"} 200 0.443980
+58 14370669 {"ok":true,"codigoAutorizacion":"3a4935ba-1328-483a-bfdb-9e03b6ac366b"} 200 0.423763
+59 8127081 {"ok":false,"codigoAutorizacion":null} 200 0.233727
+60 37562900 {"ok":false,"codigoAutorizacion":null} 200 0.465019
+61 99111073 {"ok":false,"codigoAutorizacion":null} 200 0.456622
+62 9552112 {"ok":true,"codigoAutorizacion":"6eeb8f70-d838-4cb3-a88c-dd77f62457b5"} 200 0.416367
+63 53419456 {"ok":false,"codigoAutorizacion":null} 200 0.337139
+64 8508059 {"ok":false,"codigoAutorizacion":null} 200 0.419094
+65 39843179 {"ok":true,"codigoAutorizacion":"c45a8c5d-3942-49df-b804-9d0fccb780b3"} 200 0.279821
+66 8523172  500 0.004193
+67 47823548  500 0.001767
+68 98935323 {"ok":false,"codigoAutorizacion":null} 200 0.300913
+69 52573147 {"ok":true,"codigoAutorizacion":"69481fbe-05a1-4a13-9e73-0899cc9cdf40"} 200 0.358768
+70 53145258  500 0.002270
+71 82215447 {"ok":true,"codigoAutorizacion":"59c9a7d4-acb3-4e38-a650-5a8f88cc047d"} 200 0.314073
+72 92917715 {"ok":true,"codigoAutorizacion":"fa613a30-63ea-4342-9247-dd87fe95facb"} 200 0.449833
+73 74847147 {"ok":true,"codigoAutorizacion":"fe35aa91-70ac-48f0-8851-fa53595df216"} 200 0.492458
+74 60204165 {"ok":true,"codigoAutorizacion":"23699817-4613-42d1-af8a-39452cc8571b"} 200 0.258625
+75 72776635 {"ok":true,"codigoAutorizacion":"eb987080-ca74-4756-989f-1ecfa8d14e7f"} 200 0.317759
+76 65438275 {"ok":true,"codigoAutorizacion":"7d706981-914a-445d-a063-b03cefb2cf91"} 200 0.388495
+77 52692185 {"ok":true,"codigoAutorizacion":"5ae4cb46-9253-444a-b35c-5023c31cdce2"} 200 0.367732
+78 47199570 {"ok":true,"codigoAutorizacion":"f8b4cb9e-2ed5-47da-811f-0fbd91f9d438"} 200 0.347234
+79 64615783 {"ok":true,"codigoAutorizacion":"108253e8-baff-478a-b8f1-c5c2130b25aa"} 200 0.403289
+80 84505139  500 0.003626
+81 6291886 {"ok":true,"codigoAutorizacion":"1d293e17-4caa-4e19-a52a-605abca6c858"} 200 0.282034
+82 94380543 {"ok":false,"codigoAutorizacion":null} 200 0.453502
+83 59303967 {"ok":false,"codigoAutorizacion":null} 200 0.302573
+84 66779833 {"ok":false,"codigoAutorizacion":null} 200 0.246721
+85 26349644  500 0.001856
+86 71776806 {"ok":false,"codigoAutorizacion":null} 200 0.336326
+87 81975729 {"ok":true,"codigoAutorizacion":"8364e7a8-3214-42fd-95fe-9b382bafe275"} 200 0.213626
+88 7841575 {"ok":true,"codigoAutorizacion":"3fe93346-3f35-4f17-bb5e-66182c04ccab"} 200 0.388350
+89 20071381 {"ok":true,"codigoAutorizacion":"4318f40a-6a59-4bb2-aaad-c1e07e29b2b1"} 200 0.253717
+90 97168649 {"ok":true,"codigoAutorizacion":"099d5f36-d7fb-4fd0-883e-2588a2af8da4"} 200 0.498425
+91 87037349  500 0.002016
+92 37496464  500 0.002047
+93 75923082 {"ok":true,"codigoAutorizacion":"322456b2-ff51-42b5-933a-87b9cc68f466"} 200 0.366990
+94 47869754 {"ok":false,"codigoAutorizacion":null} 200 0.425137
+95 33626731 {"ok":true,"codigoAutorizacion":"113321f4-3426-4971-bfc7-f6104e5b5815"} 200 0.462023
+96 29772264 {"ok":true,"codigoAutorizacion":"c35b7ac0-a495-48ba-8bb2-d42798e80eb0"} 200 0.407723
+97 61998810 {"ok":true,"codigoAutorizacion":"7a118fe6-07c4-416a-b05d-5b9fc8006b27"} 200 0.404095
+98 77378188 {"ok":true,"codigoAutorizacion":"6fb70ba1-84b7-487b-a556-5b8e787570e5"} 200 0.418813
+99 83045288 {"ok":true,"codigoAutorizacion":"e77837ce-b251-4f29-9a91-f2ad1b49de3c"} 200 0.237955
+100 34084715 {"ok":true,"codigoAutorizacion":"f587c622-01bf-4f10-b35d-3abeec52a6ca"} 200 0.500225
+101 97993073 {"ok":true,"codigoAutorizacion":"e8d73786-4397-4e31-99e7-6514bee6b120"} 200 0.213307
+102 79418033 {"ok":true,"codigoAutorizacion":"a60624fc-5b18-47fa-8dad-0ada3dda82b6"} 200 0.354525
+103 20046554 {"ok":false,"codigoAutorizacion":null} 200 0.294687
+104 32644885 {"ok":false,"codigoAutorizacion":null} 200 0.482655
+105 50698056 {"ok":true,"codigoAutorizacion":"f4f1c565-6652-4d96-be4c-e1f5e62273d0"} 200 0.487493
+106 55866678  500 0.001908
+107 13105356 {"ok":true,"codigoAutorizacion":"187d3343-218a-4597-9f02-dc5d5c7c6fe8"} 200 0.263850
+108 30221189 {"ok":true,"codigoAutorizacion":"a403cbd2-cf0e-438b-84e5-1ba864b6f882"} 200 0.258318
+109 71338535  500 0.001805
+110 46170410 {"ok":false,"codigoAutorizacion":null} 200 0.245078
+111 42708260  500 0.006873
+112 8243789  500 0.001468
+113 76851257 {"ok":true,"codigoAutorizacion":"cfb4bc2c-df9e-46f0-a44d-1faa0cd314cf"} 200 0.327151
+114 41333835  500 0.001682
+115 74286772  500 0.002547
+116 96056181 {"ok":false,"codigoAutorizacion":null} 200 0.341577
+117 73765805 {"ok":false,"codigoAutorizacion":null} 200 0.451296
+118 61361011 {"ok":true,"codigoAutorizacion":"31e5edb1-a508-4dd1-a865-24c1fb2fe6ce"} 200 0.501847
+119 16892097  500 0.003503
+120 54905089 {"ok":true,"codigoAutorizacion":"5e4f2ada-6761-4317-bf96-cf7bf829532a"} 200 0.214007
+121 7922872 {"ok":true,"codigoAutorizacion":"573a1185-5df6-4715-8e72-f2af531b1170"} 200 0.396567
+122 73947218  500 0.006701
+123 20699245 {"ok":false,"codigoAutorizacion":null} 200 0.207918
+124 38539893 {"ok":true,"codigoAutorizacion":"7ae2d29e-0f4e-4f4b-bd08-ae724a9ea1e3"} 200 0.475693
+125 29354469 {"ok":true,"codigoAutorizacion":"d8a32edf-4b85-4ba3-9175-39e966414313"} 200 0.451477
+126 77143177 {"ok":true,"codigoAutorizacion":"00941e5d-c365-4641-8b8c-431c261be4ed"} 200 0.260736
+127 3377099 {"ok":true,"codigoAutorizacion":"05e987a6-439e-45e6-8fa0-4d48d6bb2aa8"} 200 0.501732
+128 94122296 {"ok":true,"codigoAutorizacion":"b1797486-e82c-4cdb-adb6-c68c297105f2"} 200 0.315215
+129 37045014 {"ok":true,"codigoAutorizacion":"560dceee-3c52-4835-9a46-b9cbf2247c56"} 200 0.289416
+130 57412887 {"ok":false,"codigoAutorizacion":null} 200 0.397852
+131 84182893 {"ok":true,"codigoAutorizacion":"ed709767-7d2e-444f-93e6-fbfca8fdac32"} 200 0.501056
+132 64277780 {"ok":true,"codigoAutorizacion":"a6c1d440-d7fe-4f21-8da5-a27251c3828c"} 200 0.353405
+133 83838852  500 0.006161
+134 45642678 {"ok":false,"codigoAutorizacion":null} 200 0.376389
+135 39488067 {"ok":true,"codigoAutorizacion":"0ffcf353-8b78-411a-ac32-51acc8e0edbf"} 200 0.456468
+136 42060122  500 0.005976
+137 90378465 {"ok":true,"codigoAutorizacion":"e0030f2c-1b1b-4adf-8e38-3e6cfbfee1d4"} 200 0.437152
+138 1633677 {"ok":false,"codigoAutorizacion":null} 200 0.373720
+139 85610857 {"ok":false,"codigoAutorizacion":null} 200 0.334382
+140 51881325 {"ok":true,"codigoAutorizacion":"1f59f029-e2ec-4fb2-b435-faa84b50909e"} 200 0.211374
+141 36196865  500 0.002168
+142 83558290 {"ok":true,"codigoAutorizacion":"5f6b33fe-aa47-4fa1-b3de-b364df7ce345"} 200 0.289075
+143 82228250 {"ok":true,"codigoAutorizacion":"af36a065-c041-487a-9db8-48059e91bc87"} 200 0.409659
+144 95085621  500 0.002482
+145 72074964 {"ok":true,"codigoAutorizacion":"c0346c68-20e1-40d4-84b9-b4237e1f3a0e"} 200 0.338148
+146 77524430 {"ok":true,"codigoAutorizacion":"5282becc-adef-42a9-a9c0-4af9449bf2f0"} 200 0.303966
+147 76194251  500 0.001862
+148 58989198 {"ok":true,"codigoAutorizacion":"c5c5cd90-13b5-432a-ad6f-f66ddff3eaf5"} 200 0.254926
+149 61226208 {"ok":true,"codigoAutorizacion":"485b1622-2651-41a9-8ee9-1bd189843a33"} 200 0.468251
+150 72371870  500 0.002704
+151 38711330 {"ok":true,"codigoAutorizacion":"90d5d3d2-4a0d-4f9b-8df9-3d7892cd8503"} 200 0.469606
+152 74890933  500 0.003900
+153 43249874  500 0.001492
+154 41590362 {"ok":false,"codigoAutorizacion":null} 200 0.254921
+155 28656482 {"ok":true,"codigoAutorizacion":"5557ad31-90db-458f-bd63-cb987591fd73"} 200 0.371453
+156 14485826 {"ok":false,"codigoAutorizacion":null} 200 0.480991
+157 67505048 {"ok":false,"codigoAutorizacion":null} 200 0.413818
+158 23024639 {"ok":true,"codigoAutorizacion":"0725e816-2810-4d1f-95fb-9e95017fdd95"} 200 0.249140
+159 82355836  500 0.002012
+160 42704076 {"ok":true,"codigoAutorizacion":"4605878f-138c-47ee-9785-2184f52fbae4"} 200 0.354194
+161 19438287 {"ok":true,"codigoAutorizacion":"f14858f9-a953-4d57-aabc-5b110b740908"} 200 0.249468
+162 26510856 {"ok":true,"codigoAutorizacion":"30bd0ff9-eed3-4438-9847-604cec329ef0"} 200 0.253039
+163 43814770 {"ok":false,"codigoAutorizacion":null} 200 0.401734
+164 34197820 {"ok":true,"codigoAutorizacion":"9fd3310e-483b-4788-9d1e-64ea36717615"} 200 0.454480
+165 10279806 {"ok":true,"codigoAutorizacion":"c40832b9-6e8e-45b7-82cd-8c8746303d6f"} 200 0.275320
+166 89342160 {"ok":true,"codigoAutorizacion":"9ba0ad98-d4cd-4f5f-894d-54d3cae327f4"} 200 0.422531
+167 88733602 {"ok":true,"codigoAutorizacion":"42ae76ec-ccca-457f-8778-649dd19aba76"} 200 0.407320
+168 76948712  500 0.013687
+169 75601178 {"ok":true,"codigoAutorizacion":"fceb0bfa-782f-4485-90fc-8068741f1277"} 200 0.285726
+170 27355436  500 0.001937
+171 69121126 {"ok":true,"codigoAutorizacion":"befa8cc9-6899-4d57-b029-f0b22010c8d0"} 200 0.250783
+172 21924033 {"ok":true,"codigoAutorizacion":"002d15e3-594e-4276-8b55-d51b6f5456c5"} 200 0.362460
+173 84832888  500 0.001839
+174 89433478  500 0.001674
+175 86494712 {"ok":true,"codigoAutorizacion":"ad25a96e-426c-4904-9ab4-eb8e4a972220"} 200 0.203912
+176 21062792 {"ok":true,"codigoAutorizacion":"00d076f0-be36-4329-aa01-48082df22f03"} 200 0.376059
+177 75271221 {"ok":true,"codigoAutorizacion":"d50842d4-289c-46f9-84d2-aa5750ce242b"} 200 0.309880
+178 39886437 {"ok":false,"codigoAutorizacion":null} 200 0.472453
+179 27989664 {"ok":false,"codigoAutorizacion":null} 200 0.321492
+180 39250938  500 0.003483
+181 92870812  500 0.002038
+182 70493739  500 0.001708
+183 84448404 {"ok":false,"codigoAutorizacion":null} 200 0.263007
+184 66803792 {"ok":false,"codigoAutorizacion":null} 200 0.237375
+185 74976847 {"ok":true,"codigoAutorizacion":"17d156e3-e009-41df-8664-d4748738d024"} 200 0.446301
+186 3332215 {"ok":false,"codigoAutorizacion":null} 200 0.374173
+187 92944511 {"ok":false,"codigoAutorizacion":null} 200 0.288006
+188 85323070 {"ok":true,"codigoAutorizacion":"5dc6003c-53ac-49cb-91bb-95f704a6d09f"} 200 0.226069
+189 3429041 {"ok":true,"codigoAutorizacion":"9f8d41c0-d17b-469d-8cfa-2852bf15266e"} 200 0.474905
+190 25258622 {"ok":false,"codigoAutorizacion":null} 200 0.211623
+191 61410693 {"ok":true,"codigoAutorizacion":"bd9990bb-e1a4-435f-8a8c-519ee1947557"} 200 0.263335
+192 54717683 {"ok":true,"codigoAutorizacion":"22e0b3c9-c3db-477f-b234-bf5914be599a"} 200 0.383013
+193 98946360 {"ok":false,"codigoAutorizacion":null} 200 0.429994
+194 64345567  500 0.002836
+195 14623465 {"ok":true,"codigoAutorizacion":"c52d4261-e972-4095-b526-b16a86fc4223"} 200 0.337263
+196 62207415 {"ok":true,"codigoAutorizacion":"4cb244a9-affe-4101-9593-93b504158e94"} 200 0.477153
+197 4850986  500 0.006188
+198 44782774 {"ok":false,"codigoAutorizacion":null} 200 0.351361
+199 56551793 {"ok":false,"codigoAutorizacion":null} 200 0.388490
+200 88774308 {"ok":true,"codigoAutorizacion":"314507cd-1e03-400d-9e08-75eb0f42c908"} 200 0.376321
+2026-11-08T22:08:15Z

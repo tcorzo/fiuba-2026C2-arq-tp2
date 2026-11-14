@@ -11,7 +11,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | App tier | **Linux VM Scale Set** `tp2vmss`, 1 × `Standard_F1als_v7` (1 vCPU, 2 GiB, no CPU credits), Ubuntu 24.04, Node 24 + pm2 |
 | External dependency | **ARCA** mock, `arqsoft/arca:1.0.0` on **Azure Container Instances**, private IP, port 8080 |
 | Admin access | **Jumpbox** VM with a public IP. It is the only SSH entry point into the VNet |
-| Observability | Datadog agent on every VMSS instance (installed by Ansible) |
+| Observability | Datadog agent on every VMSS instance (installed by Ansible). The load test dashboard and the distributions' percentiles are the `observability` stack. See [Observability](#observability) |
 | Storage | **Azure Database for PostgreSQL Flexible Server** 18, `B_Standard_B1ms` (1 vCore, 2 GiB, CPU credits), 32 GB, private access only. The TP asks for Redis or another managed (PaaS) database; Postgres keeps tp1's repositories (H-09) |
 
 ## Resource inventory
@@ -88,6 +88,63 @@ the first apply failed with `SkuNotAvailable`. In `centralus`, it doesn't list
   NVMe. (`azurerm_linux_virtual_machine_scale_set` has no `disk_controller_type`.)
 - **Cost.** About USD 0.06/h per VM, the `eastus2` price (B1s: USD 0.01/h). The
   `centralus` price wasn't checked. Run `mise run down` when not working.
+
+## Observability
+
+The stack `infra/envs/prd/observability` (workspace `arvault-prd-observability`) manages what Datadog needs to show a load test. It holds no Azure resource and gets no Azure identity: its provider talks to Datadog only, with `DD_API_KEY` and `DD_APP_KEY` (an application key: the API key alone can submit data but not manage dashboards). Both keys are dedicated to the workspace, and the application key belongs to a Datadog service account with four scopes, not to a member: [`infra/bootstrap/README.md`](../../infra/bootstrap/README.md#datadog-credentials) has the steps to create them.
+
+### First apply
+
+The dashboard can be applied at any time, even with Azure destroyed. The tag configurations can't: Datadog rejects one for a metric it has not received yet (`400 Cannot configure tags on a metric that does not exist.`). The first apply therefore needs a deployment that has sent each of the three distributions at least once.
+
+1. **Credentials.** Create the Datadog credentials and re-apply `infra/bootstrap` ([steps](../../infra/bootstrap/README.md#datadog-credentials)).
+2. **Deploy.** `mise run up`, or `mise run app:deploy` on a running deployment. `ansible/deploy.sh` packs the local `node/`, so the checked-out branch is the code that runs.
+3. **Check the agent.** Infrastructure → Hosts lists the VMSS instance, and `system.cpu.user` has data for it. If not, the agent's `DATADOG_API_KEY` or `DATADOG_SITE` is wrong, not the app.
+4. **Send exchanges.** `GET /` only creates `arvault.http.duration`. `arvault.arca.validation.duration` needs a `POST /exchange`, and `arvault.exchange.processing.duration` needs one that ARCA approves. Random DNIs give both:
+
+   ```sh
+   LB=$(infra/output.sh platform lb_fqdn)
+   for i in $(seq 1 30); do
+     curl -s -o /dev/null -w '%{http_code}\n' -X POST "http://$LB/exchange" \
+       -H 'Content-Type: application/json' \
+       -d "{\"baseCurrency\":\"USD\",\"counterCurrency\":\"ARS\",\"baseAccountId\":102,\"counterAccountId\":101,\"baseAmount\":0.66,\"dni\":\"$((RANDOM * 1000 + RANDOM))\"}"
+   done | sort | uniq -c
+   ```
+
+   Expect a mix of `200` (approved) and `403` (ARCA rejected the DNI). Only `502`: ARCA is down. Only `500`: the app or the database. This is not a measured run: keep its output out of `perf/results/`.
+5. **Check the catalog.** Metrics → Summary lists `arvault.http.duration`, `arvault.exchange.processing.duration` and `arvault.arca.validation.duration`, a minute or two after the requests. Use the Summary, not the Explorer: the Explorer may not offer a new metric yet.
+6. **Apply.** `mise run infra:init observability` once per machine, then `mise run infra:apply observability`. The run's output ends with `dashboard_url`; `infra/output.sh observability dashboard_url` prints it later.
+7. **Verify.** In Metrics → Summary, each of the three shows percentiles on and the tags below. On the dashboard, the *Service* group's p50/p95 widgets show data for the requests of step 4. The *Client* group stays empty: `curl` publishes no Artillery metric.
+
+8. **Check for drift before each measured run.** `terraform -chdir=infra/envs/prd/observability plan -refresh-only` reads Datadog and changes nothing. `No changes.` means every tag configuration still exists. Terraform doesn't stop anyone from changing them in the UI; it only detects it.
+
+Run a measured test only after this: we assume Datadog computes percentiles from the moment they are enabled, not for earlier samples (not checked).
+
+| Terraform address | Datadog object | Why |
+|---|---|---|
+| `datadog_metric_tag_configuration.distribution["arvault.http.duration"]` | Tag configuration, tags `host`, `route`, percentiles on | Without percentiles, a distribution only has count, sum, min, max and avg, and every `p50:`/`p95:` query returns nothing |
+| `datadog_metric_tag_configuration.distribution["arvault.exchange.processing.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
+| `datadog_metric_tag_configuration.distribution["arvault.arca.validation.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
+| `datadog_dashboard_json.load_test` | Dashboard *arVault load test* | Defined in `dashboards/load-test.json`, the format Datadog exports |
+
+The dashboard has two template variables: `$test` (Artillery's `test:<scenario>` tag, set in each `perf/*.yaml`) and `$host` (the VMSS instance, added by the agent). Its three groups:
+
+| Group | Source | Widgets |
+|---|---|---|
+| Client (Artillery) | `artillery.*`, from `publish-metrics` over the Datadog API, no `host` | Offered load (`vusers.created`) vs. served (`http.responses`) and failed users; responses by status (200, 403, 409, 500, 502) and network errors (`ETIMEDOUT`, `ECONNRESET`); median, p95 and p99 response time |
+| VMSS nodes | Agent's system check | CPU user + system, CPU steal and iowait, load, network, memory, by `host` |
+| Service | `arvault.*`, from `node/metrics.js` through DogStatsD | Server-side p50 and p95 by `route`; responses by route and status; ARCA validation and exchange duration; ARCA outcomes; exchange outcomes and failure causes; handled errors by code; event loop lag and RSS by `host`; internal account balances |
+
+Things to note:
+
+- **It outlives `mise run down`.** `down` destroys `platform` and `foundation` only, so the dashboard of a destroyed configuration can still be screenshotted and exported.
+- **The dashboard doesn't depend on the tag configurations.** A missing metric fails only its own tag configuration; the dashboard is still created.
+- **The exchange's own span is `arvault.exchange.processing.duration`, not `arvault.exchange.duration`.** Datadog accepted a tag configuration for `arvault.exchange.duration` and dropped it within a minute, three applies in a row, and its UI could not enable percentiles on it either. Two probe distributions with new names kept theirs, one of them with an `exchange` segment, so the segment is not the cause. The cause was not found; the new name works.
+- **The prefix is `arvault.`, never `exchange.`.** Datadog reserves `exchange.*` for its Microsoft Exchange Server integration and treats every metric under it as an integration metric: `400 Cannot configure tags on metric because metric is an integration metric`. A new namespace must not collide with an integration's either.
+- **Edits made in the Datadog UI are overwritten** on the next apply. Change `dashboards/load-test.json` instead. The evidence of each case is still the JSON exported from Datadog next to its screenshots, as the assignment asks.
+- **Artillery's percentiles are per 10-second window.** Over a longer range, Datadog averages them; that average is not the run's p95. The run's p95 comes from the raw report in `perf/results/`.
+- **Metric names are frozen from the 1-node run to the last tactic.** A custom metric can't be deleted or renamed in Datadog: its data stays under the old name for 15 months, and the dashboard only queries the new one. A rename between two measured cases breaks their comparison on the same widget. If a name must change, change it before the first measured run, or re-run every case it touches.
+- **Probe metrics go under `arvault.probe.*`, and never during a measured run.** The organization is shared: the prefix tells everyone a series is not the service's, and keeps it out of every dashboard query. A probe sent during a run lands in that run's time range and its screenshots. Turn off any percentiles enabled on a probe when done; the metric itself stops reporting on its own.
 
 ## Network topology
 
@@ -218,7 +275,7 @@ Some consequences of this design:
 - **Outputs can't go stale on disk.** Every script reads the latest applied state when it runs. `app_config` is computed by `platform` from `foundation`'s outputs, so apply `platform` after any `foundation` change.
 - **The VMSS instance count is set in two places.** Terraform's `instances` sets the count, but Ansible configures whatever `az vmss nic list` returns. Re-run `mise run ansible:setup` and `mise run app:deploy` after scaling (the README says so too).
 - **The VMSS has no custom image or cloud-init.** If Azure replaces an instance (automatic upgrade or autoscale), the new instance boots without Node or the app until Ansible runs again. This matters for any autoscaling design.
-- **Where secrets live.** The Docker Hub token is a sensitive workspace variable, and HCP Terraform's state (encrypted at rest) holds it in plain text. The bootstrap stack's local state holds it too. The database password is a `random_password`: it lives in the state of `foundation` and `platform`, and in `node/config.local.json` (gitignored) on the machine that deploys and on every instance. The Datadog key never reaches Terraform: it lives in `DATADOG_API_KEY`. Keep `terraform output` and run logs out of evidence files unless you read them first.
+- **Where secrets live.** The Docker Hub token is a sensitive workspace variable, and HCP Terraform's state (encrypted at rest) holds it in plain text. The bootstrap stack's local state holds it too. The database password is a `random_password`: it lives in the state of `foundation` and `platform`, and in `node/config.local.json` (gitignored) on the machine that deploys and on every instance. The Datadog keys reach Terraform only as write-only, sensitive variables of the `observability` workspace (`DD_API_KEY`, `DD_APP_KEY`), set by `infra/bootstrap`; Ansible and Artillery read `DATADOG_API_KEY`. Keep `terraform output` and run logs out of evidence files unless you read them first.
 
 ## What the TP will change
 

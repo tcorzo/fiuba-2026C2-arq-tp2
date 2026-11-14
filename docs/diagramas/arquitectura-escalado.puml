@@ -1,0 +1,16 @@
+@startuml arquitectura-escalado
+' arVault — TP 2. Componentes y conectores, caso escalado a 2 nodos.
+' Render: mise run diagrams
+
+
+!$nodos = 2
+!include arquitectura.iuml
+
+note bottom of Postgres #FFF3E0
+  **Compartido por los dos nodos**
+  Postgres y ARCA no escalan con el VMSS:
+  cada nodo abre su propio pool contra el
+  mismo servidor y llama al mismo ARCA.
+end note
+
+@enduml

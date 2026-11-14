@@ -13,7 +13,7 @@ proceso, porque Express 4 no captura el rechazo de una promesa.
 |---|---|
 | `errors.js` | El vocabulario: `AppError` y sus subclases. Cada una fija el status HTTP y el `code` que recibe el cliente. |
 | `error-handler.js` | `asyncHandler`, `notFoundHandler` y `errorHandler`. Es el único lugar donde un error se convierte en una respuesta. |
-| `metrics.js` | `countHandledError(code)`, que cuenta cada error respondido en `exchange.<w>.http.errors.<code>`. |
+| `metrics.js` | `countHandledError(code)`, que cuenta cada error respondido en `arvault.http.errors`, con el tag `code`. |
 
 ## Reglas para agregar un endpoint
 

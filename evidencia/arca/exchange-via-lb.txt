@@ -1,0 +1,308 @@
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 58582 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 502 Bad Gateway
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 57
+< ETag: W/"39-jXNM+aR4fR6SFzZ1hh7ldChyIjA"
+< Date: Thu, 12 Nov 2026 21:54:18 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [57 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA is unavailable","code":"ARCA_UNAVAILABLE"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 58594 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 502 Bad Gateway
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 57
+< ETag: W/"39-jXNM+aR4fR6SFzZ1hh7ldChyIjA"
+< Date: Thu, 12 Nov 2026 21:54:18 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [57 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA is unavailable","code":"ARCA_UNAVAILABLE"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 58610 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 119
+> 
+} [119 bytes data]
+* upload completely sent off: 119 bytes
+< HTTP/1.1 400 Bad Request
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 93
+< ETag: W/"5d-nwbx2ojLPMbWlWFv2MwRfZG+IDo"
+< Date: Thu, 12 Nov 2026 21:54:19 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [93 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"dni must be a string of digits from 1000000 to 99999999","code":"VALIDATION_ERROR"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 58620 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 502 Bad Gateway
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 57
+< ETag: W/"39-jXNM+aR4fR6SFzZ1hh7ldChyIjA"
+< Date: Thu, 12 Nov 2026 21:54:19 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [57 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA is unavailable","code":"ARCA_UNAVAILABLE"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 58634 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 365
+< ETag: W/"16d-4htXgOrdTgSiRNNjWWt+eam+5Vs"
+< Date: Thu, 12 Nov 2026 21:54:20 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [365 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"id":"nHSFgE_TJmGb0xno34e2G","ts":"2026-11-12T21:54:20.305Z","ok":true,"request":{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"12345678"},"exchangeRate":0.0006609385327164573,"counterAmount":0.6609385327164573,"obs":null,"failure":null,"codigoAutorizacion":"176889c2-519f-415f-86f9-4e2f08c9d6fc"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 36780 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 365
+< ETag: W/"16d-2rt8v3s9FF7gHGFHceKeYH5li1o"
+< Date: Thu, 12 Nov 2026 21:54:21 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [365 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"id":"iRiySwSUW5bCeFwMpSCLc","ts":"2026-11-12T21:54:21.334Z","ok":true,"request":{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"12345678"},"exchangeRate":0.0006609385327164573,"counterAmount":0.6609385327164573,"obs":null,"failure":null,"codigoAutorizacion":"fd23f549-1295-4cc4-a1e5-ce4569e4c7a2"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 36784 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 502 Bad Gateway
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 57
+< ETag: W/"39-jXNM+aR4fR6SFzZ1hh7ldChyIjA"
+< Date: Thu, 12 Nov 2026 21:54:22 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [57 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA is unavailable","code":"ARCA_UNAVAILABLE"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 36798 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 502 Bad Gateway
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 57
+< ETag: W/"39-jXNM+aR4fR6SFzZ1hh7ldChyIjA"
+< Date: Thu, 12 Nov 2026 21:54:22 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [57 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA is unavailable","code":"ARCA_UNAVAILABLE"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 36802 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 365
+< ETag: W/"16d-ncG7FXiMmtYr7liuCRsxRrAjhuI"
+< Date: Thu, 12 Nov 2026 21:54:23 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [365 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"id":"TFcfmGqPXGIC6068CmwBw","ts":"2026-11-12T21:54:23.149Z","ok":true,"request":{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"12345678"},"exchangeRate":0.0006609385327164573,"counterAmount":0.6609385327164573,"obs":null,"failure":null,"codigoAutorizacion":"57af9eaf-5009-42ee-a6e6-9363fef51e21"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 36814 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 502 Bad Gateway
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 57
+< ETag: W/"39-jXNM+aR4fR6SFzZ1hh7ldChyIjA"
+< Date: Thu, 12 Nov 2026 21:54:23 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [57 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"error":"ARCA is unavailable","code":"ARCA_UNAVAILABLE"}
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host abtzlaxtck.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 172.202.20.193
+*   Trying 172.202.20.193:80...
+* Established connection to abtzlaxtck.centralus.cloudapp.azure.com (172.202.20.193 port 80) from 192.168.0.2 port 36822 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: abtzlaxtck.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> content-type: application/json
+> Content-Length: 124
+> 
+} [124 bytes data]
+* upload completely sent off: 124 bytes
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 365
+< ETag: W/"16d-hEc49icCyG4igLZTLvXN9JGavwQ"
+< Date: Thu, 12 Nov 2026 21:54:24 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [365 bytes data]
+* Connection #0 to host abtzlaxtck.centralus.cloudapp.azure.com:80 left intact
+{"id":"_uHnBxRvnGFcViTiJaUKG","ts":"2026-11-12T21:54:24.502Z","ok":true,"request":{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"12345678"},"exchangeRate":0.0006609385327164573,"counterAmount":0.6609385327164573,"obs":null,"failure":null,"codigoAutorizacion":"5a0b142c-a79e-4bac-b19d-6158809a2d5e"}

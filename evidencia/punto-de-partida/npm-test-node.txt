@@ -1,0 +1,174 @@
+
+> exchange-service@1.0.0 test
+> METRICS_ENABLED=false node --test
+
+▶ config
+  ✔ DATABASE_URL overrides the deployed databaseUrl (80.04292ms)
+  ✔ ARCA_URI overrides the deployed arcaUri (43.241282ms)
+✔ config (125.766404ms)
+▶ H-01: errorHandler answers what each error deserves
+  ✔ an AppError answers its own status, code and details (1.825957ms)
+  ✔ a ValidationError answers 400 (0.197979ms)
+  ✔ body-parser failures are the client's fault (0.224618ms)
+  ✔ any other 4xx keeps its status with a generic message (0.188888ms)
+  ✔ a fault of ours answers 500 and tells the client nothing (0.394017ms)
+  ✔ an exchange failure with an unmapped cause stays a 500 (0.227208ms)
+  ✔ a response already on the wire is left to Express (0.162468ms)
+✔ H-01: errorHandler answers what each error deserves (5.226093ms)
+▶ H-01: a rejected promise reaches the handler, not the process
+  ✔ asyncHandler forwards a rejection to next (16.350893ms)
+  ✔ notFoundHandler raises a NotFoundError (0.612846ms)
+✔ H-01: a rejected promise reaches the handler, not the process (17.995792ms)
+▶ H-01: the routes and the middleware, in process
+  ✔ every route goes through asyncHandler (1.46375ms)
+  ✔ errorHandler is the last middleware, after notFoundHandler (1.267031ms)
+  ✔ a synchronous throw in a route answers 500 and the server stays up (64.68432ms)
+  ✔ a rejected promise answers 500 instead of ending the process (11.356059ms)
+  ✔ an error of the domain answers its own status and code (2.704331ms)
+  ✔ missing fields and a non-positive amount answer 400 (3.921202ms)
+  ✔ a body that is not JSON answers 400, and a large one 413 (5.61589ms)
+  ✔ a route nobody serves answers a JSON 404 (2.701151ms)
+✔ H-01: the routes and the middleware, in process (97.357697ms)
+▶ H-23
+  ✔ both transfers succeed, so balances move and one entry is logged (6.866451ms)
+  ✔ a failed withdrawal is rejected, and the deposit already sent is not reversed (0.775725ms)
+  ✔ a failed deposit refunds the client and is rejected (0.717645ms)
+  ✔ insufficient internal funds never calls the dependency (0.796284ms)
+✔ H-23 (11.580598ms)
+▶ H-12
+  ✔ both transfers are in flight before either one finishes (14.789615ms)
+✔ H-12 (15.49261ms)
+▶ H-06
+  ✔ of 20 concurrent exchanges that each need most of the balance, exactly one passes (51.546583ms)
+✔ H-06 (51.90073ms)
+▶ H-22
+  ✔ two exchange instances in one process do not share state (0.413317ms)
+  ✔ building the postgres adapter opens no connection (0.347968ms)
+✔ H-22 (1.045122ms)
+▶ H-14
+  ✔ an exchange on one replica shows in the balances and the log of the other (0.414887ms)
+  ✔ exchanges split across two replicas add up (0.410167ms)
+✔ H-14 (1.069732ms)
+✔ test/helpers.js (61.964379ms)
+▶ H-15
+  ✔ an account sees only the operations it took part in (49.838925ms)
+  ✔ an account with no operations gets an empty list (3.595094ms)
+  ✔ without accountId the whole log is never returned (5.5683ms)
+  ✔ one operation is returned by its id (2.70616ms)
+  ✔ an unknown id answers 404 (1.867826ms)
+✔ H-15 (72.457313ms)
+▶ H-34
+  ✔ a successful exchange still answers 200 with the result (16.387173ms)
+  ✔ insufficient internal funds is a 409, not a 500 (3.452896ms)
+  ✔ a withdrawal the client's account rejects is a 422 (2.052436ms)
+  ✔ a deposit the dependency fails is a 502 (1.701488ms)
+✔ H-34 (25.128951ms)
+▶ H-31
+  ✔ a balance sent as text is a 400 and the balance is kept (4.1286ms)
+  ✔ a balance sent as numeric text is a 400 and the balance is kept (2.713921ms)
+  ✔ a balance sent as a negative number is a 400 and the balance is kept (3.267557ms)
+  ✔ a balance sent as an object is a 400 and the balance is kept (3.119558ms)
+  ✔ a balance sent as a boolean is a 400 and the balance is kept (2.990749ms)
+  ✔ a balance sent as null is a 400 and the balance is kept (3.409166ms)
+  ✔ a rate sent as text is a 400 and the rate is kept (2.8629ms)
+  ✔ a rate sent as numeric text is a 400 and the rate is kept (2.286393ms)
+  ✔ a rate sent as a negative number is a 400 and the rate is kept (2.449303ms)
+  ✔ a rate sent as an object is a 400 and the rate is kept (2.110615ms)
+  ✔ an amount sent as numeric text is a 400 and nothing moves (2.081685ms)
+  ✔ valid numbers are still written (3.795583ms)
+✔ H-31 (35.781645ms)
+▶ H-44
+  ✔ a balance of zero is written (2.402013ms)
+  ✔ a rate of zero is a 400 that names the rule (2.189285ms)
+  ✔ an amount of zero is a 400 that names the rule (3.220007ms)
+✔ H-44 (8.025803ms)
+▶ H-35
+  ✔ GET /log answers a page of 100 entries by default, and a cursor to the rest (2.571222ms)
+  ✔ following next reads the log to its end, each entry once (4.599467ms)
+  ✔ an account's operations come one page at a time (1.743648ms)
+  ✔ a limit out of 1 to 1000, or not an integer, answers 400 (9.001565ms)
+  ✔ a cursor the service did not issue answers 400 (1.622848ms)
+✔ H-35 (21.034831ms)
+▶ memory repositories
+  ✔ accounts.all answers every account, ordered by id (3.008728ms)
+  ✔ byCurrency answers the account, or null (0.354747ms)
+  ✔ setBalance answers whether the account exists (0.797244ms)
+  ✔ reserve takes the amount only if it is there (0.326217ms)
+  ✔ release and credit add to the balance (0.378087ms)
+  ✔ 20 concurrent reserves of 60 % of the balance: exactly one passes (0.428057ms)
+  ✔ rates.all answers { base: { counter: rate } } (0.337158ms)
+  ✔ rates.put adds or replaces a rate, rates.remove drops one (0.345188ms)
+  ✔ exchanges.all answers entries in append order, as appended (2.187995ms)
+  ▶ H-35
+    ✔ exchanges.page answers at most limit entries, in append order, and a cursor to the rest (3.515275ms)
+    ✔ exchanges.page answers no cursor when the page ends the log exactly (0.337028ms)
+    ✔ exchanges.byAccount pages the entries an account took part in, as base or counter (0.373608ms)
+    ✔ exchanges.byId answers the entry with that id, or null (0.493037ms)
+    ✔ a cursor this adapter did not issue is a ValidationError (0.930603ms)
+  ✔ H-35 (6.297065ms)
+  ✔ atomically commits every write of fn (0.458897ms)
+  ﹣ atomically commits nothing when fn throws (0.078259ms) # the memory adapter has no rollback
+✔ memory repositories (19.054635ms)
+﹣ postgres repositories (0.511946ms) # TEST_DATABASE_URL is not set
+﹣ atomically on a broken connection (0.104689ms) # TEST_DATABASE_URL is not set
+﹣ seed (0.204019ms) # TEST_DATABASE_URL is not set
+﹣ H-14 (0.109339ms) # TEST_DATABASE_URL is not set
+▶ H-08
+  ✔ the shipped rates store one direction per pair (6.436824ms)
+  ✔ ARS -> BRL -> ARS returns what was sent (4.811306ms)
+  ✔ ARS -> EUR -> ARS returns what was sent (4.619687ms)
+  ✔ ARS -> USD -> ARS returns what was sent (1.237131ms)
+  ✔ GET /rates shows every pair in both directions, reciprocal (2.70688ms)
+✔ H-08 (22.020313ms)
+▶ H-29
+  ✔ setRate USD -> ARS = 1513 keeps a precise reciprocal (6.728742ms)
+  ✔ setRate EUR -> ARS = 1761 keeps a precise reciprocal (1.049093ms)
+  ✔ setRate BRL -> ARS = 297.06 keeps a precise reciprocal (3.269397ms)
+  ✔ setRate writes no reciprocal next to the rate (2.002876ms)
+  ✔ setting the other direction replaces the stored pair (2.246885ms)
+✔ H-29 (17.659535ms)
+✔ test/repositories.contract.js (72.370185ms)
+▶ GET /
+  ✔ answers 200 without touching the exchange service (51.134515ms)
+✔ GET / (60.904366ms)
+▶ H-21
+  ✔ importing compose.js has no side effects (153.522246ms)
+  ✔ importing config.js has no side effects (32.653008ms)
+  ✔ importing cursor.js has no side effects (21.505686ms)
+  ✔ importing error-handler.js has no side effects (38.921592ms)
+  ✔ importing errors.js has no side effects (24.572255ms)
+  ✔ importing exchange.js has no side effects (39.781637ms)
+  ✔ importing http.js has no side effects (84.710227ms)
+  ✔ importing memory-repositories.js has no side effects (23.76755ms)
+  ✔ importing metrics.js has no side effects (34.795642ms)
+  ✔ importing pg-repositories.js has no side effects (44.289495ms)
+  ✔ importing ports.js has no side effects (23.400303ms)
+  ✔ importing runtime-metrics.js has no side effects (39.31583ms)
+  ✔ importing schema.js has no side effects (21.263949ms)
+  ✔ importing seed.js has no side effects (49.784085ms)
+  ✔ importing transfer.js has no side effects (22.36103ms)
+  ✔ importing validation.js has no side effects (20.490374ms)
+✔ H-21 (677.335795ms)
+▶ H-01: exchange validates before it operates
+  ✔ a pair stored in one direction is tradable in both (9.146905ms)
+  ✔ an unknown base currency is rejected without touching the state (1.498169ms)
+  ✔ an unknown counter currency is rejected without touching the state (0.362878ms)
+  ✔ an inherited property name is rejected without touching the state (0.293898ms)
+  ✔ known currencies with no rate between them are rejected (0.345168ms)
+✔ H-01: exchange validates before it operates (13.289336ms)
+▶ H-01: setRate validates before it writes
+  ✔ an unknown currency is rejected and nothing is written (0.493427ms)
+  ✔ a known currency without a rates entry gets one, not a crash (0.514196ms)
+✔ H-01: setRate validates before it writes (1.31239ms)
+▶ H-01: setAccountBalance does not ignore an unknown account
+  ✔ an unknown id is a NotFoundError and nothing changes (0.475147ms)
+  ✔ a known id still sets the balance (0.185309ms)
+✔ H-01: setAccountBalance does not ignore an unknown account (0.929983ms)
+ℹ tests 112
+ℹ suites 27
+ℹ pass 111
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 839.534599

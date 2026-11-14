@@ -1,0 +1,47 @@
+2026-11-08T22:08:38Z
+12345678 1 {"ok":true,"codigoAutorizacion":"11c7c142-b293-4bf8-b76d-eb610f1510b8"} 200 0.365380
+12345678 2  500 0.002608
+12345678 3  500 0.002491
+12345678 4 {"ok":true,"codigoAutorizacion":"613c2290-21c9-4dd5-af0a-aeffa85b2480"} 200 0.436876
+12345678 5 {"ok":true,"codigoAutorizacion":"6a5f85fb-0e3c-44a1-86cf-95faea63e3b4"} 200 0.210815
+12345678 6 {"ok":true,"codigoAutorizacion":"a3694432-d368-4719-aeb0-c6e5e353d283"} 200 0.295868
+12345678 7 {"ok":true,"codigoAutorizacion":"d39a2086-e49c-4455-aefa-54fbc58db94b"} 200 0.473607
+12345678 8 {"ok":true,"codigoAutorizacion":"06c8303d-9934-4a5c-8abd-06f1ddaaa51b"} 200 0.294184
+12345678 9 {"ok":true,"codigoAutorizacion":"5daeed92-5501-4606-b234-d413b3093204"} 200 0.417888
+12345678 10 {"ok":true,"codigoAutorizacion":"ecdc4e08-4fa5-40eb-abac-b0aba490ab0b"} 200 0.372255
+12345678 11 {"ok":true,"codigoAutorizacion":"70c780c7-bcf9-4515-a12d-394b6e980ed1"} 200 0.371002
+12345678 12 {"ok":true,"codigoAutorizacion":"e0f36108-0e88-4dac-8878-4b47e21d4805"} 200 0.315303
+12345678 13  500 0.002092
+12345678 14  500 0.002737
+12345678 15 {"ok":true,"codigoAutorizacion":"62ee7dfa-ab35-4599-b2f4-85c4cd771399"} 200 0.307144
+40101235 1 {"ok":true,"codigoAutorizacion":"8dc212be-82d9-451e-9dbb-bed35c5b1b98"} 200 0.436577
+40101235 2  500 0.006478
+40101235 3  500 0.002391
+40101235 4 {"ok":true,"codigoAutorizacion":"2d566bee-cce0-45a1-a93c-615ad0025b15"} 200 0.380681
+40101235 5  500 0.002423
+40101235 6 {"ok":true,"codigoAutorizacion":"38fb0ad9-be8c-426d-9352-2d031f316344"} 200 0.226832
+40101235 7 {"ok":true,"codigoAutorizacion":"847a2f7d-cc91-4be2-8537-0779c585620b"} 200 0.428821
+40101235 8 {"ok":true,"codigoAutorizacion":"62a0b5c2-ee90-4b6e-aa7d-1f7e32589ba2"} 200 0.248198
+40101235 9 {"ok":true,"codigoAutorizacion":"ae52865e-d06e-4663-92b3-686df4b1509e"} 200 0.489645
+40101235 10  500 0.021112
+40101235 11 {"ok":true,"codigoAutorizacion":"400a8a21-a038-4e3a-9a0d-4fb8a280fce6"} 200 0.380248
+40101235 12  500 0.003500
+40101235 13  500 0.004373
+40101235 14 {"ok":true,"codigoAutorizacion":"4e36bf39-078d-4b55-bb93-08b5ca2b638c"} 200 0.332810
+40101235 15 {"ok":true,"codigoAutorizacion":"4ca1fed3-93f2-4d3d-9026-f6bfb19ca1c7"} 200 0.411665
+99999999 1  500 0.002642
+99999999 2 {"ok":false,"codigoAutorizacion":null} 200 0.391442
+99999999 3 {"ok":false,"codigoAutorizacion":null} 200 0.295791
+99999999 4 {"ok":false,"codigoAutorizacion":null} 200 0.285175
+99999999 5  500 0.003873
+99999999 6 {"ok":false,"codigoAutorizacion":null} 200 0.357138
+99999999 7 {"ok":false,"codigoAutorizacion":null} 200 0.251519
+99999999 8  500 0.002230
+99999999 9 {"ok":false,"codigoAutorizacion":null} 200 0.318111
+99999999 10 {"ok":false,"codigoAutorizacion":null} 200 0.485966
+99999999 11  500 0.004188
+99999999 12  500 0.001504
+99999999 13 {"ok":false,"codigoAutorizacion":null} 200 0.481689
+99999999 14  500 0.001986
+99999999 15  500 0.001988
+2026-11-08T22:08:48Z

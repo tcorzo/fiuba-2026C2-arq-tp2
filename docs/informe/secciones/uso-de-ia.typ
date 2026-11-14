@@ -73,6 +73,34 @@ git log --format='%h %s' --grep='Co-Authored-By: Claude'
     reintentos. Cada exchange valida el `dni` antes de mover fondos. Escribió
     tests contra un ARCA falso y sumó el `dni` aleatorio a los escenarios.
     Nosotros decidimos no reintentar y revisamos el diff.],
+
+  [Borrador de las secciones 3 y 10],
+  [El agente recorrió el informe del TP 1 y clasificó sus 27 tácticas. Generó el diff de `app/` contra `node/` y corrió
+    `npm test`. Verificó en la documentación del provider que el probe usa TCP
+    por defecto. Encontró que el load balancer publica las rutas de
+    administración. Nosotros revisamos el texto contra la evidencia.],
+
+  [Evidencia de las secciones 3 y 6],
+  [El agente juntó las ejecuciones a través del load balancer y fijó cada cita
+    por líneas a un commit. Un subagente asoció cada táctica a un archivo de
+    evidencia del TP 1. Escribió la sección 6. Nosotros revisamos cada cita.],
+
+  [Sección 4 y diagramas C\&C],
+  [El agente escribió los diagramas en PlantUML desde `infra/`, `ansible/` y
+    `node/`, y citó cada componente y conector por línea. Nosotros revisamos los
+    diagramas contra el código.],
+
+  [Métricas del servicio en Datadog],
+  [El agente encontró, en el nodo y bajo carga, que la app mandaba sus
+    métricas a `graphite`, un nombre que no resuelve en Azure. Apuntó la app al
+    agente de Datadog y pasó la ruta y el resultado a tags. Escribió tests que
+    escuchan los datagramas por UDP. Nosotros revisamos el diff.],
+
+  [Dashboard de Datadog en Terraform],
+  [El agente pasó el dashboard a un stack de Terraform, `observability`, con los
+    percentiles de las tres distribuciones. Encontró que el widget de latencia
+    por ruta del cliente leía métricas que ningún escenario publica. Nosotros
+    revisamos el diff.],
 )
 
 == Propuestas incorrectas
@@ -93,3 +121,43 @@ nada [E-01].
 
 En su lugar, destruimos con el código que creó esa infraestructura, el commit
 #sha("7d6e8c3"). Después aplicamos la branch nueva con `mise run up`.
+
+=== Prefijo de métricas reservado por Datadog
+
+En #sha("02e712f"), el agente mantuvo el prefijo `exchange.` de las métricas del
+TP 1. En Graphite no había conflicto. Datadog reserva `exchange.*` para su
+integración de Microsoft Exchange Server.
+
+Lo detectó el `apply` del stack `observability`. Datadog rechazó la configuración
+de tags de las tres distribuciones: `Cannot configure tags on metric because
+metric is an integration metric`. Sin esa configuración, no hay percentiles.
+
+El agente confirmó la causa en el `metadata.csv` de la integración. En
+#sha("ca6a3f3"), cambiamos el prefijo a `arvault.`. El siguiente `apply` terminó
+sin errores.
+
+=== Orden de aplicación incompleto
+
+El agente indicó aplicar `observability` después de ver `exchange.http.duration`
+en Datadog. Ese orden no alcanzaba. La API rechaza los tags de una métrica que
+todavía no recibió datos.
+
+El primer `apply` falló en las tres distribuciones. El agente atribuyó la falla a
+la falta de un exchange. Al revisar el state de HCP Terraform, vio que la
+infraestructura estaba destruida y que ninguna métrica había llegado.
+
+Separamos el dashboard de los percentiles en #sha("e268f46"). Documentamos el
+orden verificado en `docs/infra/overview.md`.
+
+=== Diagnóstico refutado de una métrica sin percentiles
+
+Datadog aceptaba la configuración de tags de `arvault.exchange.duration` y la
+descartaba en menos de un minuto. Tampoco se podía activar desde la UI.
+
+El agente supuso que la causa era el segmento `exchange` del nombre. Lo probamos
+con dos distribuciones nuevas, con y sin ese segmento. Las dos aceptaron
+percentiles, así que la hipótesis era falsa.
+
+No encontramos la causa. En #sha("e1c1b6e"), renombramos la métrica a
+`arvault.exchange.processing.duration`. Un `plan -refresh-only` confirmó que su
+configuración se mantiene.
