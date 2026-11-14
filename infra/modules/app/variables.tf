@@ -32,3 +32,13 @@ variable "image" {
     version   = string
   })
 }
+
+variable "instances" {
+  description = "Number of scale set instances. Ansible configures the new ones after an apply (mise run ansible:setup, app:deploy)."
+  type        = number
+
+  validation {
+    condition     = var.instances >= 1
+    error_message = "The scale set needs at least one instance."
+  }
+}

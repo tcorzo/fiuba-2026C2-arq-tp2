@@ -33,3 +33,9 @@ variable "machine_sku" {
   type        = string
   default     = "Standard_F1als_v7"
 }
+
+variable "vmss_instances" {
+  description = "Number of scale set instances. Each measured case changes it here, in its own commit."
+  type        = number
+  default     = 1
+}
