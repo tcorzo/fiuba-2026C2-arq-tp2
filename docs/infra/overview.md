@@ -91,7 +91,14 @@ the first apply failed with `SkuNotAvailable`. In `centralus`, it doesn't list
 
 ## Observability
 
-The stack `infra/envs/prd/observability` (workspace `arvault-prd-observability`) manages what Datadog needs to show a load test. It holds no Azure resource and gets no Azure identity: its provider talks to Datadog only, with `DD_API_KEY` and `DD_APP_KEY` (an application key: the API key alone can submit data but not manage dashboards).
+The stack `infra/envs/prd/observability` (workspace `arvault-prd-observability`) manages what Datadog needs to show a load test. It holds no Azure resource and gets no Azure identity: its provider talks to Datadog only, with `DD_API_KEY` and `DD_APP_KEY` (an application key: the API key alone can submit data but not manage dashboards). Both keys are dedicated to the workspace, and the application key belongs to a Datadog service account with four scopes, not to a member: [`infra/bootstrap/README.md`](../../infra/bootstrap/README.md#datadog-credentials) has the steps to create them.
+
+### First apply
+
+1. Create the Datadog credentials and re-apply `infra/bootstrap` ([steps](../../infra/bootstrap/README.md#datadog-credentials)).
+2. Deploy the app (`mise run up`, or `mise run app:deploy` on a running deployment) and run a short load: `mise run perf:run root <output>`.
+3. Check in Datadog (Metrics → Explorer) that `exchange.http.duration` and `artillery.http.requests` arrived.
+4. `mise run infra:init observability`, then `mise run infra:apply observability`. The run's output ends with `dashboard_url`.
 
 | Terraform address | Datadog object | Why |
 |---|---|---|
@@ -111,7 +118,7 @@ The dashboard has two template variables: `$test` (Artillery's `test:<scenario>`
 Things to note:
 
 - **It outlives `mise run down`.** `down` destroys `platform` and `foundation` only, so the dashboard of a destroyed configuration can still be screenshotted and exported.
-- **Apply it after the first `exchange.*` sample arrives.** Deploy the app, run a short load (`mise run perf:run root ...`), check the metrics in Datadog, then `mise run infra:apply observability`.
+- **Apply it after the first `exchange.*` sample arrives** (step 3 above): the API may reject a tag configuration for a metric it has not received yet. Not checked: it is the cautious order.
 - **Edits made in the Datadog UI are overwritten** on the next apply. Change `dashboards/load-test.json` instead. The evidence of each case is still the JSON exported from Datadog next to its screenshots, as the assignment asks.
 - **Artillery's percentiles are per 10-second window.** Over a longer range, Datadog averages them; that average is not the run's p95. The run's p95 comes from the raw report in `perf/results/`.
 
