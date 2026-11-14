@@ -105,3 +105,30 @@ nada [E-01].
 
 En su lugar, destruimos con el código que creó esa infraestructura, el commit
 #sha("7d6e8c3"). Después aplicamos la branch nueva con `mise run up`.
+
+=== Prefijo de métricas reservado por Datadog
+
+En #sha("02e712f"), el agente mantuvo el prefijo `exchange.` de las métricas del
+TP 1. En Graphite no había conflicto. Datadog reserva `exchange.*` para su
+integración de Microsoft Exchange Server.
+
+Lo detectó el `apply` del stack `observability`. Datadog rechazó la configuración
+de tags de las tres distribuciones: `Cannot configure tags on metric because
+metric is an integration metric`. Sin esa configuración, no hay percentiles.
+
+El agente confirmó la causa en el `metadata.csv` de la integración. En
+#sha("ca6a3f3"), cambiamos el prefijo a `arvault.`. El siguiente `apply` terminó
+sin errores.
+
+=== Orden de aplicación incompleto
+
+El agente indicó aplicar `observability` después de ver `exchange.http.duration`
+en Datadog. Ese orden no alcanzaba. La API rechaza los tags de una métrica que
+todavía no recibió datos.
+
+El primer `apply` falló en las tres distribuciones. El agente atribuyó la falla a
+la falta de un exchange. Al revisar el state de HCP Terraform, vio que la
+infraestructura estaba destruida y que ninguna métrica había llegado.
+
+Separamos el dashboard de los percentiles en #sha("e268f46"). Documentamos el
+orden verificado en `docs/infra/overview.md`.
