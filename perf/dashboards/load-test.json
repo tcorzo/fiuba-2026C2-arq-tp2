@@ -1,6 +1,6 @@
 {
   "title": "arVault load test",
-  "description": "Client side (Artillery, tagged test:<scenario>) next to the VMSS nodes (Datadog agent) and the service's own metrics (arvault.*, tagged by host, route, status and outcome). Import it in Datadog: Dashboards > New Dashboard > Import dashboard JSON. The durations are distributions: enable percentiles on arvault.http.duration, arvault.exchange.duration and arvault.arca.validation.duration (Metrics > Summary) for the p50/p95 queries. Set the time range to the run's before taking a screenshot.",
+  "description": "Client side (Artillery, tagged test:<scenario>) next to the VMSS nodes (Datadog agent) and the service's own metrics (arvault.*, tagged by host, route, status and outcome). Import it in Datadog: Dashboards > New Dashboard > Import dashboard JSON. The durations are distributions: enable percentiles on arvault.http.duration, arvault.exchange.processing.duration and arvault.arca.validation.duration (Metrics > Summary) for the p50/p95 queries. Set the time range to the run's before taking a screenshot.",
   "layout_type": "ordered",
   "template_variables": [
     {
@@ -337,12 +337,12 @@
                     {
                       "data_source": "metrics",
                       "name": "e50",
-                      "query": "p50:arvault.exchange.duration{*}"
+                      "query": "p50:arvault.exchange.processing.duration{*}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "e95",
-                      "query": "p95:arvault.exchange.duration{*}"
+                      "query": "p95:arvault.exchange.processing.duration{*}"
                     }
                   ],
                   "formulas": [
