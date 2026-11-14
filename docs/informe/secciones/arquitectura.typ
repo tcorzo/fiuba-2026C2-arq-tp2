@@ -121,12 +121,16 @@ Postgres y ARCA no se replican: los dos nodos usan el mismo servidor y el mismo
 contenedor [E-04] [E-59].
 
 #pendiente[
-  La evidencia de que cada configuración estuvo desplegada así: la salida de
-  `terraform state list`, `terraform output` y `az vmss list-instances` de cada
-  caso. La del caso de 1 nodo está en `evidencia/1-node/`, en la rama
-  `case/1-node`; se cita cuando esa rama llegue a `main`. La del caso escalado
-  se toma cuando se despliegue.
+  *Evidencia de cada configuración desplegada.* Una oración por caso que cite
+  la salida de `terraform state list`, `terraform output` y
+  `az vmss list-instances`, tomada mientras esa configuración estaba levantada.
+  Prueba que existió lo que dibujan los diagramas.
+  - 1 nodo: los archivos ya están en `evidencia/1-node/` (PR \#22). Citarlos
+    cuando ese PR llegue a `main`.
+  - Escalado: tomar la salida al desplegar los 2 nodos y citarla.
 
-  La configuración de la táctica superadora, si cambia algún componente o
-  conector.
+  *Diagrama de cada táctica superadora.* Si una táctica agrega o cambia un
+  componente o un conector (por ejemplo, un Application Gateway), agregar su
+  diagrama C&C. Si sólo cambia código dentro del servicio, alcanza con una
+  oración que diga que la arquitectura no cambia.
 ]
