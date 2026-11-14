@@ -48,7 +48,7 @@ async function datagramsFrom(script) {
 describe("metrics", () => {
   test("reach the agent on 127.0.0.1 with no METRICS_HOST set", async () => {
     const lines = await datagramsFrom('m.recordExchangeDuration(354)');
-    assert.deepEqual(lines, ["arvault.exchange.duration:354|d"]);
+    assert.deepEqual(lines, ["arvault.exchange.processing.duration:354|d"]);
   });
 
   test("carry the route and the status as tags, not in the name", async () => {

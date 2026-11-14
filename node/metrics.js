@@ -99,8 +99,13 @@ export function gaugeContainerLimits({ cpuNs, memoryBytes }) {
 // ── Exchange ────────────────────────────────────────────────────────────────
 
 // From after ARCA's validation to the response: the same span as tp1's.
+//
+// Not "exchange.duration": Datadog accepted a tag configuration for
+// arvault.exchange.duration and dropped it within a minute, and its UI could
+// not enable percentiles on it either. A new name with the same type and tags
+// kept them. The cause was not found.
 export function recordExchangeDuration(ms) {
-  client?.distribution("exchange.duration", ms);
+  client?.distribution("exchange.processing.duration", ms);
 }
 
 // "attempted" or "ok".
