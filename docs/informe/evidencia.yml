@@ -314,3 +314,18 @@
   ubicacion: ansible/update_vmss_inventory.sh
   lineas: "20"
   commit: 28031b3
+- id: E-74
+  descripcion: "El servicio manda sus métricas por DogStatsD (UDP) con el prefijo `arvault.`, e ignora los errores de envío."
+  ubicacion: node/metrics.js
+  lineas: "26-45"
+  commit: 3cf5482
+- id: E-75
+  descripcion: "Destino de las métricas por defecto: `127.0.0.1:8125`, el DogStatsD del agente en el mismo nodo."
+  ubicacion: node/config.js
+  lineas: "30-35"
+  commit: 3cf5482
+- id: E-76
+  descripcion: "El setup configura el agente de Datadog con el site de `DATADOG_SITE`."
+  ubicacion: ansible/vmss_setup.yml
+  lineas: "5-8"
+  commit: 3cf5482

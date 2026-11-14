@@ -3,9 +3,8 @@
 = Arquitectura desplegada
 
 Las dos configuraciones medidas tienen los mismos componentes y conectores.
-Sólo cambia la cantidad de nodos del VMSS: uno en el caso base y dos en el caso
-escalado. El VMSS fija esa cantidad en Terraform [E-05]. Todo corre en
-`centralus` [E-17].
+Sólo cambia la cantidad de nodos del VMSS: uno en el caso de 1 nodo y dos en el
+caso escalado. Terraform fija esa cantidad en el VMSS [E-05].
 
 == Componentes
 
@@ -25,16 +24,14 @@ escalado. El VMSS fija esa cantidad en Terraform [E-05]. Todo corre en
     load balancer],
   [\[E-05\] \[E-60\]],
 
-  [exchange-service],
-  [Un solo proceso de Node por nodo, que pm2 arranca],
-  [\[E-61\]],
+  [exchange-service], [pm2 arranca un proceso de Node en cada nodo], [\[E-61\]],
 
   [Transferencias],
   [La dependencia de transferencias simulada: una espera de 200 a 400 ms
     dentro del mismo proceso, no un servicio aparte],
   [\[E-63\]],
 
-  [Agente de Datadog], [Un agente por nodo, que Ansible instala], [\[E-07\]],
+  [Agente de Datadog], [Ansible instala un agente en cada nodo], [\[E-07\]],
 
   [ARCA],
   [El contenedor `arqsoft/arca:1.0.0` en Azure Container Instances, con
@@ -51,7 +48,8 @@ escalado. El VMSS fija esa cantidad en Terraform [E-05]. Todo corre en
   [\[E-64\] \[E-66\]],
 )
 
-Cada componente vive en su propia subnet de la VNet `10.0.0.0/16`. Las subnets
+El VMSS, el jumpbox, ARCA y Postgres tienen cada uno su subnet en la VNet
+`10.0.0.0/16`. Las subnets
 de ARCA y de Postgres están delegadas a sus servicios [E-58]. Sólo el load
 balancer y el jumpbox tienen IP pública [E-05] [E-64].
 
@@ -84,6 +82,17 @@ balancer y el jumpbox tienen IP pública [E-05] [E-64].
     conexiones por proceso],
   [\[E-62\] \[E-65\]],
 
+  [exchange-service],
+  [Agente de Datadog],
+  [UDP (DogStatsD) a `127.0.0.1:8125`, sin salir del nodo. Un paquete perdido
+    no genera error en el servicio],
+  [\[E-74\] \[E-75\]],
+
+  [Agente de Datadog],
+  [Datadog],
+  [HTTPS por internet, al site de Datadog que fija `DATADOG_SITE`],
+  [\[E-76\]],
+
   [Operador],
   [Jumpbox y nodos],
   [SSH desde internet al jumpbox, y del jumpbox a
@@ -109,8 +118,7 @@ balancer y el jumpbox tienen IP pública [E-05] [E-64].
 Al escalar se replica el nodo completo: el proceso, su pool de conexiones y su
 agente. El load balancer reparte las conexiones entre los dos nodos [E-05].
 Postgres y ARCA no se replican: los dos nodos usan el mismo servidor y el mismo
-contenedor [E-04] [E-59]. Si el throughput no escala con los nodos, esos dos
-componentes compartidos son los primeros candidatos (sección 8).
+contenedor [E-04] [E-59].
 
 #pendiente[
   La evidencia de que cada configuración estuvo desplegada así: la salida de
@@ -118,10 +126,6 @@ componentes compartidos son los primeros candidatos (sección 8).
   caso. La del caso de 1 nodo está en `evidencia/1-node/`, en la rama
   `case/1-node`; se cita cuando esa rama llegue a `main`. La del caso escalado
   se toma cuando se despliegue.
-
-  El conector de métricas de cada nodo a su agente de Datadog, por UDP, que el
-  diagrama muestra: lo agrega el PR \#18. Hasta ese cambio, la app mandaba sus
-  métricas a un host que no existe en Azure.
 
   La configuración de la táctica superadora, si cambia algún componente o
   conector.
