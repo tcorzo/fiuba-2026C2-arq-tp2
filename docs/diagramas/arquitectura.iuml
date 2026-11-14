@@ -1,0 +1,129 @@
+' arVault — TP 2. Vista de componentes y conectores del despliegue en Azure.
+'
+' Base común de arquitectura-1-nodo.puml y arquitectura-escalado.puml: cada uno
+' fija $nodos y la incluye, así los dos diagramas sólo difieren en la cantidad
+' de nodos del VMSS. La extensión .iuml queda fuera de `mise run diagrams`, que
+' renderiza sólo los .puml.
+'
+' Cada valor sale de infra/, ansible/ o node/; el informe cita de dónde.
+
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam nodesep 35
+skinparam ranksep 45
+skinparam ArrowColor #37474F
+skinparam ArrowFontSize 11
+skinparam component {
+  BackgroundColor #ECEFF1
+  BorderColor #546E7A
+}
+skinparam interface {
+  BackgroundColor #FFFFFF
+  BorderColor #546E7A
+  FontSize 11
+}
+skinparam package {
+  BackgroundColor #FAFAFA
+  BorderColor #90A4AE
+  FontStyle bold
+}
+skinparam database {
+  BackgroundColor #FFF8E1
+  BorderColor #B0883B
+}
+
+' ═════════════════════════════════════════════════════════════
+' Fuera de Azure
+' ═════════════════════════════════════════════════════════════
+package "Internet" <<boundary>> #F5F5F5 {
+  component "Artillery\ngenerador de carga\nBuenos Aires, WiFi" <<load generator>> as Artillery
+  component "Operador\nTerraform + Ansible" <<admin>> as Operador
+}
+
+component "Datadog\n(SaaS)" <<observabilidad>> as Datadog
+
+' ═════════════════════════════════════════════════════════════
+' Azure, centralus
+' ═════════════════════════════════════════════════════════════
+package "Azure · centralus · RG-PRODUCTION" {
+
+  interface "IPúblicaHTTP\n:80" as IPublica
+  component "Load balancer Standard (capa 4)\nregla TCP 80 → 3000, hash de 5-tupla\nprobe TCP :3000\n//sin TLS, sin rutas, sin rate limit//" <<load balancer>> as LB
+
+  package "VNet 10.0.0.0/16" {
+
+    package "Subnet del VMSS 10.0.2.0/24 · sin IP pública" as SubnetVmss {
+!$i = 0
+!while $i < $nodos
+      package "Nodo $i del VMSS\nStandard_F1als_v7 · 1 vCPU · 2 GiB" as Nodo$i #E8F5E9 {
+        interface "IExchangeREST\n:3000" as IRest$i
+        component "exchange-service\nNode 24 + Express\n**un proceso** (pm2, fork)\n//transferencias simuladas//\n//en el proceso, 200–400 ms//" <<servicio>> as App$i
+        component "Agente de Datadog\nDogStatsD 127.0.0.1:8125" <<agente>> as Agente$i
+      }
+!$i = $i + 1
+!endwhile
+    }
+
+    package "Subnet de ACI 10.0.4.0/24" {
+      interface "IValidar\n:8080" as IValidar
+      component "ARCA (mock)\narqsoft/arca:1.0.0\nAzure Container Instances\n0,5 vCPU · 0,5 GiB · IP privada" <<API externa>> as ARCA
+    }
+
+    package "Subnet de Postgres 10.0.5.0/24" {
+      interface "ISQL\n:5432" as ISQL
+      database "PostgreSQL Flexible Server 18\nB_Standard_B1ms · 1 vCore burstable\n32 GB · sin acceso público\naccounts · rates · exchanges" as Postgres
+    }
+
+    package "Subnet del jumpbox 10.0.3.0/24" {
+      component "Jumpbox\nStandard_F1als_v7\nIP pública · SSH :22" <<admin>> as Jumpbox
+    }
+  }
+}
+
+' ═════════════════════════════════════════════════════════════
+' Conectores — camino del request
+' ═════════════════════════════════════════════════════════════
+Artillery ..> IPublica : <<HTTP/1.1>>\npor internet, sin TLS
+IPublica -down- LB
+
+' Los conectores de cada nodo son iguales: sólo los del nodo 0 llevan
+' etiqueta, para que el diagrama escalado no repita texto que se cruza.
+LB ..> IRest0 : <<TCP>>
+App0 ..> IValidar : <<HTTP POST /validar>>\ntimeout 2 s, sin reintentos
+App0 ..> ISQL : <<SQL sobre TLS>>\npool de pg por nodo
+App0 ..> Agente0 : <<UDP StatsD>>
+Agente0 ..> Datadog : <<HTTPS>>
+Jumpbox ..> App0 : <<SSH>>\nAnsible, pm2
+IRest0 -down- App0
+
+!$i = 1
+!while $i < $nodos
+LB ..> IRest$i
+IRest$i -down- App$i
+App$i ..> IValidar
+App$i ..> ISQL
+App$i ..> Agente$i
+Agente$i ..> Datadog
+Jumpbox ..> App$i
+!$i = $i + 1
+!endwhile
+
+IValidar -down- ARCA
+ISQL -down- Postgres
+
+' ═════════════════════════════════════════════════════════════
+' Conectores — administración
+' ═════════════════════════════════════════════════════════════
+Operador ..> Jumpbox : <<SSH :22>>
+
+legend bottom
+  |= Notación |= Significado |
+  | ——○ | interfaz **provista** por el componente |
+  | ┄┄▷ ○ | interfaz **requerida** (dependencia) |
+  | ┄┄▷ | conector; el protocolo va en el «estereotipo» |
+  | paquete | límite de despliegue (región, red, subnet o VM) |
+  | verde | nodo del VMSS: lo que se replica al escalar |
+endlegend
