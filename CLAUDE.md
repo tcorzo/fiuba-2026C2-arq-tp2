@@ -119,7 +119,7 @@ The structure is fixed by the assignment (README.md, *Formato y extensión*), an
 | Prediction vs. result | `#prediccion(metrica:, predicho:, observado:, evidencia:)`. |
 | Unwritten content | `#pendiente[...]`. Renders a yellow box; `report:check --final` fails while any remains. The assignment rejects deliveries with undeveloped or filler sections. |
 | Repo links | `#commit("ref")`, `#sha("abc1234")`, `#diff(a, b)`, `#codigo("node/app.js", "11-24", en: "<sha>")`. `en:` is required: a citation against `main` drifts as `main` moves. TP 1 links take `repo: repositorio-tp1`. These links do not replace `[E-NN]`. |
-| Prose | ASD-STE100 applied to Spanish: at most 25 words per sentence, active voice, literal verbs, one term per thing. After each `.typ` edit, run `typstyle -i` and `mise run report`, then look at the rendered page. |
+| Prose | ASD-STE100 applied to Spanish: at most 25 words per sentence, active voice, literal verbs, one term per thing. Natural but professional, with no filler and no AI slop: **`docs/informe/CLAUDE.md` has the full style guide, with before/after examples. Read it before writing or reviewing any `.typ` prose.** After each `.typ` edit, run `typstyle -i` and `mise run report`, then look at the rendered page. |
 | Headings | Levels 1–3 are numbered and listed in the index; level 4 and deeper render unnumbered and unlisted. |
 | Figures | Under `docs/informe/figuras/<case>/`. |
 | PDF | `docs/informe/informe.pdf` is gitignored while we work. The delivery PR adds it with `git add -f`. |
