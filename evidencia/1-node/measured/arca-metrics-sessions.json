@@ -1,0 +1,200 @@
+{
+  "interval": "PT1M",
+  "timespan": "2026-11-14T21:47:00Z/2026-11-14T22:05:00Z",
+  "value": [
+    {
+      "name": "CpuUsage",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-14T21:47:00Z"
+            },
+            {
+              "average": 0.5,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-14T21:48:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-14T21:49:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-14T21:50:00Z"
+            },
+            {
+              "average": 3.5,
+              "maximum": 4.0,
+              "timeStamp": "2026-11-14T21:51:00Z"
+            },
+            {
+              "average": 5.5,
+              "maximum": 6.0,
+              "timeStamp": "2026-11-14T21:52:00Z"
+            },
+            {
+              "average": 10.0,
+              "maximum": 11.0,
+              "timeStamp": "2026-11-14T21:53:00Z"
+            },
+            {
+              "average": 13.0,
+              "maximum": 13.0,
+              "timeStamp": "2026-11-14T21:54:00Z"
+            },
+            {
+              "average": 15.0,
+              "maximum": 16.0,
+              "timeStamp": "2026-11-14T21:55:00Z"
+            },
+            {
+              "average": 20.0,
+              "maximum": 20.0,
+              "timeStamp": "2026-11-14T21:56:00Z"
+            },
+            {
+              "average": 25.0,
+              "maximum": 26.0,
+              "timeStamp": "2026-11-14T21:57:00Z"
+            },
+            {
+              "average": 31.5,
+              "maximum": 32.0,
+              "timeStamp": "2026-11-14T21:58:00Z"
+            },
+            {
+              "average": 40.0,
+              "maximum": 42.0,
+              "timeStamp": "2026-11-14T21:59:00Z"
+            },
+            {
+              "average": 52.5,
+              "maximum": 55.0,
+              "timeStamp": "2026-11-14T22:00:00Z"
+            },
+            {
+              "average": 62.0,
+              "maximum": 67.0,
+              "timeStamp": "2026-11-14T22:01:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-14T22:02:00Z"
+            },
+            {
+              "timeStamp": "2026-11-14T22:03:00Z"
+            },
+            {
+              "timeStamp": "2026-11-14T22:04:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "unit": "Count"
+    },
+    {
+      "name": "MemoryUsage",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "average": 67643392.0,
+              "maximum": 67645440.0,
+              "timeStamp": "2026-11-14T21:47:00Z"
+            },
+            {
+              "average": 67643392.0,
+              "maximum": 67645440.0,
+              "timeStamp": "2026-11-14T21:48:00Z"
+            },
+            {
+              "average": 67641344.0,
+              "maximum": 67641344.0,
+              "timeStamp": "2026-11-14T21:49:00Z"
+            },
+            {
+              "average": 67655680.0,
+              "maximum": 67670016.0,
+              "timeStamp": "2026-11-14T21:50:00Z"
+            },
+            {
+              "average": 67547136.0,
+              "maximum": 67649536.0,
+              "timeStamp": "2026-11-14T21:51:00Z"
+            },
+            {
+              "average": 67448832.0,
+              "maximum": 67452928.0,
+              "timeStamp": "2026-11-14T21:52:00Z"
+            },
+            {
+              "average": 65890304.0,
+              "maximum": 67473408.0,
+              "timeStamp": "2026-11-14T21:53:00Z"
+            },
+            {
+              "average": 64069632.0,
+              "maximum": 64327680.0,
+              "timeStamp": "2026-11-14T21:54:00Z"
+            },
+            {
+              "average": 63555584.0,
+              "maximum": 63811584.0,
+              "timeStamp": "2026-11-14T21:55:00Z"
+            },
+            {
+              "average": 60938240.0,
+              "maximum": 61194240.0,
+              "timeStamp": "2026-11-14T21:56:00Z"
+            },
+            {
+              "average": 59113472.0,
+              "maximum": 59121664.0,
+              "timeStamp": "2026-11-14T21:57:00Z"
+            },
+            {
+              "average": 56782848.0,
+              "maximum": 57020416.0,
+              "timeStamp": "2026-11-14T21:58:00Z"
+            },
+            {
+              "average": 51830784.0,
+              "maximum": 53903360.0,
+              "timeStamp": "2026-11-14T21:59:00Z"
+            },
+            {
+              "average": 40589312.0,
+              "maximum": 45539328.0,
+              "timeStamp": "2026-11-14T22:00:00Z"
+            },
+            {
+              "average": 27142144.0,
+              "maximum": 27181056.0,
+              "timeStamp": "2026-11-14T22:01:00Z"
+            },
+            {
+              "average": 26951680.0,
+              "maximum": 26951680.0,
+              "timeStamp": "2026-11-14T22:02:00Z"
+            },
+            {
+              "timeStamp": "2026-11-14T22:03:00Z"
+            },
+            {
+              "timeStamp": "2026-11-14T22:04:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "unit": "Bytes"
+    }
+  ]
+}
