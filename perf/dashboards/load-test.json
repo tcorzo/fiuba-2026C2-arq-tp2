@@ -1,6 +1,6 @@
 {
   "title": "arVault load test",
-  "description": "Client side (Artillery, tagged test:<scenario>) next to the VMSS nodes (Datadog agent) and the service's own metrics (exchange.*, tagged by host, route, status and outcome). Import it in Datadog: Dashboards > New Dashboard > Import dashboard JSON. The durations are distributions: enable percentiles on exchange.http.duration, exchange.exchange.duration and exchange.arca.validation.duration (Metrics > Summary) for the p50/p95 queries. Set the time range to the run's before taking a screenshot.",
+  "description": "Client side (Artillery, tagged test:<scenario>) next to the VMSS nodes (Datadog agent) and the service's own metrics (arvault.*, tagged by host, route, status and outcome). Import it in Datadog: Dashboards > New Dashboard > Import dashboard JSON. The durations are distributions: enable percentiles on arvault.http.duration, arvault.exchange.duration and arvault.arca.validation.duration (Metrics > Summary) for the p50/p95 queries. Set the time range to the run's before taking a screenshot.",
   "layout_type": "ordered",
   "template_variables": [
     {
@@ -311,7 +311,7 @@
     {
       "definition": {
         "type": "group",
-        "title": "Service (exchange.*, from the app through DogStatsD)",
+        "title": "Service (arvault.*, from the app through DogStatsD)",
         "layout_type": "ordered",
         "widgets": [
           {
@@ -327,22 +327,22 @@
                     {
                       "data_source": "metrics",
                       "name": "a50",
-                      "query": "p50:exchange.arca.validation.duration{*}"
+                      "query": "p50:arvault.arca.validation.duration{*}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "a95",
-                      "query": "p95:exchange.arca.validation.duration{*}"
+                      "query": "p95:arvault.arca.validation.duration{*}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "e50",
-                      "query": "p50:exchange.exchange.duration{*}"
+                      "query": "p50:arvault.exchange.duration{*}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "e95",
-                      "query": "p95:exchange.exchange.duration{*}"
+                      "query": "p95:arvault.exchange.duration{*}"
                     }
                   ],
                   "formulas": [
@@ -380,7 +380,7 @@
                     {
                       "data_source": "metrics",
                       "name": "v",
-                      "query": "sum:exchange.arca.validation.outcomes{*} by {outcome}.as_rate()"
+                      "query": "sum:arvault.arca.validation.outcomes{*} by {outcome}.as_rate()"
                     }
                   ],
                   "formulas": [
@@ -405,7 +405,7 @@
                     {
                       "data_source": "metrics",
                       "name": "h",
-                      "query": "p50:exchange.http.duration{*} by {route}"
+                      "query": "p50:arvault.http.duration{*} by {route}"
                     }
                   ],
                   "formulas": [
@@ -430,7 +430,7 @@
                     {
                       "data_source": "metrics",
                       "name": "r",
-                      "query": "sum:exchange.http.responses{*} by {route,status}.as_rate()"
+                      "query": "sum:arvault.http.responses{*} by {route,status}.as_rate()"
                     }
                   ],
                   "formulas": [
@@ -455,7 +455,7 @@
                     {
                       "data_source": "metrics",
                       "name": "l",
-                      "query": "avg:exchange.runtime.eventloop.lag.p99{*} by {host}"
+                      "query": "avg:arvault.runtime.eventloop.lag.p99{*} by {host}"
                     }
                   ],
                   "formulas": [

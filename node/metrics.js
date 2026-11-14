@@ -27,7 +27,11 @@ const client = metricsEnabled
   ? new StatsD({
       host: config.metricsHost,
       port: config.metricsPort,
-      prefix: "exchange.",
+      // Not "exchange.": Datadog reserves that namespace for its Microsoft
+      // Exchange Server integration, treats every metric under it as an
+      // integration metric and refuses to configure its tags, so the
+      // distributions' percentiles cannot be enabled.
+      prefix: "arvault.",
       // Uncached, every send resolves the host through dns.lookup, which runs
       // on the libuv threadpool: the instrument would compete with the
       // service it measures.
