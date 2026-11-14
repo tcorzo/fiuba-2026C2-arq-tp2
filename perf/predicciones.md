@@ -101,6 +101,71 @@ proporcionalmente a la cantidad de nodos y, si no, qué componente lo impide.
 - **Cada `502` escribe un stack trace en el log** (error handler). Si eso pesa
   en la CPU del nodo, P8 falla antes que P7.
 
+## Caso 1 nodo, segunda ejecución: sesiones
+
+La primera ejecución midió al generador de carga, no al servicio. Desde
+150 rps, el generador resolvía el nombre del load balancer por DNS a unos
+134 por segundo (`4a679f3`). Con `/etc/hosts`, perdía SYNs antes de Azure por
+encima de unas 200 conexiones nuevas por segundo (`353902f`). Las predicciones
+P1 a P9 quedan como estaban, comparadas con esa ejecución.
+
+- **Caso:** el mismo de arriba, sin cambios en la infraestructura
+  (`evidencia/1-node/measured/`).
+- **Escenario:** `sessions.yaml`, entorno `ramp` (`4ecfef0`). La mezcla y los
+  bodies de `baseline.yaml`, pero cada usuario virtual manda su request 4 veces
+  por una sola conexión. Escalones de 60 s a 10, 25, 50, 75, 100, 150, 200,
+  300, 400, 600 y 800 rps.
+- **Generador de carga:** el mismo equipo, con el load balancer en
+  `/etc/hosts` (`32eaed5`).
+
+### Predicciones
+
+| # | Métrica | Predicción |
+|---|---|---|
+| S1 | Mediana de `GET /rates` en el cliente, escalones de 10 a 300 rps | 171 ms |
+| S2 | Último escalón completo (al menos el 99,5 % de los requests con respuesta) | 600 rps |
+| S3 | CPU del nodo (user + system, Datadog) en el escalón de 400 rps | 45 % |
+| S4 | Componente que limita, en el escalón de 800 rps | El proceso de Node del nodo: CPU por encima del 85 % y lag del event loop por encima de 50 ms |
+| S5 | Esperas `Lock` de Postgres (`sessions_by_wait_event_type`, máximo por minuto) | 0 o 1 en todos los escalones |
+| S6 | CPU de Postgres (`cpu_percent`) en el escalón de 600 rps | 65 % |
+
+### Razonamiento
+
+Usamos la primera ejecución hasta 150 rps, donde el generador no limitaba.
+
+- **S1.** Igual que P1. La sesión no cambia el camino de `GET /rates` en el
+  servidor. Artillery mide el `response_time` sin el connect, así que reusar la
+  conexión no lo cambia.
+- **S3 y S4.** A 150 rps, el nodo usó un 18 % de CPU (user + system) y el lag
+  máximo del event loop fue de 8 ms. Si la CPU crece en proporción a los
+  requests, llega al 100 % cerca de 830 rps. Un proceso de Node usa un solo
+  core, y el agente de Datadog comparte esa vCPU. Por eso esperamos el quiebre
+  antes: el 45 % a 400 rps y la saturación a 800.
+- **S5.** Las transferencias de 200 a 400 ms corren fuera de toda transacción.
+  `reserve()` es un solo `UPDATE`. El crédito y el log son una transacción corta
+  al final (`node/exchange.js`). Cada fila caliente queda bloqueada unos pocos
+  milisegundos. A 150 rps no hubo ninguna espera `Lock`. Eso descarta el hot row
+  del TP 1, que retenía el lock durante las transferencias.
+- **S6.** A 150 rps, Postgres usó un 17 % de CPU. En proporción, son un 65 % a
+  600 rps. B1ms es burstable, pero tiene 138 créditos y no consumió ninguno a
+  150 rps. Una rampa de 11 minutos no los agota.
+- **S2.** Se sigue de S4: el escalón de 600 rps es el último antes de que el
+  nodo sature.
+- **Lo que no limita.** ARCA usó 20 milicores de sus 500 a 150 rps, y su mediana
+  fue de 300 ms en el servidor, estable. El pool de 10 conexiones retiene cada
+  conexión pocos milisegundos por request.
+
+### Qué cambiaría la predicción
+
+- **A 800 rps, el generador abre 200 conexiones nuevas por segundo.** Es el
+  borde de lo que su red entregó sin perder SYNs. Si el contador de
+  retransmisiones de SYN del generador crece, ese escalón mide la red.
+- **Dentro de una sesión, cada request espera al anterior.** Si el nodo se
+  demora, el generador manda menos de lo ofrecido. El quiebre aparece más
+  suave y puede parecer más alto.
+- **Si cada `502` escribe un stack trace,** la CPU por request crece con los
+  rechazos de ARCA, y S3 queda corta.
+
 ## Caso escalado
 
 ## Tácticas
