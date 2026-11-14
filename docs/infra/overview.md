@@ -95,10 +95,28 @@ The stack `infra/envs/prd/observability` (workspace `arvault-prd-observability`)
 
 ### First apply
 
-1. Create the Datadog credentials and re-apply `infra/bootstrap` ([steps](../../infra/bootstrap/README.md#datadog-credentials)).
-2. Deploy the app (`mise run up`, or `mise run app:deploy` on a running deployment) and run a short load: `mise run perf:run root <output>`.
-3. Check in Datadog (Metrics → Explorer) that `arvault.http.duration` and `artillery.http.requests` arrived.
-4. `mise run infra:init observability`, then `mise run infra:apply observability`. The run's output ends with `dashboard_url`.
+The dashboard can be applied at any time, even with Azure destroyed. The tag configurations can't: Datadog rejects one for a metric it has not received yet (`400 Cannot configure tags on a metric that does not exist.`). The first apply therefore needs a deployment that has sent each of the three distributions at least once.
+
+1. **Credentials.** Create the Datadog credentials and re-apply `infra/bootstrap` ([steps](../../infra/bootstrap/README.md#datadog-credentials)).
+2. **Deploy.** `mise run up`, or `mise run app:deploy` on a running deployment. `ansible/deploy.sh` packs the local `node/`, so the checked-out branch is the code that runs.
+3. **Check the agent.** Infrastructure → Hosts lists the VMSS instance, and `system.cpu.user` has data for it. If not, the agent's `DATADOG_API_KEY` or `DATADOG_SITE` is wrong, not the app.
+4. **Send exchanges.** `GET /` only creates `arvault.http.duration`. `arvault.arca.validation.duration` needs a `POST /exchange`, and `arvault.exchange.duration` needs one that ARCA approves. Random DNIs give both:
+
+   ```sh
+   LB=$(infra/output.sh platform lb_fqdn)
+   for i in $(seq 1 30); do
+     curl -s -o /dev/null -w '%{http_code}\n' -X POST "http://$LB/exchange" \
+       -H 'Content-Type: application/json' \
+       -d "{\"baseCurrency\":\"USD\",\"counterCurrency\":\"ARS\",\"baseAccountId\":102,\"counterAccountId\":101,\"baseAmount\":0.66,\"dni\":\"$((RANDOM * 1000 + RANDOM))\"}"
+   done | sort | uniq -c
+   ```
+
+   Expect a mix of `200` (approved) and `403` (ARCA rejected the DNI). Only `502`: ARCA is down. Only `500`: the app or the database. This is not a measured run: keep its output out of `perf/results/`.
+5. **Check the catalog.** Metrics → Summary lists `arvault.http.duration`, `arvault.exchange.duration` and `arvault.arca.validation.duration`, a minute or two after the requests. Use the Summary, not the Explorer: the Explorer may not offer a new metric yet.
+6. **Apply.** `mise run infra:init observability` once per machine, then `mise run infra:apply observability`. The run's output ends with `dashboard_url`; `infra/output.sh observability dashboard_url` prints it later.
+7. **Verify.** In Metrics → Summary, each of the three shows percentiles on and the tags below. On the dashboard, the *Service* group's p50/p95 widgets show data for the requests of step 4. The *Client* group stays empty: `curl` publishes no Artillery metric.
+
+Run a measured test only after this: we assume Datadog computes percentiles from the moment they are enabled, not for earlier samples (not checked).
 
 | Terraform address | Datadog object | Why |
 |---|---|---|
@@ -118,7 +136,8 @@ The dashboard has two template variables: `$test` (Artillery's `test:<scenario>`
 Things to note:
 
 - **It outlives `mise run down`.** `down` destroys `platform` and `foundation` only, so the dashboard of a destroyed configuration can still be screenshotted and exported.
-- **Apply it after the first `arvault.*` sample arrives** (step 3 above): the API may reject a tag configuration for a metric it has not received yet. Not checked: it is the cautious order.
+- **The dashboard doesn't depend on the tag configurations.** A missing metric fails only its own tag configuration; the dashboard is still created.
+- **The prefix is `arvault.`, never `exchange.`.** Datadog reserves `exchange.*` for its Microsoft Exchange Server integration and treats every metric under it as an integration metric: `400 Cannot configure tags on metric because metric is an integration metric`. A new namespace must not collide with an integration's either.
 - **Edits made in the Datadog UI are overwritten** on the next apply. Change `dashboards/load-test.json` instead. The evidence of each case is still the JSON exported from Datadog next to its screenshots, as the assignment asks.
 - **Artillery's percentiles are per 10-second window.** Over a longer range, Datadog averages them; that average is not the run's p95. The run's p95 comes from the raw report in `perf/results/`.
 
