@@ -132,3 +132,16 @@ infraestructura estaba destruida y que ninguna métrica había llegado.
 
 Separamos el dashboard de los percentiles en #sha("e268f46"). Documentamos el
 orden verificado en `docs/infra/overview.md`.
+
+=== Diagnóstico refutado de una métrica sin percentiles
+
+Datadog aceptaba la configuración de tags de `arvault.exchange.duration` y la
+descartaba en menos de un minuto. Tampoco se podía activar desde la UI.
+
+El agente supuso que la causa era el segmento `exchange` del nombre. Lo probamos
+con dos distribuciones nuevas, con y sin ese segmento. Las dos aceptaron
+percentiles, así que la hipótesis era falsa.
+
+No encontramos la causa. En #sha("e1c1b6e"), renombramos la métrica a
+`arvault.exchange.processing.duration`. Un `plan -refresh-only` confirmó que su
+configuración se mantiene.

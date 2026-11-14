@@ -100,7 +100,7 @@ The dashboard can be applied at any time, even with Azure destroyed. The tag con
 1. **Credentials.** Create the Datadog credentials and re-apply `infra/bootstrap` ([steps](../../infra/bootstrap/README.md#datadog-credentials)).
 2. **Deploy.** `mise run up`, or `mise run app:deploy` on a running deployment. `ansible/deploy.sh` packs the local `node/`, so the checked-out branch is the code that runs.
 3. **Check the agent.** Infrastructure → Hosts lists the VMSS instance, and `system.cpu.user` has data for it. If not, the agent's `DATADOG_API_KEY` or `DATADOG_SITE` is wrong, not the app.
-4. **Send exchanges.** `GET /` only creates `arvault.http.duration`. `arvault.arca.validation.duration` needs a `POST /exchange`, and `arvault.exchange.duration` needs one that ARCA approves. Random DNIs give both:
+4. **Send exchanges.** `GET /` only creates `arvault.http.duration`. `arvault.arca.validation.duration` needs a `POST /exchange`, and `arvault.exchange.processing.duration` needs one that ARCA approves. Random DNIs give both:
 
    ```sh
    LB=$(infra/output.sh platform lb_fqdn)
@@ -112,16 +112,18 @@ The dashboard can be applied at any time, even with Azure destroyed. The tag con
    ```
 
    Expect a mix of `200` (approved) and `403` (ARCA rejected the DNI). Only `502`: ARCA is down. Only `500`: the app or the database. This is not a measured run: keep its output out of `perf/results/`.
-5. **Check the catalog.** Metrics → Summary lists `arvault.http.duration`, `arvault.exchange.duration` and `arvault.arca.validation.duration`, a minute or two after the requests. Use the Summary, not the Explorer: the Explorer may not offer a new metric yet.
+5. **Check the catalog.** Metrics → Summary lists `arvault.http.duration`, `arvault.exchange.processing.duration` and `arvault.arca.validation.duration`, a minute or two after the requests. Use the Summary, not the Explorer: the Explorer may not offer a new metric yet.
 6. **Apply.** `mise run infra:init observability` once per machine, then `mise run infra:apply observability`. The run's output ends with `dashboard_url`; `infra/output.sh observability dashboard_url` prints it later.
 7. **Verify.** In Metrics → Summary, each of the three shows percentiles on and the tags below. On the dashboard, the *Service* group's p50/p95 widgets show data for the requests of step 4. The *Client* group stays empty: `curl` publishes no Artillery metric.
+
+8. **Check for drift before each measured run.** `terraform -chdir=infra/envs/prd/observability plan -refresh-only` reads Datadog and changes nothing. `No changes.` means every tag configuration still exists. Terraform doesn't stop anyone from changing them in the UI; it only detects it.
 
 Run a measured test only after this: we assume Datadog computes percentiles from the moment they are enabled, not for earlier samples (not checked).
 
 | Terraform address | Datadog object | Why |
 |---|---|---|
 | `datadog_metric_tag_configuration.distribution["arvault.http.duration"]` | Tag configuration, tags `host`, `route`, percentiles on | Without percentiles, a distribution only has count, sum, min, max and avg, and every `p50:`/`p95:` query returns nothing |
-| `datadog_metric_tag_configuration.distribution["arvault.exchange.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
+| `datadog_metric_tag_configuration.distribution["arvault.exchange.processing.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
 | `datadog_metric_tag_configuration.distribution["arvault.arca.validation.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
 | `datadog_dashboard_json.load_test` | Dashboard *arVault load test* | Defined in `dashboards/load-test.json`, the format Datadog exports |
 
@@ -137,6 +139,7 @@ Things to note:
 
 - **It outlives `mise run down`.** `down` destroys `platform` and `foundation` only, so the dashboard of a destroyed configuration can still be screenshotted and exported.
 - **The dashboard doesn't depend on the tag configurations.** A missing metric fails only its own tag configuration; the dashboard is still created.
+- **The exchange's own span is `arvault.exchange.processing.duration`, not `arvault.exchange.duration`.** Datadog accepted a tag configuration for `arvault.exchange.duration` and dropped it within a minute, three applies in a row, and its UI could not enable percentiles on it either. Two probe distributions with new names kept theirs, one of them with an `exchange` segment, so the segment is not the cause. The cause was not found; the new name works.
 - **The prefix is `arvault.`, never `exchange.`.** Datadog reserves `exchange.*` for its Microsoft Exchange Server integration and treats every metric under it as an integration metric: `400 Cannot configure tags on metric because metric is an integration metric`. A new namespace must not collide with an integration's either.
 - **Edits made in the Datadog UI are overwritten** on the next apply. Change `dashboards/load-test.json` instead. The evidence of each case is still the JSON exported from Datadog next to its screenshots, as the assignment asks.
 - **Artillery's percentiles are per 10-second window.** Over a longer range, Datadog averages them; that average is not the run's p95. The run's p95 comes from the raw report in `perf/results/`.
