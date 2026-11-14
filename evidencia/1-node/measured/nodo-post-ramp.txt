@@ -1,0 +1,12 @@
+Sat Nov 14 20:11:39 UTC 2026
+$ pm2 jlist (name, restarts, uptime start, status)
+server	0	2026-11-14T19:35:39Z	online
+$ nstat -az TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent
+#kernel
+TcpExtSyncookiesSent            0                  0.0
+TcpExtListenOverflows           0                  0.0
+TcpExtListenDrops               0                  0.0
+TcpExtTCPReqQFullDrop           0                  0.0
+$ sysctl net.core.somaxconn net.ipv4.tcp_max_syn_backlog
+net.core.somaxconn = 4096
+net.ipv4.tcp_max_syn_backlog = 128
