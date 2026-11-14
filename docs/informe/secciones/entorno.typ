@@ -40,8 +40,8 @@ pero no la lógica del servicio.
   [60], [0], [171 ms], [179,5 ms], [183,1 ms], [187 ms],
 )
 
-Entre el mínimo y el máximo hay 16 ms [E-70]. Una diferencia menor entre dos
-ejecuciones la consideramos ruido.
+Entre el mínimo y el máximo hay 16 ms [E-70]. Tomamos como ruido una diferencia
+menor entre dos ejecuciones.
 
 Toda latencia de las secciones siguientes incluye estos 180 ms. Para estimar el
 tiempo dentro de Azure, le restamos la mediana de base a la mediana medida.
