@@ -27,27 +27,28 @@ proporcionalmente a la cantidad de nodos y, si no, qué componente lo impide.
 
 - **Caso:** 1 nodo del VMSS (`Standard_F1als_v7`, 1 vCPU), un proceso de Node
   en pm2. Postgres `B_Standard_B1ms` y ARCA en ACI con 0,5 vCPU. Código de
-  `55a2922`. Evidencia de la infraestructura en `evidencia/1-node/`.
+  `0fdb4ef`. Evidencia de la infraestructura en `evidencia/1-node/measured/`.
 - **Escenario:** `baseline.yaml`, entorno `ramp`: ocho escalones de 60 s a 10,
   25, 50, 75, 100, 150, 200 y 300 rps. Mezcla: 40 % `POST /exchange`, 30 %
   `GET /rates`, 20 % `GET /accounts` y 10 % `GET /log`. Es la misma rampa y la
   misma mezcla que la ejecución final del TP 1.
-- **Generador de carga:** Buenos Aires, WiFi. Latencia de base contra `/`:
-  mediana de 179,5 ms y p95 de 183,1 ms (`perf/results/baseline/root.json`).
+- **Generador de carga:** Buenos Aires, ethernet cableada. Latencia de base
+  contra `/`: mediana de 169 ms y p95 de 172,5 ms
+  (`perf/results/baseline/root-tcorzo.json`).
 
 ### Predicciones
 
 | # | Métrica | Predicción |
 |---|---|---|
-| P1 | Mediana de `GET /rates` en el cliente, escalones de 10 a 100 rps | 182 ms |
-| P2 | Mediana de `arca.validation.duration` (Datadog), escalones de 10 a 100 rps | 370 ms |
-| P3 | Mediana de `exchange.duration` (Datadog, sin ARCA), escalón de 10 rps | 355 ms |
-| P4 | p95 de `POST /exchange` en el cliente, escalón de 10 rps | 1.050 ms |
+| P1 | Mediana de `GET /rates` en el cliente, escalones de 10 a 100 rps | 171 ms |
+| P2 | Mediana de `arvault.arca.validation.duration` (Datadog), escalones de 10 a 100 rps | 370 ms |
+| P3 | Mediana de `arvault.exchange.processing.duration` (Datadog, sin ARCA), escalón de 10 rps | 355 ms |
+| P4 | p95 de `POST /exchange` en el cliente, escalón de 10 rps | 1.040 ms |
 | P5 | Respuestas `502 ARCA_UNAVAILABLE` antes del quiebre | 24 % de los exchanges, 10 % de todos los requests |
 | P6 | Respuestas `403 ARCA_REJECTED` | 25 % de los exchanges, 10 % de todos los requests |
 | P7 | Último escalón atendido completo (sin timeouts y con el 95 % de las respuestas) | 150 rps |
 | P8 | CPU del nodo en el escalón de 150 rps | menos del 50 % |
-| P9 | Componente que limita | Postgres, en el camino de escritura del exchange |
+| P9 | Componente que limita (se verifica con `sessions_by_wait_event_type`, dimensión `Lock`, de Azure Monitor) | Postgres, en el camino de escritura del exchange |
 
 ### Razonamiento
 
@@ -58,11 +59,11 @@ proporcionalmente a la cantidad de nodos y, si no, qué componente lo impide.
 - **P2.** ARCA respondió con una mediana de 371 ms en 200 llamadas desde el
   jumpbox (issue #14). Suponemos que esos 370 ms son espera y no CPU: con
   0,5 vCPU, ARCA tendría que atender varias llamadas a la vez sin demorarse más.
-- **P3.** `exchange.duration` empieza después de la validación con ARCA. Mide
+- **P3.** `arvault.exchange.processing.duration` empieza después de la validación con ARCA. Mide
   lo mismo que en el TP 1: las dos transferencias concurrentes de 200 a 400 ms
   (H-12) más las consultas a Postgres. En la ejecución final del TP 1, la
   mediana del exchange a 10 rps fue de 354 ms.
-- **P4.** Un exchange aprobado suma el RTT (unos 180 ms), ARCA (hasta 502 ms
+- **P4.** Un exchange aprobado suma el RTT (unos 170 ms), ARCA (hasta 502 ms
   observados) y el exchange (p95 de 407 ms en el TP 1). El p95 del endpoint
   mezcla aprobados, rechazados y fallados. Los rechazos y los 502 son más
   rápidos, así que el p95 queda en la cola de los aprobados.
