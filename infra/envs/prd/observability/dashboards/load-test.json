@@ -1,6 +1,6 @@
 {
   "title": "arVault load test",
-  "description": "Managed by Terraform (infra/envs/prd/observability): edits made here are overwritten on the next apply. Client side (Artillery, tagged test:<scenario>) next to the VMSS nodes (Datadog agent) and the service's own metrics (exchange.*, tagged by host, route, status, outcome). Set the time range to the run's before taking a screenshot, and export this JSON with it.",
+  "description": "Managed by Terraform (infra/envs/prd/observability): edits made here are overwritten on the next apply. Client side (Artillery, tagged test:<scenario>) next to the VMSS nodes (Datadog agent) and the service's own metrics (arvault.*, tagged by host, route, status, outcome). Set the time range to the run's before taking a screenshot, and export this JSON with it.",
   "layout_type": "ordered",
   "template_variables": [
     {
@@ -361,7 +361,7 @@
     {
       "definition": {
         "type": "group",
-        "title": "Service (exchange.*, from the app through DogStatsD), filtered by $host",
+        "title": "Service (arvault.*, from the app through DogStatsD), filtered by $host",
         "layout_type": "ordered",
         "widgets": [
           {
@@ -377,7 +377,7 @@
                     {
                       "data_source": "metrics",
                       "name": "h50",
-                      "query": "p50:exchange.http.duration{$host} by {route}"
+                      "query": "p50:arvault.http.duration{$host} by {route}"
                     }
                   ],
                   "formulas": [
@@ -402,7 +402,7 @@
                     {
                       "data_source": "metrics",
                       "name": "h95",
-                      "query": "p95:exchange.http.duration{$host} by {route}"
+                      "query": "p95:arvault.http.duration{$host} by {route}"
                     }
                   ],
                   "formulas": [
@@ -427,7 +427,7 @@
                     {
                       "data_source": "metrics",
                       "name": "r",
-                      "query": "sum:exchange.http.responses{$host} by {route,status}.as_rate()"
+                      "query": "sum:arvault.http.responses{$host} by {route,status}.as_rate()"
                     }
                   ],
                   "formulas": [
@@ -452,22 +452,22 @@
                     {
                       "data_source": "metrics",
                       "name": "a50",
-                      "query": "p50:exchange.arca.validation.duration{$host}"
+                      "query": "p50:arvault.arca.validation.duration{$host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "a95",
-                      "query": "p95:exchange.arca.validation.duration{$host}"
+                      "query": "p95:arvault.arca.validation.duration{$host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "e50",
-                      "query": "p50:exchange.exchange.duration{$host}"
+                      "query": "p50:arvault.exchange.duration{$host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "e95",
-                      "query": "p95:exchange.exchange.duration{$host}"
+                      "query": "p95:arvault.exchange.duration{$host}"
                     }
                   ],
                   "formulas": [
@@ -505,7 +505,7 @@
                     {
                       "data_source": "metrics",
                       "name": "v",
-                      "query": "sum:exchange.arca.validation.outcomes{$host} by {outcome}.as_rate()"
+                      "query": "sum:arvault.arca.validation.outcomes{$host} by {outcome}.as_rate()"
                     }
                   ],
                   "formulas": [
@@ -530,12 +530,12 @@
                     {
                       "data_source": "metrics",
                       "name": "o",
-                      "query": "sum:exchange.exchange.outcomes{$host} by {outcome}.as_rate()"
+                      "query": "sum:arvault.exchange.outcomes{$host} by {outcome}.as_rate()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "x",
-                      "query": "sum:exchange.exchange.failures{$host} by {cause}.as_rate()"
+                      "query": "sum:arvault.exchange.failures{$host} by {cause}.as_rate()"
                     }
                   ],
                   "formulas": [
@@ -563,7 +563,7 @@
                     {
                       "data_source": "metrics",
                       "name": "e",
-                      "query": "sum:exchange.http.errors{$host} by {code}.as_rate()"
+                      "query": "sum:arvault.http.errors{$host} by {code}.as_rate()"
                     }
                   ],
                   "formulas": [
@@ -588,12 +588,12 @@
                     {
                       "data_source": "metrics",
                       "name": "l99",
-                      "query": "avg:exchange.runtime.eventloop.lag.p99{$host} by {host}"
+                      "query": "avg:arvault.runtime.eventloop.lag.p99{$host} by {host}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "lmax",
-                      "query": "max:exchange.runtime.eventloop.lag.max{$host} by {host}"
+                      "query": "max:arvault.runtime.eventloop.lag.max{$host} by {host}"
                     }
                   ],
                   "formulas": [
@@ -623,7 +623,7 @@
                     {
                       "data_source": "metrics",
                       "name": "rss",
-                      "query": "avg:exchange.runtime.heap.rss{$host} by {host}"
+                      "query": "avg:arvault.runtime.heap.rss{$host} by {host}"
                     }
                   ],
                   "formulas": [
@@ -648,7 +648,7 @@
                     {
                       "data_source": "metrics",
                       "name": "b",
-                      "query": "avg:exchange.accounts.balance{$host} by {currency}"
+                      "query": "avg:arvault.accounts.balance{$host} by {currency}"
                     }
                   ],
                   "formulas": [

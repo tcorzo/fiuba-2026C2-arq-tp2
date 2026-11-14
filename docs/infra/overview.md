@@ -97,14 +97,14 @@ The stack `infra/envs/prd/observability` (workspace `arvault-prd-observability`)
 
 1. Create the Datadog credentials and re-apply `infra/bootstrap` ([steps](../../infra/bootstrap/README.md#datadog-credentials)).
 2. Deploy the app (`mise run up`, or `mise run app:deploy` on a running deployment) and run a short load: `mise run perf:run root <output>`.
-3. Check in Datadog (Metrics → Explorer) that `exchange.http.duration` and `artillery.http.requests` arrived.
+3. Check in Datadog (Metrics → Explorer) that `arvault.http.duration` and `artillery.http.requests` arrived.
 4. `mise run infra:init observability`, then `mise run infra:apply observability`. The run's output ends with `dashboard_url`.
 
 | Terraform address | Datadog object | Why |
 |---|---|---|
-| `datadog_metric_tag_configuration.distribution["exchange.http.duration"]` | Tag configuration, tags `host`, `route`, percentiles on | Without percentiles, a distribution only has count, sum, min, max and avg, and every `p50:`/`p95:` query returns nothing |
-| `datadog_metric_tag_configuration.distribution["exchange.exchange.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
-| `datadog_metric_tag_configuration.distribution["exchange.arca.validation.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
+| `datadog_metric_tag_configuration.distribution["arvault.http.duration"]` | Tag configuration, tags `host`, `route`, percentiles on | Without percentiles, a distribution only has count, sum, min, max and avg, and every `p50:`/`p95:` query returns nothing |
+| `datadog_metric_tag_configuration.distribution["arvault.exchange.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
+| `datadog_metric_tag_configuration.distribution["arvault.arca.validation.duration"]` | Tag configuration, tag `host`, percentiles on | Same |
 | `datadog_dashboard_json.load_test` | Dashboard *arVault load test* | Defined in `dashboards/load-test.json`, the format Datadog exports |
 
 The dashboard has two template variables: `$test` (Artillery's `test:<scenario>` tag, set in each `perf/*.yaml`) and `$host` (the VMSS instance, added by the agent). Its three groups:
@@ -113,12 +113,12 @@ The dashboard has two template variables: `$test` (Artillery's `test:<scenario>`
 |---|---|---|
 | Client (Artillery) | `artillery.*`, from `publish-metrics` over the Datadog API, no `host` | Offered load (`vusers.created`) vs. served (`http.responses`) and failed users; responses by status (200, 403, 409, 500, 502) and network errors (`ETIMEDOUT`, `ECONNRESET`); median, p95 and p99 response time |
 | VMSS nodes | Agent's system check | CPU user + system, CPU steal and iowait, load, network, memory, by `host` |
-| Service | `exchange.*`, from `node/metrics.js` through DogStatsD | Server-side p50 and p95 by `route`; responses by route and status; ARCA validation and exchange duration; ARCA outcomes; exchange outcomes and failure causes; handled errors by code; event loop lag and RSS by `host`; internal account balances |
+| Service | `arvault.*`, from `node/metrics.js` through DogStatsD | Server-side p50 and p95 by `route`; responses by route and status; ARCA validation and exchange duration; ARCA outcomes; exchange outcomes and failure causes; handled errors by code; event loop lag and RSS by `host`; internal account balances |
 
 Things to note:
 
 - **It outlives `mise run down`.** `down` destroys `platform` and `foundation` only, so the dashboard of a destroyed configuration can still be screenshotted and exported.
-- **Apply it after the first `exchange.*` sample arrives** (step 3 above): the API may reject a tag configuration for a metric it has not received yet. Not checked: it is the cautious order.
+- **Apply it after the first `arvault.*` sample arrives** (step 3 above): the API may reject a tag configuration for a metric it has not received yet. Not checked: it is the cautious order.
 - **Edits made in the Datadog UI are overwritten** on the next apply. Change `dashboards/load-test.json` instead. The evidence of each case is still the JSON exported from Datadog next to its screenshots, as the assignment asks.
 - **Artillery's percentiles are per 10-second window.** Over a longer range, Datadog averages them; that average is not the run's p95. The run's p95 comes from the raw report in `perf/results/`.
 

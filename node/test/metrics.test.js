@@ -48,7 +48,7 @@ async function datagramsFrom(script) {
 describe("metrics", () => {
   test("reach the agent on 127.0.0.1 with no METRICS_HOST set", async () => {
     const lines = await datagramsFrom('m.recordExchangeDuration(354)');
-    assert.deepEqual(lines, ["exchange.exchange.duration:354|d"]);
+    assert.deepEqual(lines, ["arvault.exchange.duration:354|d"]);
   });
 
   test("carry the route and the status as tags, not in the name", async () => {
@@ -56,8 +56,8 @@ describe("metrics", () => {
       'm.recordHttpDuration("exchange_post", 12); m.countHttpStatus("exchange_post", 502)',
     );
     assert.deepEqual(lines, [
-      "exchange.http.duration:12|d|#route:exchange_post",
-      "exchange.http.responses:1|c|#route:exchange_post,status:502",
+      "arvault.http.duration:12|d|#route:exchange_post",
+      "arvault.http.responses:1|c|#route:exchange_post,status:502",
     ]);
   });
 
@@ -66,8 +66,8 @@ describe("metrics", () => {
       'm.recordArcaValidationDuration(371); m.countArcaValidation("approved")',
     );
     assert.deepEqual(lines, [
-      "exchange.arca.validation.duration:371|d",
-      "exchange.arca.validation.outcomes:1|c|#outcome:approved",
+      "arvault.arca.validation.duration:371|d",
+      "arvault.arca.validation.outcomes:1|c|#outcome:approved",
     ]);
   });
 });

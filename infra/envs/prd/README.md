@@ -94,5 +94,5 @@ workspace. Each value is the one in the latest applied state.
 `DATADOG_API_KEY` and the site from `DATADOG_SITE`. The `observability` stack reads the
 same key, plus an application key, from its workspace's `DD_API_KEY` and `DD_APP_KEY`,
 which `infra/bootstrap` sets. `observability` doesn't depend on the other two stacks:
-apply it in any order, after the first `exchange.*` metric reached Datadog (see
+apply it in any order, after the first `arvault.*` metric reached Datadog (see
 [`docs/infra/overview.md`](../../../docs/infra/overview.md#observability)).
