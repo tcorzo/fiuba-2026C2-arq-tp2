@@ -56,6 +56,8 @@ base_url
 src.zip
 pubkey
 *.pem
+# The TLS certificate and its private key, from `mise run app:certs` (H-38).
+certs/
 *.bak
 .vscode
 .local

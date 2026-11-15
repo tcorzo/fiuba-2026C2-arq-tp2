@@ -277,6 +277,30 @@ run = "npm test --"
 description = "Zips the Node app into node/src.zip, the same archive app:deploy ships"
 run = "node/zip.sh"
 
+[tasks."app:certs"]
+description = "Generates the self-signed TLS certificate for the load balancer's FQDN into certs/. Run it after applying platform"
+# H-38: the Node process terminates TLS with this pair, and app:deploy copies
+# it to every instance. certs/ is gitignored: the private key never reaches
+# the repo. ECDSA P-256 on purpose, as in tp1: the server's handshake cost
+# depends on the key type, so every measured case uses the same one. The
+# FQDN changes when platform recreates the public IP, and then the pair is
+# generated again.
+run = '''
+set -eu
+fqdn=$(infra/output.sh platform lb_fqdn)
+if [ -f certs/server.crt ] && [ -f certs/server.key ] &&
+  openssl x509 -in certs/server.crt -noout -checkhost "$fqdn" | grep -q 'does match'; then
+  echo "certs/ already holds a certificate for $fqdn"
+  exit 0
+fi
+mkdir -p certs
+openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -days 30 \
+  -keyout certs/server.key -out certs/server.crt \
+  -subj "/CN=$fqdn" -addext "subjectAltName=DNS:$fqdn"
+chmod 600 certs/server.key
+openssl x509 -in certs/server.crt -noout -subject -enddate
+'''
+
 [tasks."app:deploy"]
 description = "Zips the Node app and deploys it to every VMSS instance"
 run = "ansible/deploy.sh"
