@@ -46,7 +46,9 @@
     # self-signed and names the LB's FQDN, not 127.0.0.1: nothing to validate.
     - name: Wait for the app to answer
       uri:
-        url: "https://127.0.0.1:{{ app_https_port }}/"
+        # deploy.sh passes app_config's httpsPort; 3443 is config.js's default,
+        # so a hand-run playbook still checks the right port.
+        url: "https://127.0.0.1:{{ app_https_port | default(3443) }}/"
         validate_certs: no
         status_code: 200
       register: root
