@@ -41,6 +41,30 @@ describe("config", () => {
     assert.equal(configWith({ ARCA_TIMEOUT_MS: "750" }).arcaTimeoutMs, 750);
   });
 
+  test("TLS listens on 3443 and the redirect on 3080 by default", () => {
+    const config = configWith({});
+    assert.equal(config.httpsPort, 3443);
+    assert.equal(config.redirectPort, 3080);
+  });
+
+  test("HTTPS_PORT and REDIRECT_PORT override the deployed ports", () => {
+    const config = configWith({ HTTPS_PORT: "8443", REDIRECT_PORT: "8080" });
+    assert.equal(config.httpsPort, 8443);
+    assert.equal(config.redirectPort, 8080);
+  });
+
+  test("the certificate pair lives in tls/ next to the app by default", () => {
+    const config = configWith({});
+    assert.equal(config.tlsCertPath, path.join(appDir, "tls", "server.crt"));
+    assert.equal(config.tlsKeyPath, path.join(appDir, "tls", "server.key"));
+  });
+
+  test("TLS_CERT_PATH and TLS_KEY_PATH override the pair's paths", () => {
+    const config = configWith({ TLS_CERT_PATH: "/c.crt", TLS_KEY_PATH: "/c.key" });
+    assert.equal(config.tlsCertPath, "/c.crt");
+    assert.equal(config.tlsKeyPath, "/c.key");
+  });
+
   test("metrics go to the local Datadog agent by default", () => {
     const config = configWith({});
     assert.equal(config.metricsHost, "127.0.0.1");

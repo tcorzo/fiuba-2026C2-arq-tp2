@@ -6,6 +6,7 @@
 // A new setting is a new key in app_config (infra/envs/prd/platform/outputs.tf) and
 // a new line below.
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 function readGenerated() {
   try {
@@ -33,4 +34,14 @@ export default {
   // resolve here: every metric was dropped without an error.
   metricsHost: process.env.METRICS_HOST ?? generated.metricsHost ?? "127.0.0.1",
   metricsPort: Number(process.env.METRICS_PORT ?? generated.metricsPort ?? 8125),
+  // H-38: the process terminates TLS. The load balancer forwards 443 to
+  // httpsPort and 80 to redirectPort, which only answers 308 to HTTPS.
+  httpsPort: Number(process.env.HTTPS_PORT ?? generated.httpsPort ?? 3443),
+  redirectPort: Number(process.env.REDIRECT_PORT ?? generated.redirectPort ?? 3080),
+  // The self-signed pair from `mise run app:certs`. ansible/vmss_deploy.yml
+  // copies it next to the app, outside the zip, so it never enters git.
+  tlsCertPath:
+    process.env.TLS_CERT_PATH ?? fileURLToPath(new URL("./tls/server.crt", import.meta.url)),
+  tlsKeyPath:
+    process.env.TLS_KEY_PATH ?? fileURLToPath(new URL("./tls/server.key", import.meta.url)),
 };

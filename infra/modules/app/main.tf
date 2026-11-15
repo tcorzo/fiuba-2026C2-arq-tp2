@@ -3,6 +3,13 @@
 # and 80 → 3080 rules
 ###############################################################################
 
+# The ports the Node process listens on. app_config hands them to the app, so
+# the LB rules and the listeners cannot drift apart.
+locals {
+  https_backend_port    = 3443
+  redirect_backend_port = 3080
+}
+
 resource "random_string" "lb_dns_label" {
   length  = 10
   lower   = true
@@ -38,7 +45,7 @@ resource "azurerm_lb" "this" {
 resource "azurerm_lb_probe" "this" {
   name            = "lb_probe"
   loadbalancer_id = azurerm_lb.this.id
-  port            = 3443
+  port            = local.https_backend_port
 }
 
 # The LB is layer 4: it forwards TCP and terminates no TLS. The Node process
@@ -49,7 +56,7 @@ resource "azurerm_lb_rule" "https" {
   name                           = "HTTPSFwd"
   protocol                       = "Tcp"
   frontend_port                  = 443
-  backend_port                   = 3443
+  backend_port                   = local.https_backend_port
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.this.id]
   probe_id                       = azurerm_lb_probe.this.id
   frontend_ip_configuration_name = azurerm_lb.this.frontend_ip_configuration[0].name
@@ -61,7 +68,7 @@ resource "azurerm_lb_rule" "http" {
   name                           = "HTTPFwd"
   protocol                       = "Tcp"
   frontend_port                  = 80
-  backend_port                   = 3080
+  backend_port                   = local.redirect_backend_port
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.this.id]
   probe_id                       = azurerm_lb_probe.this.id
   frontend_ip_configuration_name = azurerm_lb.this.frontend_ip_configuration[0].name
