@@ -1,0 +1,14 @@
+== before
+Sun 15 Nov 14:36:46 UTC 2026
+$ nstat -az TcpActiveOpens TcpAttemptFails TcpExtTCPSynRetrans
+#kernel
+TcpActiveOpens                  1477326            0.0
+TcpAttemptFails                 635587             0.0
+TcpExtTCPSynRetrans             57553              0.0
+== after
+Sun 15 Nov 14:49:22 UTC 2026
+$ nstat -az TcpActiveOpens TcpAttemptFails TcpExtTCPSynRetrans
+#kernel
+TcpActiveOpens                  1512403            0.0
+TcpAttemptFails                 637004             0.0
+TcpExtTCPSynRetrans             232715             0.0
