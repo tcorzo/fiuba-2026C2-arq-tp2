@@ -122,9 +122,22 @@ validación, así que las dos duraciones no se superponen [E-82]. El dashboard
 muestra las dos en un mismo gráfico, y las validaciones por resultado en otro
 [E-83].
 
-#pendiente[
-  El screenshot de esos dos gráficos durante la prueba de 1 nodo, con el JSON
-  exportado del dashboard. Con los datos, explicar qué parte de la latencia del
-  exchange es ARCA, y si la proporción de aprobaciones, rechazos y errores se
-  mantiene bajo carga.
-]
+== ARCA bajo carga
+
+En la ejecución final del caso de 1 nodo, el p50 de la validación quedó entre
+291 y 310 ms desde 75 hasta 1.000 rps [E-119]. Entre 10 y 50 rps, con menos
+validaciones por intervalo, varió entre 265 y 346 ms.
+
+El p50 de `exchange.processing` se mantuvo entre 320 y 403 ms hasta 600 rps
+[E-120]. Sumando los dos p50, ARCA ocupa algo menos de la mitad del tiempo del
+exchange en el servidor. A 800 y 1.000 rps, `exchange.processing` llegó a
+5.051 ms y ARCA no cambió. ARCA usó como máximo 69 de sus 500 milicores
+[E-124], y el screenshot del dashboard muestra los dos gráficos [E-128]. El
+límite estuvo en Postgres (sección 7).
+
+Contamos los resultados con los códigos que recibió el generador de carga
+[E-114]. En cada escalón, los exchanges respondidos fueron entre 46 y 50 %
+aprobados (`200`), entre 23 y 27 % rechazados (`403`) y entre 24 y 31 % errores
+de ARCA (`502`). En toda la ejecución fueron 48,9 %, 26,0 % y 25,1 %, cerca de
+lo que respondió ARCA sin carga [E-45]. Los timeouts de 800 y 1.000 rps no
+tienen respuesta y quedan fuera de esa cuenta.
