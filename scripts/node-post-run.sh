@@ -1,5 +1,6 @@
-# Runs on each VMSS instance after a load test; capture-run-evidence.sh sends it
-# through Ansible's shell module, so it is POSIX sh. Did the app restart, and did
+#!/bin/sh
+# Runs on each VMSS instance after a load test; capture-run-evidence.sh copies it
+# to each instance with Ansible's script module, so it is POSIX sh. Did the app restart, and did
 # the kernel drop connections before the app saw them?
 date -u
 echo '$ pm2 jlist (name, restarts, uptime start, status)'

@@ -106,7 +106,7 @@ metrics "$ARCA" arca-metrics.json --metrics CpuUsage MemoryUsage --aggregation A
 refuse_existing nodo-post-ramp.txt
 "$ROOT/ansible/update_vmss_inventory.sh"
 ansible vmss -i "$ROOT/ansible/vmss_hosts" --private-key "$ROOT/key.pem" -u azureuser \
-  -m shell -a "$(cat "$ROOT/scripts/node-post-run.sh")" >"$DEST/nodo-post-ramp.txt"
+  -m script -a "$ROOT/scripts/node-post-run.sh" >"$DEST/nodo-post-ramp.txt"
 
 if grep -l 'subscriptions/' "$DEST"/*.json; then
   echo "The files above carry the subscription id. Fix the projection before committing." >&2
