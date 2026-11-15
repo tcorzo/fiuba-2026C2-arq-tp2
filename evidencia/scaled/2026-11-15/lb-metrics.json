@@ -1,0 +1,316 @@
+{
+  "interval": "PT1M",
+  "timespan": "2026-11-15T16:06:10Z/2026-11-15T16:23:48Z",
+  "value": [
+    {
+      "name": "DipAvailability",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "timeStamp": "2026-11-15T16:06:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:07:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:08:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:09:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:10:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:11:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:12:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:13:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:14:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:15:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:16:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:17:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:18:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:19:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:20:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:21:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:22:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "unit": "Count"
+    },
+    {
+      "name": "SYNCount",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "timeStamp": "2026-11-15T16:06:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:07:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:08:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:09:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:10:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:11:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:12:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:13:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:14:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:15:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:16:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:17:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:18:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:19:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:20:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:21:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:22:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "unit": "Count"
+    },
+    {
+      "name": "PacketCount",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "timeStamp": "2026-11-15T16:06:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:07:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:08:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:09:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:10:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:11:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:12:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:13:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:14:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:15:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:16:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:17:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:18:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:19:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:20:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:21:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:22:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "unit": "Count"
+    },
+    {
+      "name": "ByteCount",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "timeStamp": "2026-11-15T16:06:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:07:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:08:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:09:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:10:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:11:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:12:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:13:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:14:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:15:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:16:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:17:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:18:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:19:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:20:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:21:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:22:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "unit": "Bytes"
+    },
+    {
+      "name": "VipAvailability",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "timeStamp": "2026-11-15T16:06:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:07:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:08:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:09:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:10:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:11:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:12:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:13:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:14:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:15:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:16:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:17:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:18:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:19:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:20:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:21:00Z"
+            },
+            {
+              "timeStamp": "2026-11-15T16:22:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "unit": "Count"
+    }
+  ]
+}

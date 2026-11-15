@@ -45,7 +45,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.database.azurerm_private_dns_zone_virtual_network_link.this` | DNS zone ↔ VNet | The VNet resolves the server's FQDN |
 | | `module.database.azurerm_postgresql_flexible_server.this` | PostgreSQL Flexible Server `arvault-<random>` | 18, `B_Standard_B1ms`, 32 GB, no public access |
 | | `module.database.azurerm_postgresql_flexible_server_database.exchange` | Database `exchange` | UTF8 |
-| `platform` → `app` | `module.app.azurerm_linux_virtual_machine_scale_set.this` | VMSS `tp2vmss` | `instances = 1` (hard-coded), `upgrade_mode = Automatic`, `StandardSSD_LRS` |
+| `platform` → `app` | `module.app.azurerm_linux_virtual_machine_scale_set.this` | VMSS `tp2vmss` | `instances = var.vmss_instances` (default 1, set per measured case), `upgrade_mode = Automatic`, `StandardSSD_LRS` |
 | | `module.app.random_string.lb_dns_label` | — | DNS label |
 | | `module.app.azurerm_public_ip.lb` | Public IP (Standard, static) | The public URL of the service |
 | | `module.app.azurerm_lb.this` | Load Balancer `tp2_lb` (Standard) | |
@@ -155,6 +155,8 @@ These scripts are the only way the group captures evidence. The scaled case and 
 1. **While the case is deployed:** `mise run evidence:infra <case>`. It writes `terraform state list` and `terraform output` of both stacks, the VMSS and its instances, the load balancer, Postgres and its `max_connections` and `metrics.collector_database_activity` parameters, the ARCA container, and every instance's runtime into `evidencia/<case>/`.
 2. **During the test:** `scripts/with-vmstat.sh evidencia/<case>/generador-vmstat.txt mise run perf:run <scenario> results/<case>/<report> <environment>`. It records the load generator's CPU, and prints the run's UTC window at the end.
 3. **Right after the test:** `mise run evidence:run evidencia/<case> <start> <end>`, with the window from step 2, 2 minutes earlier and 3 minutes later. It saves the Azure Monitor metrics of Postgres (CPU, CPU credits, connections, sessions by wait event), the load balancer (availability, also per instance, and traffic) and ARCA (CPU, memory), and runs `scripts/node-post-run.sh` on every instance: pm2 restarts and the kernel's listen-queue drops. Run it before `mise run down`: the metrics go away with the resources.
+
+4. **After the test, too:** `mise run evidence:datadog <dir> <run> <start> <end> <dashboard-file>` exports the service's Datadog series (responses by route and by host, p50 by route, ARCA and exchange p50, event loop lag and CPU by host) and the dashboard's definition. The dashboard screenshot is still taken with Playwright, as in the 1-node case.
 
 The scripts refuse to overwrite a file, and stop on anything that looks like a secret or the subscription id. Read every file before committing anyway.
 
@@ -294,5 +296,5 @@ Some consequences of this design:
 According to the assignment (`README.md`), groups will typically:
 
 1. **Add a managed storage resource**, for example `azurerm_managed_redis`, and wire its connection data into the app the same way ARCA's URI is wired (a provisioner or generated config). **Done:** `azurerm_postgresql_flexible_server` in the `database` module. Its URL reaches the app as `databaseUrl` in `app_config`.
-2. **Scale the app tier horizontally.** Make `instances` a variable or add autoscale (`azurerm_monitor_autoscale_setting`). Keep in mind the "no bootstrap on new instances" caveat above.
+2. **Scale the app tier horizontally.** **Done:** `vmss_instances` in the `platform` stack sets the count. Scaling is a commit that changes its default, then `mise run up`, which applies and runs Ansible over every instance. Autoscale (`azurerm_monitor_autoscale_setting`) would still hit the "no bootstrap on new instances" caveat above.
 3. **Reconsider tactics that depended on nginx in TP 1**, because the Azure Standard LB is a layer-4 balancer. It has no HTTP caching, no rate limiting, no HTTP-aware health checks, and no request routing.

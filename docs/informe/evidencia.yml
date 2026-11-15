@@ -444,3 +444,64 @@
 - id: E-134
   descripcion: "Instancias del VMSS en el despliegue de 1 nodo del 14 de noviembre, el de la latencia de base: una instancia `Standard_F1als_v7`."
   ubicacion: evidencia/1-node/measured/az-vmss-list-instances.txt
+- id: E-135
+  descripcion: "Predicciones del caso escalado, C1 a C9, commiteadas en `956edad` antes de la ejecución."
+  ubicacion: perf/predicciones.md
+  lineas: "104-185"
+  commit: 956edad
+- id: E-136
+  descripcion: "Variable `vmss_instances` del stack `platform` en 2: la cantidad de instancias del caso escalado."
+  ubicacion: infra/envs/prd/platform/variables.tf
+  lineas: "37-41"
+  commit: 2e78fc1
+- id: E-137
+  descripcion: "Instancias del VMSS en el caso escalado: dos `Standard_F1als_v7`, con el último modelo aplicado."
+  ubicacion: evidencia/scaled/2026-11-15/az-vmss-list-instances.txt
+- id: E-138
+  descripcion: "Ejecución del caso escalado (`pool-ramp`): 222.600 requests, 176.490 respuestas y 46.110 timeouts; métricas por ruta en `plugins.metrics-by-endpoint`."
+  ubicacion: perf/results/scaled/2026-11-15/pool-ramp.json
+- id: E-139
+  descripcion: "Datadog, caso escalado: p50 de `arvault.http.duration` por ruta."
+  ubicacion: evidencia/scaled/2026-11-15/datadog-http-duration-p50-pool-ramp.json
+- id: E-140
+  descripcion: "Datadog, caso escalado: respuestas de los dos nodos por ruta, por intervalo de 10 s."
+  ubicacion: evidencia/scaled/2026-11-15/datadog-http-responses-pool-ramp.json
+- id: E-141
+  descripcion: "Datadog, caso escalado: respuestas por nodo; 89.410 y 87.747 en toda la ventana."
+  ubicacion: evidencia/scaled/2026-11-15/datadog-http-responses-by-host-pool-ramp.json
+- id: E-142
+  descripcion: "Datadog, caso escalado: CPU user + system de cada nodo, con un máximo de 22,9 %."
+  ubicacion: evidencia/scaled/2026-11-15/datadog-cpu-pool-ramp.json
+- id: E-143
+  descripcion: "Datadog, caso escalado: lag máximo del event loop de cada nodo."
+  ubicacion: evidencia/scaled/2026-11-15/datadog-eventloop-lag-max-pool-ramp.json
+- id: E-144
+  descripcion: "Datadog, caso escalado: p50 de `arvault.arca.validation.duration`."
+  ubicacion: evidencia/scaled/2026-11-15/datadog-arca-validation-p50-pool-ramp.json
+- id: E-145
+  descripcion: "Azure Monitor, caso escalado: CPU de Postgres por minuto, hasta 92,5 % de promedio."
+  ubicacion: evidencia/scaled/2026-11-15/postgres-cpu-percent.json
+- id: E-146
+  descripcion: "Azure Monitor, caso escalado: sesiones de Postgres por tipo de espera, por minuto; `Lock` hasta 12."
+  ubicacion: evidencia/scaled/2026-11-15/postgres-sessions-by-wait-event-type.json
+- id: E-147
+  descripcion: "Azure Monitor, caso escalado: conexiones activas en Postgres, hasta 28."
+  ubicacion: evidencia/scaled/2026-11-15/postgres-active-connections.json
+- id: E-148
+  descripcion: "Azure Monitor, ejecución final de 1 nodo: conexiones activas en Postgres, hasta 19."
+  ubicacion: evidencia/1-node/2026-11-15/postgres-active-connections.json
+- id: E-149
+  descripcion: "Azure Monitor, caso escalado: créditos de CPU de Postgres, de 37 a 35."
+  ubicacion: evidencia/scaled/2026-11-15/postgres-cpu-credits-remaining.json
+- id: E-150
+  descripcion: "Azure Monitor, caso escalado: CPU de ARCA en milicores, con un máximo de 66."
+  ubicacion: evidencia/scaled/2026-11-15/arca-metrics.json
+- id: E-151
+  descripcion: "Estado de los dos nodos después de la ejecución escalada: sin reinicios de pm2 y sin descartes en las colas de listen y SYN."
+  ubicacion: evidencia/scaled/2026-11-15/nodo-post-ramp.txt
+- id: E-152
+  descripcion: "`vmstat` del generador durante la ejecución escalada: CPU idle de 0 a 1 % desde el escalón de 600 rps."
+  ubicacion: evidencia/scaled/2026-11-15/generador-vmstat.txt
+- id: E-153
+  descripcion: "Screenshot del dashboard de Datadog durante la ejecución escalada."
+  ubicacion: perf/results/scaled/2026-11-15/dashboard-pool-ramp.png

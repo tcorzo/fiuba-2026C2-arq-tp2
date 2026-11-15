@@ -44,5 +44,6 @@ module "app" {
   subnet_id           = local.foundation.vmss_subnet_id
   ssh_public_key      = local.foundation.ssh_public_key
   vm_size             = var.machine_sku
+  instances           = var.vmss_instances
   image               = local.image
 }
