@@ -371,6 +371,10 @@ for stack in foundation platform; do
   terraform -chdir="infra/envs/prd/$stack" apply -auto-approve || exit 1
 done
 
+echo "##### Generating the TLS certificate #####"
+# After platform: the certificate names the LB's FQDN (H-38).
+mise run app:certs || exit 1
+
 echo "##### Installing software on VMSS #####"
 mise run ansible:setup || exit 1
 
