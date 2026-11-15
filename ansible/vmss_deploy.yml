@@ -13,6 +13,24 @@
         group: azureuser
     - name: Install dependencies
       command: npm ci
+    # H-38: the app terminates TLS with the pair from `mise run app:certs`.
+    # It goes to ~/tls, where config.js looks for it, outside the zip, so the
+    # private key never enters node/ or git.
+    - name: Create the TLS directory
+      file:
+        path: ~/tls
+        state: directory
+        mode: "0700"
+    - name: Copy the TLS certificate
+      copy:
+        src: ../certs/server.crt
+        dest: ~/tls/server.crt
+        mode: "0644"
+    - name: Copy the TLS private key
+      copy:
+        src: ../certs/server.key
+        dest: ~/tls/server.key
+        mode: "0600"
     # The database is reachable only from inside the VNet, so an instance seeds
     # it. Once is enough: every instance shares it. --if-empty leaves a seeded
     # database as it is, and the app refuses to start on an empty one.
@@ -24,10 +42,12 @@
     - name: Start new version
       command: pm2 start server.js
     # pm2 reports the process online even when the app fails before it listens,
-    # so the deploy waits for the port to answer.
+    # so the deploy waits for the port to answer. The certificate is
+    # self-signed and names the LB's FQDN, not 127.0.0.1: nothing to validate.
     - name: Wait for the app to answer
       uri:
-        url: http://127.0.0.1:3000/
+        url: "https://127.0.0.1:{{ app_https_port }}/"
+        validate_certs: no
         status_code: 200
       register: root
       until: root.status == 200
