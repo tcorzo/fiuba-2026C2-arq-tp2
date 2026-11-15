@@ -11,8 +11,8 @@ El generador de carga es un equipo en Buenos Aires, conectado por ethernet
 cableada a 1.000 Mb/s [E-89]. Desde ese equipo, la latencia de base contra `/`
 tiene una mediana de 169 ms y un p95 de 172,5 ms [E-90].
 
-Las predicciones están en `perf/predicciones.md` [E-88]. Comparamos las
-primeras, P1 a P9, que commiteamos en #sha("f78658e") antes de medir nada.
+Las predicciones están en `perf/predicciones.md` [E-88]. Las predicciones del
+caso son P1 a P9, que commiteamos en #sha("f78658e") antes de medir nada.
 
 == Escenario
 
@@ -46,10 +46,6 @@ No mostró qué pasa por encima.
 Con un pool compartido de conexiones, el generador mandó 114.000 requests contra
 `/` hasta 1.000 rps, sin errores [E-112]. El nodo abrió 469 conexiones para todos
 [E-113]. Con eso armamos la ejecución final.
-
-Antes de la segunda ejecución y de la final, escribimos predicciones nuevas (S1
-a S6 y F1 a F7). Las informaban los resultados anteriores, así que no son
-independientes como P1 a P9.
 
 == Resultados
 

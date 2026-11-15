@@ -342,7 +342,7 @@
   descripcion: "Rampa contra `/` con el load balancer en `/etc/hosts`: los escalones de 200 rps tienen 3 timeouts en 10.000 requests."
   ubicacion: perf/results/1-node/root-ramp.json
 - id: E-88
-  descripcion: "Predicciones del caso de 1 nodo: P1 a P9 (commit `f78658e`) y S1 a S6 (commit `b367b21`), cada una commiteada antes que los resultados de su ejecución."
+  descripcion: "Predicciones del caso de 1 nodo, P1 a P9, commiteadas en `f78658e` antes de cualquier medición."
   ubicacion: perf/predicciones.md
 - id: E-89
   descripcion: "Conexión del generador de carga de los casos medidos: ethernet cableada (`enp4s0`) a 1.000 Mb/s."
