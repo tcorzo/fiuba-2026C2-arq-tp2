@@ -1,0 +1,26 @@
+{
+  "interval": "PT1M",
+  "timespan": "2026-11-14T21:17:00Z/2026-11-14T21:26:00Z",
+  "value": [
+    {
+      "name": "SYNCount",
+      "timeseries": [],
+      "unit": "Count"
+    },
+    {
+      "name": "PacketCount",
+      "timeseries": [],
+      "unit": "Count"
+    },
+    {
+      "name": "ByteCount",
+      "timeseries": [],
+      "unit": "Bytes"
+    },
+    {
+      "name": "DipAvailability",
+      "timeseries": [],
+      "unit": "Count"
+    }
+  ]
+}

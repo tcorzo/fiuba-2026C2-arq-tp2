@@ -1,0 +1,28 @@
+# Diagnostic: can the load generator open 300 connections per second?
+#
+# GET / does no work: no ARCA, no Postgres. Each virtual user opens its own
+# connection, as in baseline.yaml. The steps are baseline.yaml's last three,
+# where the first 1-node ramp collapsed because the generator resolved the
+# target through DNS (see run.sh). If / holds at 300 rps, the generator is no
+# longer the limit.
+#
+#   mise run perf:run root-ramp results/<case>/root-ramp
+config:
+  target: "{{ $processEnvironment.TARGET }}"
+  phases:
+    - { name: "step-150", duration: 60, arrivalRate: 150 }
+    - { name: "step-200", duration: 60, arrivalRate: 200 }
+    - { name: "step-300", duration: 60, arrivalRate: 300 }
+  plugins:
+    publish-metrics:
+      - type: datadog
+        apiKey: "{{ $processEnvironment.DATADOG_API_KEY }}"
+        # No apiHost: datadog-metrics reads the site from DATADOG_SITE.
+        prefix: "artillery."
+        tags:
+          - "test:root-ramp"
+
+scenarios:
+  - flow:
+      - get:
+          url: "/"

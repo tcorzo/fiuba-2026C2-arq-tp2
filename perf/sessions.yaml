@@ -1,0 +1,106 @@
+# baseline.yaml's traffic mix, as client sessions of 4 requests each.
+#
+#   mise run perf:run sessions results/<case>/sessions-ramp ramp
+#
+# Why sessions: in baseline.yaml every virtual user makes one request over its
+# own new connection. From one workstation that means up to 300 new
+# connections per second through one home router, and above about 200 the
+# SYNs get lost before Azure (evidencia/1-node/measured/, 353902f). Real
+# clients reuse their connection. Here each virtual user keeps one keep-alive
+# connection (Artillery gives every virtual user its own agent) and sends the
+# same request 4 times in a row, so the network sees a quarter of the new
+# connections and the requests per second keep baseline.yaml's meaning.
+#
+# What it costs: inside a session the next request waits for the previous
+# response (closed loop), so an overloaded service receives a little less
+# than offered. Sessions stay short so that most of the load is still new
+# arrivals that do not wait for anyone. Azure's load balancer hashes each
+# connection, not each request, to a node: many short sessions keep that
+# balanced in the scaled case. Never set http.pool: a shared pool would send
+# everything over a few connections.
+#
+# Requests per second = sessions per second x 4. Each step is 60 s with
+# arrivalCount = rps x 15. The steps are baseline.yaml's plus 400, 600 and
+# 800 rps, to find where the service, not the generator, stops.
+config:
+  target: "{{ $processEnvironment.TARGET }}"
+
+  environments:
+    # `plugins` is not inherited by environments (see baseline.yaml): it lives
+    # here.
+    ramp:
+      plugins:
+        publish-metrics:
+          - type: datadog
+            apiKey: "{{ $processEnvironment.DATADOG_API_KEY }}"
+            prefix: "artillery."
+            tags:
+              - "test:sessions"
+      phases:
+        - { name: "step-010", duration: 60, arrivalCount: 150 }
+        - { name: "step-025", duration: 60, arrivalCount: 375 }
+        - { name: "step-050", duration: 60, arrivalCount: 750 }
+        - { name: "step-075", duration: 60, arrivalCount: 1125 }
+        - { name: "step-100", duration: 60, arrivalCount: 1500 }
+        - { name: "step-150", duration: 60, arrivalCount: 2250 }
+        - { name: "step-200", duration: 60, arrivalCount: 3000 }
+        - { name: "step-300", duration: 60, arrivalCount: 4500 }
+        - { name: "step-400", duration: 60, arrivalCount: 6000 }
+        - { name: "step-600", duration: 60, arrivalCount: 9000 }
+        - { name: "step-800", duration: 60, arrivalCount: 12000 }
+
+# Same weights and bodies as baseline.yaml; each one repeated 4 times.
+scenarios:
+  - name: exchange_ars_usd
+    weight: 20
+    flow:
+      - loop:
+          - post:
+              url: "/exchange"
+              json:
+                baseCurrency: "ARS"
+                counterCurrency: "USD"
+                baseAccountId: 101
+                counterAccountId: 102
+                baseAmount: 1000
+                dni: "{{ $randomNumber(1000000, 99999999) }}"
+        count: 4
+
+  - name: exchange_usd_ars
+    weight: 20
+    flow:
+      - loop:
+          - post:
+              url: "/exchange"
+              json:
+                baseCurrency: "USD"
+                counterCurrency: "ARS"
+                baseAccountId: 102
+                counterAccountId: 101
+                baseAmount: 0.66
+                dni: "{{ $randomNumber(1000000, 99999999) }}"
+        count: 4
+
+  - name: rates_read
+    weight: 30
+    flow:
+      - loop:
+          - get:
+              url: "/rates"
+        count: 4
+
+  - name: accounts_read
+    weight: 20
+    flow:
+      - loop:
+          - get:
+              url: "/accounts"
+        count: 4
+
+  - name: log_read
+    weight: 10
+    flow:
+      - loop:
+          - get:
+              url: "/log"
+        count: 4

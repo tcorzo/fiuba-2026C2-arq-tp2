@@ -19,6 +19,16 @@ prueba de carga.
 
 Cada archivo se declara en `docs/informe/evidencia.yml` con su ID.
 
+## Generador de carga
+
+Todas las pruebas que el informe compara corren desde el mismo equipo: Buenos
+Aires, por ethernet cableada. Su entorno está en `entorno/tcorzo/` y su
+latencia de base en `perf/results/baseline/root-tcorzo.json`.
+
+Los archivos sueltos de `entorno/`, `perf/results/baseline/root.json` y los de
+`1-node/` fuera de `measured/` son de un primer generador (WiFi). Ese generador
+no midió ningún caso. Quedan como estaban, porque la evidencia no se edita.
+
 **Antes de commitear, leer cada archivo.** No puede tener secretos: API keys,
 claves privadas, `terraform.tfvars`, `terraform.tfstate`. El repositorio es
 público. Una key commiteada se revoca y se reemplaza, no alcanza con borrarla.

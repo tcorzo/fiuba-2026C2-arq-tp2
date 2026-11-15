@@ -66,6 +66,16 @@ resource "azurerm_postgresql_flexible_server" "this" {
   }
 }
 
+# Azure Monitor's enhanced metrics, sessions_by_wait_event_type among them: how
+# many sessions wait on a Lock, minute by minute. Off by default. The parameter is
+# dynamic, so applying it does not restart the server.
+# tflint-ignore: azurerm_resources_missing_prevent_destroy
+resource "azurerm_postgresql_flexible_server_configuration" "collector_database_activity" {
+  name      = "metrics.collector_database_activity"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "on"
+}
+
 # tflint-ignore: azurerm_resources_missing_prevent_destroy
 resource "azurerm_postgresql_flexible_server_database" "exchange" {
   name      = "exchange"

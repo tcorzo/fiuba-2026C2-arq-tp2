@@ -1,0 +1,4 @@
+Installed 1 package in 4ms
+Ping: 1800000.0 ms
+Download: 314.09 Mbit/s
+Upload: 39.44 Mbit/s

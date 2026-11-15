@@ -1,0 +1,103 @@
+{
+  "interval": "PT1M",
+  "timespan": "2026-11-14T21:47:00Z/2026-11-14T22:05:00Z",
+  "value": [
+    {
+      "name": "active_connections",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "average": 7.5,
+              "maximum": 8.0,
+              "timeStamp": "2026-11-14T21:47:00Z"
+            },
+            {
+              "average": 9.0,
+              "maximum": 9.0,
+              "timeStamp": "2026-11-14T21:48:00Z"
+            },
+            {
+              "average": 8.5,
+              "maximum": 9.0,
+              "timeStamp": "2026-11-14T21:49:00Z"
+            },
+            {
+              "average": 8.0,
+              "maximum": 9.0,
+              "timeStamp": "2026-11-14T21:50:00Z"
+            },
+            {
+              "average": 9.5,
+              "maximum": 10.0,
+              "timeStamp": "2026-11-14T21:51:00Z"
+            },
+            {
+              "average": 10.5,
+              "maximum": 11.0,
+              "timeStamp": "2026-11-14T21:52:00Z"
+            },
+            {
+              "average": 12.5,
+              "maximum": 13.0,
+              "timeStamp": "2026-11-14T21:53:00Z"
+            },
+            {
+              "average": 14.0,
+              "maximum": 14.0,
+              "timeStamp": "2026-11-14T21:54:00Z"
+            },
+            {
+              "average": 14.0,
+              "maximum": 15.0,
+              "timeStamp": "2026-11-14T21:55:00Z"
+            },
+            {
+              "average": 14.0,
+              "maximum": 15.0,
+              "timeStamp": "2026-11-14T21:56:00Z"
+            },
+            {
+              "average": 17.0,
+              "maximum": 18.0,
+              "timeStamp": "2026-11-14T21:57:00Z"
+            },
+            {
+              "average": 19.0,
+              "maximum": 19.0,
+              "timeStamp": "2026-11-14T21:58:00Z"
+            },
+            {
+              "average": 19.0,
+              "maximum": 19.0,
+              "timeStamp": "2026-11-14T21:59:00Z"
+            },
+            {
+              "average": 17.0,
+              "maximum": 17.0,
+              "timeStamp": "2026-11-14T22:00:00Z"
+            },
+            {
+              "average": 17.0,
+              "maximum": 17.0,
+              "timeStamp": "2026-11-14T22:01:00Z"
+            },
+            {
+              "average": 7.0,
+              "maximum": 7.0,
+              "timeStamp": "2026-11-14T22:02:00Z"
+            },
+            {
+              "timeStamp": "2026-11-14T22:03:00Z"
+            },
+            {
+              "timeStamp": "2026-11-14T22:04:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "unit": "Count"
+    }
+  ]
+}

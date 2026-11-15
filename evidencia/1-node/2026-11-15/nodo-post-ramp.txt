@@ -1,0 +1,23 @@
+10.0.2.4 | CHANGED => {
+    "changed": true,
+    "rc": 0,
+    "stderr": "Shared connection to 10.0.2.4 closed.\r\n",
+    "stderr_lines": [
+        "Shared connection to 10.0.2.4 closed."
+    ],
+    "stdout": "Sun Nov 15 14:59:16 UTC 2026\r\n$ pm2 jlist (name, restarts, uptime start, status)\r\nserver\t0\t2026-11-15T14:12:46Z\tonline\r\n$ nstat -az TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent\r\n#kernel\r\nTcpExtSyncookiesSent            0                  0.0\r\nTcpExtListenOverflows           0                  0.0\r\nTcpExtListenDrops               0                  0.0\r\nTcpExtTCPReqQFullDrop           0                  0.0\r\n$ sysctl net.core.somaxconn net.ipv4.tcp_max_syn_backlog\r\nnet.core.somaxconn = 4096\r\nnet.ipv4.tcp_max_syn_backlog = 128\r\n",
+    "stdout_lines": [
+        "Sun Nov 15 14:59:16 UTC 2026",
+        "$ pm2 jlist (name, restarts, uptime start, status)",
+        "server\t0\t2026-11-15T14:12:46Z\tonline",
+        "$ nstat -az TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent",
+        "#kernel",
+        "TcpExtSyncookiesSent            0                  0.0",
+        "TcpExtListenOverflows           0                  0.0",
+        "TcpExtListenDrops               0                  0.0",
+        "TcpExtTCPReqQFullDrop           0                  0.0",
+        "$ sysctl net.core.somaxconn net.ipv4.tcp_max_syn_backlog",
+        "net.core.somaxconn = 4096",
+        "net.ipv4.tcp_max_syn_backlog = 128"
+    ]
+}
