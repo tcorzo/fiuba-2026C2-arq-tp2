@@ -10,10 +10,16 @@
 #   mise run perf:run baseline results/<case>/pool-ramp pool-ramp
 #
 # Traffic reaches the service through Azure's load balancer, the TARGET
-# run.sh exports. There is no nginx and no TLS in this deployment.
+# run.sh exports: HTTPS, terminated by the Node process (H-38). There is no
+# nginx in this deployment.
 config:
   # Inherited by every environment below.
   target: "{{ $processEnvironment.TARGET }}"
+
+  # The certificate is self-signed (`mise run app:certs`), so the client does
+  # not validate it, as in tp1. Inherited by every environment below.
+  tls:
+    rejectUnauthorized: false
 
   # No connection pool, on purpose: each virtual user opens its own connection,
   # like an independent client, and concurrency is not capped by the

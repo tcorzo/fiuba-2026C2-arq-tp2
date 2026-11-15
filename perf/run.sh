@@ -26,7 +26,8 @@ if [ -z "$HOSTS_IP" ] || [ "$HOSTS_IP" != "$DNS_IP" ]; then
 fi
 echo "$LB_FQDN -> $HOSTS_IP from /etc/hosts" >&2
 
-export TARGET=http://$LB_FQDN
+# H-38: the Node process terminates TLS on 443; plain HTTP only redirects.
+export TARGET=https://$LB_FQDN
 export DEBUG=plugin:publish-metrics:datadog-statsd
 # $3, optional, is the Artillery environment (e.g. baseline.yaml's ramp).
 npm run artillery -- run ${3:+-e "$3"} "$1.yaml" --output "$2.json"
