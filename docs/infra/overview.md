@@ -7,7 +7,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | Concern | What it is |
 |---|---|
 | Cloud / region | Azure, `centralus` (`var.region`). See [Region](#region) |
-| Entry point | Public **Standard Load Balancer**, port 80 → port 3000 on the VMSS |
+| Entry point | Public **Standard Load Balancer**, port 443 → 3443 (TLS, terminated by the Node process) and 80 → 3080 (`308` to HTTPS) on the VMSS |
 | App tier | **Linux VM Scale Set** `tp2vmss`, 1 × `Standard_F1als_v7` (1 vCPU, 2 GiB, no CPU credits), Ubuntu 24.04, Node 24 + pm2 |
 | External dependency | **ARCA** mock, `arqsoft/arca:1.0.0` on **Azure Container Instances**, private IP, port 8080 |
 | Admin access | **Jumpbox** VM with a public IP. It is the only SSH entry point into the VNet |
@@ -30,7 +30,7 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.network.azurerm_subnet.container` | Subnet `10.0.4.0/24` | Delegated to `Microsoft.ContainerInstance/containerGroups` |
 | | `module.network.azurerm_subnet_network_security_group_association.vmss` | NSG ↔ subnet | Attaches `vmss_http_sg` to the VMSS subnet |
 | | `module.network.azurerm_network_security_group.ssh` | NSG `ssh_sg` | Allows TCP 22 from `*` |
-| | `module.network.azurerm_network_security_group.vmss_http` | NSG `vmss_http_sg` | Allows TCP 3000 from `*` |
+| | `module.network.azurerm_network_security_group.vmss_http` | NSG `vmss_http_sg` | Allows TCP 3080 and 3443 from `*` |
 | | `module.network.azurerm_subnet.database` | Subnet `10.0.5.0/24` | Delegated to `Microsoft.DBforPostgreSQL/flexibleServers` |
 | `foundation` → `jumpbox` | `module.jumpbox.random_string.dns_label` | — | DNS label |
 | | `module.jumpbox.azurerm_public_ip.this` | Public IP (Standard, static) | `<random>.centralus.cloudapp.azure.com` |
@@ -50,8 +50,8 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.app.azurerm_public_ip.lb` | Public IP (Standard, static) | The public URL of the service |
 | | `module.app.azurerm_lb.this` | Load Balancer `tp2_lb` (Standard) | |
 | | `module.app.azurerm_lb_backend_address_pool.this` | Backend pool | VMSS NICs join it |
-| | `module.app.azurerm_lb_probe.this` | Health probe | TCP on port 3000 |
-| | `module.app.azurerm_lb_rule.http` | LB rule `HTTPFwd` | TCP 80 → 3000 |
+| | `module.app.azurerm_lb_probe.this` | Health probe | TCP on port 3443 |
+| | `module.app.azurerm_lb_rule.http` | LB rules `HTTPSFwd`, `HTTPFwd` | TCP 443 → 3443, TCP 80 → 3080 |
 
 Providers (each stack's `terraform.tf`): `azurerm ~>4.80` and `random ~>3.0`. State and runs live in HCP Terraform (organization `gaudi-followers`, project `arvault-prd`, one workspace per stack). `infra/bootstrap` creates the workspaces and the Azure identity the remote runs use. See the prd [README](../../infra/envs/prd/README.md).
 
@@ -171,12 +171,12 @@ flowchart LR
 
     subgraph rg["Resource group RG-PRODUCTION (resources in centralus)"]
         lbpip[Public IP<br/>lb_public_ip]
-        lb[Standard Load Balancer<br/>tp2_lb<br/>rule: TCP 80 → 3000<br/>probe: TCP 3000]
+        lb[Standard Load Balancer<br/>tp2_lb<br/>rules: TCP 443 → 3443, 80 → 3080<br/>probe: TCP 3443]
         jbpip[Public IP<br/>jumpbox_public_ip]
 
         subgraph vnet["VNet tp2_network 10.0.0.0/16"]
-            subgraph snvmss["tp2_vmss_subnet 10.0.2.0/24<br/>NSG vmss_http_sg: allow 3000"]
-                vm1[VMSS instance<br/>Node app :3000<br/>pm2 + Datadog agent]
+            subgraph snvmss["tp2_vmss_subnet 10.0.2.0/24<br/>NSG vmss_http_sg: allow 3080, 3443"]
+                vm1[VMSS instance<br/>Node app :3443 TLS, :3080 redirect<br/>pm2 + Datadog agent]
                 vmN[...more instances<br/>when scaled]
             end
             subgraph snjb["tp2_jumpbox_subnet 10.0.3.0/24"]
@@ -192,8 +192,8 @@ flowchart LR
         dns[Private DNS zone<br/>arvault.private.postgres.database.azure.com]
     end
 
-    user -- "HTTP :80" --> lbpip --> lb
-    lb -- ":3000" --> vm1
+    user -- "HTTPS :443" --> lbpip --> lb
+    lb -- ":3443" --> vm1
     lb -.-> vmN
     vm1 -- "POST /validar :8080" --> arca
     vm1 -- "TLS :5432" --> db
@@ -210,7 +210,7 @@ Things to note about the topology:
 - **SSH reaches the instances only through the jumpbox.** Azure's default `AllowVnetInBound` NSG rule lets the jumpbox reach the VMSS subnet on port 22. `ansible/update_vmss_inventory.sh` writes the matching `ProxyCommand` into the Ansible inventory.
 - **ARCA is only reachable inside the VNet.** Its subnet has no NSG, so only Azure's default rules apply: traffic from inside the VNet is allowed, traffic from the internet is denied.
 - **So is the database.** It has no public endpoint, and its FQDN resolves only in the VNet, through the linked private DNS zone. Anything that talks to it, seeding included, runs on a VMSS instance. TLS is required: the URL uses `sslmode=verify-full`.
-- **No NSG restricts sources.** `ssh_sg` and `vmss_http_sg` both allow `*`. Because the VMSS has no public IP, the only internet path to port 3000 is the LB. The jumpbox, however, accepts SSH from the entire internet.
+- **No NSG restricts sources.** `ssh_sg` and `vmss_http_sg` both allow `*`. Because the VMSS has no public IP, the only internet path to ports 3080 and 3443 is the LB. The jumpbox, however, accepts SSH from the entire internet.
 
 ## Request path
 
@@ -222,8 +222,8 @@ sequenceDiagram
     participant N as Node app (VMSS instance)
     participant A as ARCA (ACI)
 
-    C->>LB: GET http://<lb_fqdn>/<dni>
-    LB->>N: forward to :3000 (healthy backend chosen by 5-tuple hash)
+    C->>LB: GET https://<lb_fqdn>/<dni> (TLS passes through the LB)
+    LB->>N: forward to :3443 (healthy backend chosen by 5-tuple hash)
     N->>A: POST http://<aci-private-ip>:8080/validar {dni}
     A-->>N: 200 + body
     N-->>LB: 200 + body (or 500 on error)
@@ -234,7 +234,7 @@ This is the path of the course's example app, which `node/` no longer holds: it 
 
 `GET /` returns `Server is up.` without calling ARCA or PostgreSQL. The TP asks you to use it to measure baseline latency.
 
-The probe is **TCP-only**. The LB marks an instance healthy as soon as something is listening on port 3000, even if the app cannot reach ARCA or its storage.
+The probe is **TCP-only**. The LB marks an instance healthy as soon as something is listening on port 3443, even if the app cannot reach ARCA or its storage.
 
 ## Provisioning pipeline
 

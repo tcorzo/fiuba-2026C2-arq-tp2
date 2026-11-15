@@ -3,7 +3,7 @@
 #
 # The app tier, the part each infrastructure configuration of the TP changes:
 #
-#   - The public Standard Load Balancer (TCP 80 → 3000)
+#   - The public Standard Load Balancer (TCP 443 → 3443, 80 → 3080)
 #   - The VM Scale Set running the Node app
 #
 # It reads the resource group, the subnet and the SSH key from foundation's
