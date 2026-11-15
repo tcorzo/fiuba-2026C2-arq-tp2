@@ -27,7 +27,7 @@
     p95: [944 a 983 ms],
     errores: [sin timeouts; 9,9 % de 502 de ARCA],
     limitante: [Postgres, por CPU, con más conexiones que 1 nodo],
-    evidencia: "E-135",
+    evidencia: "E-138",
   ),
   (caso: [Táctica], nodos: none),
 ))

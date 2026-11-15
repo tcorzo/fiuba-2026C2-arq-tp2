@@ -3,11 +3,11 @@
 = Caso escalado
 
 Escalamos el VMSS a dos instancias `Standard_F1als_v7` cambiando
-`vmss_instances` en Terraform [E-133] [E-134]. Postgres, ARCA, el escenario y
+`vmss_instances` en Terraform [E-136] [E-137]. Postgres, ARCA, el escenario y
 el generador de carga son los mismos que en el caso 1 nodo. La ejecución corrió
 sobre el tag #commit("measured/scaled").
 
-Las predicciones del caso, C1 a C9, están en `perf/predicciones.md` [E-132].
+Las predicciones del caso, C1 a C9, están en `perf/predicciones.md` [E-135].
 Las commiteamos en #sha("956edad"), antes de la ejecución, a partir de los
 resultados del caso 1 nodo.
 
@@ -112,27 +112,27 @@ nodo no la acelera. Predijimos el mismo escalón completo que con 1 nodo,
     )
   },
   caption: [Ejecución escalada por escalón, con el método de la @tabla-pool.
-    Cliente: rango de las medianas de cada intervalo de 10 s [E-135].
-    Servidor: mediana del p50 de Datadog por ruta [E-136]. Atendidos: respuestas
-    de los dos nodos por segundo, sin los 10 s de cada borde [E-137]. CPU de
+    Cliente: rango de las medianas de cada intervalo de 10 s [E-138].
+    Servidor: mediana del p50 de Datadog por ruta [E-139]. Atendidos: respuestas
+    de los dos nodos por segundo, sin los 10 s de cada borde [E-140]. CPU de
     cada nodo, user + system: promedio de los 40 s centrales del escalón
-    [E-139].],
+    [E-142].],
 ) <tabla-escalado>
 
 Hasta 400 rps, los dos nodos respondieron cada escalón completo, con la misma
-latencia que el caso 1 nodo [E-135] [E-114]. El escalón de 600 rps no se
+latencia que el caso 1 nodo [E-138] [E-114]. El escalón de 600 rps no se
 completó: a los 20 s, la mediana en el cliente subió de 179,5 a 497,8 ms, y hubo
-63 timeouts [E-135].
+63 timeouts [E-138].
 
 El throughput bajó al escalar. Los dos nodos atendieron 568,5 respuestas por
-segundo como máximo, contra 647,6 de 1 nodo [E-137] [E-116]. A 800 y 1.000 rps
+segundo como máximo, contra 647,6 de 1 nodo [E-140] [E-116]. A 800 y 1.000 rps
 atendieron 534,0 y 479,0.
 
 La demora está en el servicio. A 600 rps, el p50 de `GET /rates` en el servidor
-fue de 327,3 ms, contra 2,8 ms con 1 nodo [E-136] [E-115]. `GET /rates` en el
+fue de 327,3 ms, contra 2,8 ms con 1 nodo [E-139] [E-115]. `GET /rates` en el
 cliente menos su p50 en el servidor quedó entre 152 y 171 ms, la latencia de
-base [E-135] [E-136]. El generador usó toda su CPU desde 600 rps, como en el
-caso 1 nodo, sin agregar demora [E-149] [E-127].
+base [E-138] [E-139]. El generador usó toda su CPU desde 600 rps, como en el
+caso 1 nodo, sin agregar demora [E-152] [E-127].
 
 La @tabla-componentes-escalado muestra los componentes que no limitaron.
 
@@ -143,31 +143,31 @@ La @tabla-componentes-escalado muestra los componentes que no limitaron.
     stroke: 0.4pt + suave,
     align: (left, left),
     table.header([*Componente*], [*En toda la ejecución*]),
-    [CPU de los nodos], [22,9 % de máximo [E-139]],
-    [Event loop], [lag máximo de 27,7 ms [E-140]],
-    [ARCA], [p50 de 253 a 351 ms [E-141], 66 de sus 500 milicores [E-147]],
-    [Procesos de Node], [sin reinicios ni descartes de conexiones [E-148]],
+    [CPU de los nodos], [22,9 % de máximo [E-142]],
+    [Event loop], [lag máximo de 27,7 ms [E-143]],
+    [ARCA], [p50 de 253 a 351 ms [E-144], 66 de sus 500 milicores [E-150]],
+    [Procesos de Node], [sin reinicios ni descartes de conexiones [E-151]],
     [Load balancer],
-    [50,5 % de las respuestas a un nodo, 49,5 % al otro [E-138]],
+    [50,5 % de las respuestas a un nodo, 49,5 % al otro [E-141]],
   ),
   caption: [Componentes con capacidad libre en la ejecución escalada.],
 ) <tabla-componentes-escalado>
 
 El límite sigue en Postgres, y llegó antes. Con la misma carga, Postgres usó más
 CPU que con 1 nodo. En el minuto del escalón de 600 rps promedió 63,0 %, contra
-50,5 % [E-142] [E-121]. Desde 800 rps quedó en 92 %, contra 68,2 % a 79,8 %.
+50,5 % [E-145] [E-121]. Desde 800 rps quedó en 92 %, contra 68,2 % a 79,8 %.
 
 Las conexiones activas en Postgres llegaron a 28, contra 19 con 1 nodo
-[E-144] [E-145]. Cada nodo abre su propio pool de 10 [E-62], así que hasta 20
+[E-147] [E-148]. Cada nodo abre su propio pool de 10 [E-62], así que hasta 20
 transacciones compiten por las filas de las cuentas internas. Las esperas
-`Lock` llegaron a 12, contra 8 [E-143] [E-122].
+`Lock` llegaron a 12, contra 8 [E-146] [E-122].
 
 Interpretamos que más transacciones simultáneas sobre las mismas filas le cuestan
 a Postgres más CPU por request. Con un solo vCore, Postgres se satura antes y
 atiende menos. No medimos ese costo por transacción. Postgres tampoco se quedó
-sin créditos de CPU: bajaron de 37 a 35 [E-146].
+sin créditos de CPU: bajaron de 37 a 35 [E-149].
 
-El dashboard muestra huecos en las series del cliente desde 800 rps [E-150]. Por
+El dashboard muestra huecos en las series del cliente desde 800 rps [E-153]. Por
 eso medimos con el reporte crudo de Artillery y con las respuestas de los nodos.
 
 == Predicciones
@@ -180,59 +180,59 @@ eso medimos con el reporte crudo de Artillery y con las respuestas de los nodos.
       metrica: [C1: ¿el throughput escala en proporción a los nodos?],
       predicho: [no],
       observado: [no: bajó de 647,6 a 568,5 respuestas por segundo],
-      evidencia: "E-137",
+      evidencia: "E-140",
     ),
     prediccion(
       metrica: [C2: último escalón completo],
       predicho: [600 rps],
       observado: [400 rps],
-      evidencia: "E-135",
+      evidencia: "E-138",
     ),
 
     prediccion(
       metrica: [C3: máximo de respuestas por segundo],
       predicho: [menos de 750],
       observado: [568,5],
-      evidencia: "E-137",
+      evidencia: "E-140",
     ),
     prediccion(
       metrica: [C4: componente que limita],
       predicho: [Postgres, en la escritura sobre las cuentas internas],
       observado: [Postgres, por CPU, con más esperas `Lock`],
-      evidencia: "E-142",
+      evidencia: "E-145",
     ),
 
     prediccion(
       metrica: [C5: máximo de esperas `Lock`],
       predicho: [más de 8],
       observado: [12],
-      evidencia: "E-143",
+      evidencia: "E-146",
     ),
     prediccion(
       metrica: [C6: CPU de Postgres a 600 rps],
       predicho: [50 %, como con 1 nodo],
       observado: [63,0 % de promedio en el minuto],
-      evidencia: "E-142",
+      evidencia: "E-145",
     ),
 
     prediccion(
       metrica: [C7: CPU de cada nodo a 600 rps],
       predicho: [18 %],
       observado: [15,7 % y 20,7 %],
-      evidencia: "E-139",
+      evidencia: "E-142",
     ),
     prediccion(
       metrica: [C8: parte de las respuestas por nodo],
       predicho: [50 %, con un margen de 5 puntos],
       observado: [50,5 % y 49,5 %],
-      evidencia: "E-138",
+      evidencia: "E-141",
     ),
 
     prediccion(
       metrica: [C9: mediana en el cliente, 10 a 600 rps],
       predicho: [172,5 a 183,1 ms],
       observado: [172,5 a 179,5 ms hasta 400 rps; hasta 1.107,9 ms a 600 rps],
-      evidencia: "E-135",
+      evidencia: "E-138",
     ),
   )]
 
