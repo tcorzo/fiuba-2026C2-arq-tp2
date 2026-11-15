@@ -2,7 +2,8 @@
 # Captures the infra evidence of the deployed configuration into evidencia/<case>/,
 # as CLAUDE.md asks for every measured case: terraform state list and output of
 # each stack, the VMSS and its instances, the load balancer, Postgres, the ARCA
-# container, and the runtime of every instance.
+# container, the runtime of every instance, and the TLS handshake and HTTP
+# redirect a client sees (H-38).
 #
 # The file names, commands and columns are those of evidencia/1-node/measured/
 # (a3c51fe), so every case can be compared file by file with the 1-node one.
@@ -74,6 +75,21 @@ az container show -g "$RG" -n "$ARCA" -o table --query \
 ansible vmss -i "$ROOT/ansible/vmss_hosts" --private-key "$ROOT/key.pem" -u azureuser \
   -m shell -a 'nproc; free -m; node -v; pm2 -v' \
   >"$DEST/nodo-runtime.txt"
+
+# H-38: what a client outside Azure sees, from this workstation. The Node
+# process terminates TLS on 443 and answers 308 to HTTPS on 80. curl's
+# --cacert, not -k, and openssl's -CAfile and -verify_hostname validate the
+# self-signed certificate and its name, so the files show the node serving
+# this pair for this FQDN. The POST carries no DNI: a redirected request never
+# reaches the app. curl and openssl write the handshake to stderr.
+LB_FQDN=$("$OUTPUT" platform lb_fqdn)
+curl -v --max-time 15 --cacert "$ROOT/certs/server.crt" "https://$LB_FQDN/" \
+  >"$DEST/tls-handshake.txt" 2>&1
+curl -v --max-time 15 -X POST -H 'Content-Type: application/json' -d '{}' \
+  "http://$LB_FQDN/exchange" >"$DEST/http-redirect.txt" 2>&1
+openssl s_client -connect "$LB_FQDN:443" -servername "$LB_FQDN" -brief \
+  -CAfile "$ROOT/certs/server.crt" -verify_hostname "$LB_FQDN" \
+  </dev/null >"$DEST/tls-s-client.txt" 2>&1
 
 # A public repo: stop before anything that names the subscription or a secret
 # reaches a commit. Reading every file is still required.
