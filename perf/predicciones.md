@@ -166,6 +166,65 @@ Usamos la primera ejecución hasta 150 rps, donde el generador no limitaba.
 - **Si cada `502` escribe un stack trace,** la CPU por request crece con los
   rechazos de ARCA, y S3 queda corta.
 
+## Caso 1 nodo, ejecución final: rampa con pool
+
+La segunda ejecución empezó a quebrarse a 800 rps y terminó 40 s después, sin
+mostrar qué pasa más arriba. Esta ejecución sigue la rampa del TP 1 y la
+extiende hasta 1.000 rps.
+
+- **Caso:** el mismo, redesplegado el 15 de noviembre con el código de
+  `measured/1-node-sessions` (`evidencia/1-node/2026-11-15/`).
+- **Escenario:** `baseline.yaml`, entorno `pool-ramp` (`dd2c207`). La mezcla de
+  la primera ejecución, un request por usuario virtual y llegadas que no esperan
+  respuestas, como en el TP 1. Escalones de 60 s a 10, 25, 50, 75, 100, 150,
+  200, 300, 400, 600, 800 y 1.000 rps. Los requests comparten conexiones
+  keep-alive (`http.pool`).
+- **Generador de carga:** el mismo equipo. Contra `/`, llegó a 1.000 rps sin
+  errores y con 469 conexiones (`7dc48a6`).
+
+### Predicciones
+
+| # | Métrica | Predicción |
+|---|---|---|
+| F1 | Último escalón completo (al menos el 99,5 % de los requests con respuesta) | 600 rps |
+| F2 | Respuestas por segundo, máximo sostenido en un escalón | 700 |
+| F3 | p50 de `GET /rates` en el servidor (Datadog), escalón de 800 rps | más de 100 ms |
+| F4 | Requests sin respuesta en el escalón de 1.000 rps | más del 25 % |
+| F5 | CPU del nodo (user + system, Datadog), en todos los escalones | menos del 60 % |
+| F6 | Esperas `Lock` de Postgres (máximo por minuto) | 0 hasta 600 rps, 1 o más en 800 y 1.000 rps |
+| F7 | Latencia de `GET /rates` en el cliente menos su p50 en el servidor, escalones de 10 a 600 rps | 169 a 175 ms (la latencia de base) |
+
+### Razonamiento
+
+Partimos de la segunda ejecución, sobre la misma infraestructura y el mismo
+código.
+
+- **F1 y F2.** Con sesiones, el nodo atendió 600 rps completos. A 800 rps
+  respondió 796 por segundo durante 10 s y después cayó. Ese pico duró poco, así
+  que el máximo sostenido está entre 600 y 800 rps.
+- **F3.** A 800 rps con sesiones, el p50 de `GET /rates` subió de 1 a 585 ms.
+  Acá las llegadas no esperan respuestas: la cola crece más rápido.
+- **F4.** Si el nodo sostiene 700 respuestas por segundo, a 1.000 rps sobran
+  300 requests por segundo. Se acumulan hasta el timeout de 8 s del agente de
+  Artillery, así que más del 25 % queda sin respuesta.
+- **F5.** Con sesiones, el nodo usó un 37 % a 600 rps y un 52 % de máximo a
+  800 rps. La CPU no limitó. El pool no cambia el trabajo por request en el
+  servidor.
+- **F6.** Con sesiones, las esperas `Lock` aparecieron recién en la última
+  muestra, al final del escalón de 800 rps.
+- **F7.** `GET /rates` tarda 1 ms en el servidor. Si el generador no agrega
+  demora, el resto es la latencia de base, 169 ms de mediana. El generador usó
+  toda su CPU contra `/` desde 600 rps, pero la latencia no subió.
+
+### Qué cambiaría la predicción
+
+- **Si el pool de 10 conexiones no es lo que limita,** F3 falla: `GET /rates`
+  sigue en 1 ms a 800 rps y el límite es otro componente.
+- **Si el generador agrega demora,** F7 falla en los escalones altos y esos
+  escalones miden el generador.
+- **Con las llegadas abiertas, ARCA recibe hasta 400 validaciones por segundo.**
+  Si su p50 sube de 300 ms, el límite pasa a ARCA.
+
 ## Caso escalado
 
 ## Tácticas
