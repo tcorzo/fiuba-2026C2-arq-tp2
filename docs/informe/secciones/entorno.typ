@@ -11,13 +11,13 @@ región, así que el tráfico entre ellos no cruza regiones.
 
 == Generador de carga
 
-Artillery corre en un equipo en Buenos Aires, fuera de Azure. El equipo llega
-al load balancer por la interfaz ethernet cableada, con un enlace de 1.000 Mb/s
-[E-89].
+Artillery corre en un equipo en Buenos Aires, fuera de Azure, conectado por
+ethernet cableada con un enlace de 1.000 Mbit/s [E-89].
 
 El ancho de banda disponible, medido con `speedtest-cli`, es de 314 a 384 Mbit/s
-de bajada y de 34 a 39 Mbit/s de subida [E-132] [E-133]. Su prueba de ping falla
-en esta red, así que la latencia sale de la medición siguiente. Todas las
+de bajada y de 34 a 39 Mbit/s de subida [E-132] [E-133]. La prueba de ping de
+`speedtest-cli` falla en esta red, así que la latencia sale de la medición
+siguiente. Todas las
 pruebas que comparamos corren desde este equipo y esta red.
 
 == Latencia de red de base
