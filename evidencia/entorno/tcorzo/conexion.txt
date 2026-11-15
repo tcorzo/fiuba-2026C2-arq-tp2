@@ -1,0 +1,7 @@
+$ ip route get 74.249.255.112
+74.249.255.112 via 10.0.0.1 dev enp4s0 src 10.0.0.216 uid 1000 
+    cache 
+$ nmcli -t -f GENERAL.TYPE,GENERAL.STATE,CAPABILITIES.SPEED device show enp4s0
+GENERAL.TYPE:ethernet
+GENERAL.STATE:100 (connected)
+CAPABILITIES.SPEED:1000 Mb/s

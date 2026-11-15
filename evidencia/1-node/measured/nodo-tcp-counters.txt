@@ -1,0 +1,15 @@
+Sat Nov 14 21:17:53 UTC 2026
+$ uptime -s
+2026-11-14 19:25:11
+$ nstat -az TcpPassiveOpens TcpActiveOpens TcpAttemptFails TcpExtTCPSynRetrans TcpExtTCPTimeouts TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop
+#kernel
+TcpActiveOpens                  6428               0.0
+TcpPassiveOpens                 30570              0.0
+TcpAttemptFails                 261                0.0
+TcpExtListenOverflows           0                  0.0
+TcpExtListenDrops               0                  0.0
+TcpExtTCPTimeouts               110                0.0
+TcpExtTCPReqQFullDrop           0                  0.0
+TcpExtTCPSynRetrans             110                0.0
+$ sysctl net.ipv4.tcp_synack_retries
+net.ipv4.tcp_synack_retries = 5

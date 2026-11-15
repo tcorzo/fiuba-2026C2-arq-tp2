@@ -7,6 +7,7 @@
 #   mise run perf:run baseline results/<case>/baseline-ramp ramp
 #   mise run perf:run baseline results/<case>/baseline-steady steady
 #   mise run perf:run baseline results/<case>/baseline-spike spike
+#   mise run perf:run baseline results/<case>/pool-ramp pool-ramp
 #
 # Traffic reaches the service through Azure's load balancer, the TARGET
 # run.sh exports. There is no nginx and no TLS in this deployment.
@@ -76,6 +77,47 @@ config:
         - { name: "calm-before", duration: 60, arrivalRate: 15 }
         - { name: "spike", duration: 60, arrivalRate: 400 }
         - { name: "calm-after", duration: 120, arrivalRate: 15 }
+
+    # ramp's steps, then 400, 600, 800 and 1000 rps: twelve minutes. Arrivals
+    # are the same open loop, one request per virtual user, but over a shared
+    # keep-alive pool instead of one new connection each.
+    #
+    # Why the pool: from one workstation, ramp loses SYNs before the node above
+    # about 200 new connections per second (evidencia/1-node/measured/,
+    # 353902f), so it cannot reach the service's limit. root-pool.yaml showed
+    # 114000 requests at up to 1000 rps over 469 connections, with no errors
+    # (7dc48a6). Each Artillery worker shares one agent; a request opens a
+    # connection only when every socket is busy. 1000 sockets per worker (15
+    # workers) is far above any step's concurrency, so no request waits for a
+    # socket inside the generator, which the warning above is about.
+    #
+    # What it costs: the run does not measure connection setup, and Azure's
+    # load balancer hashes a few hundred long-lived connections, not one per
+    # request, across the nodes of the scaled case.
+    pool-ramp:
+      # Its own tag, so the dashboard's test filter tells it from ramp.
+      plugins:
+        publish-metrics:
+          - type: datadog
+            apiKey: "{{ $processEnvironment.DATADOG_API_KEY }}"
+            prefix: "artillery."
+            tags:
+              - "test:pool-ramp"
+      http:
+        pool: 1000
+      phases:
+        - { name: "step-010", duration: 60, arrivalRate: 10 }
+        - { name: "step-025", duration: 60, arrivalRate: 25 }
+        - { name: "step-050", duration: 60, arrivalRate: 50 }
+        - { name: "step-075", duration: 60, arrivalRate: 75 }
+        - { name: "step-100", duration: 60, arrivalRate: 100 }
+        - { name: "step-150", duration: 60, arrivalRate: 150 }
+        - { name: "step-200", duration: 60, arrivalRate: 200 }
+        - { name: "step-300", duration: 60, arrivalRate: 300 }
+        - { name: "step-400", duration: 60, arrivalRate: 400 }
+        - { name: "step-600", duration: 60, arrivalRate: 600 }
+        - { name: "step-800", duration: 60, arrivalRate: 800 }
+        - { name: "step-1000", duration: 60, arrivalRate: 1000 }
 
 # Weights are the mix, not a probability the report has to explain:
 # 40 exchange / 30 rates / 20 accounts / 10 log out of every 100 virtual users.
