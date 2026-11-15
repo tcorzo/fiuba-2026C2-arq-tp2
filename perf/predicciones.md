@@ -103,4 +103,84 @@ proporcionalmente a la cantidad de nodos y, si no, qué componente lo impide.
 
 ## Caso escalado
 
+**Hipótesis:** el throughput no se duplica con 2 nodos. El límite del caso 1
+nodo fue la escritura sobre las cuentas internas en Postgres, y un segundo nodo
+no la acelera. El servicio deja de atender completo en el mismo escalón que con
+1 nodo.
+
+- **Caso:** 2 nodos del VMSS (`Standard_F1als_v7`, 1 vCPU cada uno), con un
+  proceso de Node en pm2 por nodo. Todo lo demás es igual al caso 1 nodo:
+  Postgres `B_Standard_B1ms` y ARCA en ACI con 0,5 vCPU. El cambio de
+  infraestructura es `2e78fc1` (`vmss_instances` = 2). Evidencia de la
+  infraestructura en `evidencia/scaled/`.
+- **Escenario:** el mismo que la ejecución final de 1 nodo. `baseline.yaml`,
+  entorno `pool-ramp`: doce escalones de 60 s a 10, 25, 50, 75, 100, 150, 200,
+  300, 400, 600, 800 y 1.000 rps, la mezcla del TP 1 y un pool compartido de
+  conexiones keep-alive.
+- **Generador de carga:** el mismo equipo y la misma red que el caso 1 nodo:
+  Buenos Aires, ethernet cableada, latencia de base contra `/` con mediana de
+  169 ms y p95 de 172,5 ms (`perf/results/baseline/root-tcorzo.json`).
+
+Los números del caso 1 nodo vienen de su ejecución final, con tag
+`measured/1-node-pool` (evidencia en `0cdcf5c`).
+
+### Predicciones
+
+| # | Métrica | Predicción | 1 nodo |
+|---|---|---|---|
+| C1 | ¿El throughput escala en proporción a los nodos? | No | — |
+| C2 | Último escalón atendido completo (sin timeouts y con el 95 % de las respuestas) | 600 rps | 600 rps |
+| C3 | Máximo de respuestas por segundo de los dos nodos juntos (Datadog, `arvault.http.responses`) | Menos de 750 | 648 |
+| C4 | Componente que limita | Postgres, en la escritura sobre las cuentas internas | El mismo |
+| C5 | Máximo de sesiones de Postgres esperando un lock (Azure Monitor, `sessions_by_wait_event_type`, `Lock`) | Más de 8 | 8 |
+| C6 | CPU de Postgres en el escalón de 600 rps (Azure Monitor, `cpu_percent`) | 50 %, como con 1 nodo | 50,5 % |
+| C7 | CPU de cada nodo en el escalón de 600 rps (Datadog, user + system) | 18 %, la mitad que con 1 nodo | 36,3 % |
+| C8 | Parte de las respuestas que atiende cada nodo, en toda la ejecución | 50 %, con un margen de 5 puntos | — |
+| C9 | Mediana en el cliente, escalones de 10 a 600 rps | 172,5 a 183,1 ms, como con 1 nodo | 172,5 a 183,1 ms |
+
+### Razonamiento
+
+- **C1 a C4.** Cada exchange aprobado actualiza dos filas: la cuenta interna
+  de cada moneda (`UPDATE accounts … WHERE currency = $1`). Postgres atiende
+  esas actualizaciones de a una por fila. Con 1 nodo, el límite fue de unas
+  650 respuestas por segundo. A ese ritmo llegan unos 130 exchanges aprobados
+  por segundo: el 40 % de los requests son exchanges, y ARCA aprueba cerca de
+  la mitad. Un segundo nodo no acelera esas actualizaciones. A 800 rps llegan
+  unos 160 exchanges aprobados por segundo, más de lo que las filas
+  atendieron con 1 nodo. La cola crece y el escalón no se completa.
+- **C3.** El techo puede subir un poco. Cada nodo tiene su propio pool de 10
+  conexiones (`pg.Pool`, sin `max`). Con 1 nodo, las actualizaciones que
+  esperaban el lock ocuparon hasta 8 de las 10 conexiones. Las lecturas se
+  quedaron sin conexión: `GET /rates` pasó de 3 a 642 ms en el servidor. Con 2
+  nodos hay 20 conexiones. Las lecturas tardan más en quedarse sin conexión,
+  pero los exchanges siguen limitados por las mismas filas. Por eso esperamos
+  menos de 750 respuestas por segundo, y no 1.300.
+- **C5.** Con 20 conexiones, más actualizaciones pueden esperar el mismo lock a
+  la vez. La espera crece, pero el throughput no. Postgres acepta 50
+  conexiones, así que 20 no llegan al límite.
+- **C6.** A igual carga, Postgres hace el mismo trabajo, venga de uno o de dos
+  nodos. Con 1 nodo usó el 50,5 % de CPU a 600 rps.
+- **C7.** El nodo no fue el límite: llegó al 36,3 % de CPU a 600 rps, y al
+  45,4 % como máximo. Con dos nodos, cada uno atiende la mitad de los
+  requests.
+- **C8.** El load balancer reparte las conexiones entre los nodos. Con un pool
+  keep-alive, reparte conexiones y no requests. En los escalones bajos hay
+  pocas conexiones, y el reparto puede desviarse. Por eso lo medimos sobre la
+  ejecución entera.
+- **C9.** Hasta 600 rps, el servicio respondió en pocos milisegundos, y la
+  mediana en el cliente fue casi toda latencia de base. Un segundo nodo no
+  cambia eso.
+
+### Qué cambiaría la predicción
+
+- **Si el límite de 1 nodo fue el pool de 10 conexiones y no las filas,** 2
+  nodos completan el escalón de 800 rps y atienden más de 750 respuestas por
+  segundo. Las esperas por lock quedan bajas. Entonces C2, C3 y C5 fallan, y
+  el límite real era el pool.
+- **Si Postgres se queda sin CPU antes,** el techo baja. Con 1 nodo, su CPU
+  siguió subiendo hasta el 84,5 % después del quiebre, sin más throughput.
+- **Si Postgres se queda sin créditos de CPU,** Azure lo limita y el quiebre
+  baja de 600 rps. B1ms es burstable. La ejecución de 1 nodo bajó los créditos
+  de 32 a 30, así que una ejecución igual no debería agotarlos.
+
 ## Tácticas
