@@ -314,6 +314,14 @@
   ubicacion: ansible/update_vmss_inventory.sh
   lineas: "20"
   commit: 28031b3
+- id: E-71
+  descripcion: "Escenario de la latencia de base: `GET /` a 1 request por segundo durante 60 s."
+  ubicacion: perf/root.yaml
+- id: E-72
+  descripcion: "El handler de `/` responde un texto fijo, sin Postgres ni ARCA."
+  ubicacion: node/http.js
+  lineas: "99-107"
+  commit: e0cbe46
 - id: E-74
   descripcion: "El servicio manda sus métricas por DogStatsD (UDP) con el prefijo `arvault.`, e ignora los errores de envío."
   ubicacion: node/metrics.js
@@ -427,3 +435,12 @@
 - id: E-131
   descripcion: "Estado del nodo después de la ejecución final: sin reinicios de pm2 y sin descartes en las colas de listen y SYN."
   ubicacion: evidencia/1-node/2026-11-15/nodo-post-ramp.txt
+- id: E-132
+  descripcion: "Ancho de banda del generador cableado con `speedtest-cli`, primera medición: 314,09 Mbit/s de bajada y 39,44 Mbit/s de subida. La línea `Ping` (1800000.0 ms) es el valor que `speedtest-cli` informa cuando su prueba de ping no obtiene respuesta."
+  ubicacion: evidencia/entorno/tcorzo/speedtest.txt
+- id: E-133
+  descripcion: "Ancho de banda del generador cableado con `speedtest-cli`, segunda medición: 384,06 Mbit/s de bajada y 33,84 Mbit/s de subida. La línea `Ping` tiene el mismo valor de falla."
+  ubicacion: evidencia/entorno/tcorzo/speedtest-2.txt
+- id: E-134
+  descripcion: "Instancias del VMSS en el despliegue de 1 nodo del 14 de noviembre, el de la latencia de base: una instancia `Standard_F1als_v7`."
+  ubicacion: evidencia/1-node/measured/az-vmss-list-instances.txt
