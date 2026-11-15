@@ -19,6 +19,10 @@ How the report's prose is written. It applies to every `.typ` file under this di
 | **Plain word order.** Subject, verb, object. Avoid fronted objects with a resumptive pronoun. | `Una diferencia de latencia menor que ese rango entre dos ejecuciones la tratamos como ruido.` | `Tomamos como ruido una diferencia menor entre dos ejecuciones.` |
 | **es-AR number format.** Decimal comma, period for thousands, space before `%` and units. | `179.5ms`, `1,050 ms`, `70%` | `179,5 ms`, `1.050 ms`, `70 %` |
 
+## Section 12, uso de herramientas de IA
+
+One page at most, in three parts: tools, the areas of the project where we used them, and one or two cases where the tool was wrong. The root `CLAUDE.md`, *AI disclosure*, has what goes in each part. It is not a log of what the tool did.
+
 ## AI slop: never write these
 
 These patterns make a text read as generated. They add words and no facts.
