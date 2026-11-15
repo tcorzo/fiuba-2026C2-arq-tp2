@@ -213,8 +213,9 @@ export function createPgAtomically(pool) {
 // Connects and checks the store is seeded. Throws if the database cannot be
 // reached, a table is missing, or accounts or rates are empty: the service
 // never answers from an empty store (H-04). `mise run app:deploy` seeds it.
-export async function connectStore(connectionString) {
-  const pool = new pg.Pool({ connectionString });
+// max caps the pool's connections; without it, pg's default of 10 applies.
+export async function connectStore(connectionString, { max } = {}) {
+  const pool = new pg.Pool({ connectionString, max });
   // An idle connection that breaks (the db restarts) is reported here. Without
   // a listener the pool's `error` event ends the process.
   pool.on("error", (err) => {

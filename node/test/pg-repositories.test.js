@@ -8,6 +8,7 @@ import pg from "pg";
 
 import { createExchange } from "../exchange.js";
 import {
+  connectStore,
   createPgAtomically,
   createPgRepositories,
 } from "../pg-repositories.js";
@@ -76,6 +77,29 @@ describe("atomically on a broken connection", { skip }, () => {
     );
     assert.equal(rows[0].balance, 1_000_000);
     await doomed.end();
+  });
+});
+
+describe("connectStore", { skip }, () => {
+  test("opens at most max connections, however many queries run at once", async () => {
+    await emptyDatabase();
+    await createSchema(pool);
+    await loadState(pool, {
+      accounts: [{ id: 1, currency: "ARS", balance: 1_000_000 }],
+      rates: { USD: { ARS: 1000 } },
+      log: [],
+    });
+    const capped = await connectStore(url, { max: 2 });
+
+    // Each query holds its connection long enough for the others to need one.
+    const results = await Promise.all(
+      Array.from({ length: 6 }, () =>
+        capped.query("SELECT pg_backend_pid() AS pid, pg_sleep(0.05)"),
+      ),
+    );
+    const backends = new Set(results.map(({ rows }) => rows[0].pid));
+    assert.equal(backends.size, 2);
+    await capped.end();
   });
 });
 

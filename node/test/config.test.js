@@ -65,6 +65,15 @@ describe("config", () => {
     assert.equal(config.tlsKeyPath, "/c.key");
   });
 
+  // pg's own default, which every run before the setting existed used.
+  test("each process opens at most 10 database connections by default", () => {
+    assert.equal(configWith({}).dbPoolMax, 10);
+  });
+
+  test("DB_POOL_MAX overrides the deployed dbPoolMax", () => {
+    assert.equal(configWith({ DB_POOL_MAX: "5" }).dbPoolMax, 5);
+  });
+
   test("metrics go to the local Datadog agent by default", () => {
     const config = configWith({});
     assert.equal(config.metricsHost, "127.0.0.1");

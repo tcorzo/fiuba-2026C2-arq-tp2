@@ -28,6 +28,10 @@ export default {
   // Connection URL of the PostgreSQL store. Without one, pg falls back to
   // localhost:5432, as it did in tp1's Docker Compose.
   databaseUrl: process.env.DATABASE_URL ?? generated.databaseUrl ?? "",
+  // How many connections each process opens to Postgres, at most. A request
+  // that finds them all busy waits in the process for one. 10 is pg's own
+  // default, which every run before this setting used.
+  dbPoolMax: Number(process.env.DB_POOL_MAX ?? generated.dbPoolMax ?? 10),
   // Where metrics.js sends its metrics: the Datadog agent's DogStatsD, which
   // Ansible installs on every VMSS instance and which listens on loopback
   // only. tp1 defaulted to "graphite", its Compose service, which does not

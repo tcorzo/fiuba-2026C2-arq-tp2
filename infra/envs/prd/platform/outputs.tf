@@ -19,6 +19,7 @@ output "app_config" {
     arcaUri       = local.foundation.arca_uri
     arcaTimeoutMs = 2000
     databaseUrl   = local.foundation.database_url
+    dbPoolMax     = var.db_pool_max
     httpsPort     = module.app.https_backend_port
     redirectPort  = module.app.redirect_backend_port
   }

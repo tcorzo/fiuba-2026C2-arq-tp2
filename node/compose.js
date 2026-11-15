@@ -14,7 +14,9 @@ import { startRuntimeMetrics } from "./runtime-metrics.js";
 export async function compose({ transfer }) {
   startRuntimeMetrics();
 
-  const pool = await connectStore(config.databaseUrl);
+  const pool = await connectStore(config.databaseUrl, {
+    max: config.dbPoolMax,
+  });
   const exchange = createExchange({
     repositories: createPgRepositories(pool),
     atomically: createPgAtomically(pool),
