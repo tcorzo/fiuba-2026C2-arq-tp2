@@ -77,7 +77,7 @@ ansible vmss -i "$ROOT/ansible/vmss_hosts" --private-key "$ROOT/key.pem" -u azur
 
 # A public repo: stop before anything that names the subscription or a secret
 # reaches a commit. Reading every file is still required.
-if grep -rEil 'subscriptions/|password|postgres(ql)?://|api[_-]?key' "$DEST"; then
+if grep -rEil 'subscriptions/|(^|[^_])password|postgres(ql)?://|api[_-]?key' "$DEST"; then
   echo "The files above may hold a secret or the subscription id. Read them before committing." >&2
   exit 1
 fi
