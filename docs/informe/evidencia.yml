@@ -330,7 +330,7 @@
   lineas: "5-8"
   commit: 3cf5482
 - id: E-84
-  descripcion: "Primera ejecución del caso de 1 nodo (`baseline.yaml`): de 54.600 requests, 29.945 tienen respuesta y 24.655 terminan en timeout, todos desde el escalón de 200 rps."
+  descripcion: "Primera ejecución del caso de 1 nodo (`baseline.yaml`): de 54.600 requests, 29.945 tienen respuesta y 24.655 terminan en timeout: 3 antes del escalón de 200 rps y 24.652 desde ahí."
   ubicacion: perf/results/1-node/baseline-ramp.json
 - id: E-85
   descripcion: "Contadores TCP del nodo después de la primera ejecución: 30.570 conexiones entrantes (`TcpPassiveOpens`) desde su arranque, sin descartes en la cola de listen."
@@ -341,3 +341,72 @@
 - id: E-87
   descripcion: "Rampa contra `/` con el load balancer en `/etc/hosts`: los escalones de 200 rps tienen 3 timeouts en 10.000 requests."
   ubicacion: perf/results/1-node/root-ramp.json
+- id: E-88
+  descripcion: "Predicciones del caso de 1 nodo: P1 a P9 (commit `f78658e`) y S1 a S6 (commit `b367b21`), cada una commiteada antes que los resultados de su ejecución."
+  ubicacion: perf/predicciones.md
+- id: E-89
+  descripcion: "Conexión del generador de carga de los casos medidos: ethernet cableada (`enp4s0`) a 1.000 Mb/s."
+  ubicacion: evidencia/entorno/tcorzo/conexion.txt
+- id: E-90
+  descripcion: "Latencia de base contra `/` desde el generador cableado: 60 requests, mediana de 169 ms y p95 de 172,5 ms."
+  ubicacion: perf/results/baseline/root-tcorzo.json
+- id: E-91
+  descripcion: "Instancias del VMSS durante el caso de 1 nodo: una instancia `Standard_F1als_v7`."
+  ubicacion: evidencia/1-node/measured/az-vmss-list-instances.txt
+- id: E-92
+  descripcion: "Escenario `baseline.yaml`: escalones de 10 a 300 rps, un request por usuario virtual, mezcla de exchanges y lecturas, `dni` aleatorio."
+  ubicacion: perf/baseline.yaml
+- id: E-93
+  descripcion: "Escenario `sessions.yaml`: la mezcla de `baseline.yaml` con 4 requests por usuario virtual y escalones hasta 800 rps."
+  ubicacion: perf/sessions.yaml
+- id: E-94
+  descripcion: "Segunda ejecución del caso de 1 nodo (`sessions.yaml`): 158.776 requests, 157.497 respuestas y 1.279 timeouts; métricas por ruta en `plugins.metrics-by-endpoint`."
+  ubicacion: perf/results/1-node/sessions-ramp.json
+- id: E-95
+  descripcion: "Datadog, primera ejecución: p50 de `arvault.http.duration` por ruta."
+  ubicacion: evidencia/1-node/measured/datadog-http-duration-p50-ramp.json
+- id: E-96
+  descripcion: "Datadog, primera ejecución: p50 de `arvault.arca.validation.duration`."
+  ubicacion: evidencia/1-node/measured/datadog-arca-validation-p50-ramp.json
+- id: E-97
+  descripcion: "Datadog, primera ejecución: p50 de `arvault.exchange.processing.duration`."
+  ubicacion: evidencia/1-node/measured/datadog-exchange-processing-p50-ramp.json
+- id: E-98
+  descripcion: "Datadog, primera ejecución: CPU user + system del nodo."
+  ubicacion: evidencia/1-node/measured/datadog-cpu-ramp.json
+- id: E-99
+  descripcion: "Azure Monitor, primera ejecución: sesiones de Postgres por tipo de espera, por minuto; `Lock` en 0."
+  ubicacion: evidencia/1-node/measured/postgres-sessions-by-wait-event-type.json
+- id: E-100
+  descripcion: "Datadog, segunda ejecución: p50 de `arvault.http.duration` por ruta."
+  ubicacion: evidencia/1-node/measured/datadog-http-duration-p50-sessions.json
+- id: E-101
+  descripcion: "Datadog, segunda ejecución: p50 de `arvault.arca.validation.duration`."
+  ubicacion: evidencia/1-node/measured/datadog-arca-validation-p50-sessions.json
+- id: E-102
+  descripcion: "Datadog, segunda ejecución: p50 de `arvault.exchange.processing.duration`."
+  ubicacion: evidencia/1-node/measured/datadog-exchange-processing-p50-sessions.json
+- id: E-103
+  descripcion: "Datadog, segunda ejecución: CPU user + system del nodo."
+  ubicacion: evidencia/1-node/measured/datadog-cpu-sessions.json
+- id: E-104
+  descripcion: "Datadog, segunda ejecución: lag máximo del event loop del nodo."
+  ubicacion: evidencia/1-node/measured/datadog-eventloop-lag-max-sessions.json
+- id: E-105
+  descripcion: "Azure Monitor, segunda ejecución: sesiones de Postgres por tipo de espera, por minuto; `Lock` llega a 6 a las 22:01 UTC."
+  ubicacion: evidencia/1-node/measured/postgres-sessions-by-wait-event-type-sessions.json
+- id: E-106
+  descripcion: "Azure Monitor, segunda ejecución: CPU de Postgres por minuto, con un máximo de 52,7 %."
+  ubicacion: evidencia/1-node/measured/postgres-cpu-percent-sessions.json
+- id: E-107
+  descripcion: "Contadores TCP del nodo antes y después de la segunda ejecución: `TcpPassiveOpens` sube de 66.682 a 106.113."
+  ubicacion: evidencia/1-node/measured/nodo-tcp-counters-sessions.txt
+- id: E-108
+  descripcion: "Screenshot del dashboard de Datadog durante la segunda ejecución."
+  ubicacion: perf/results/1-node/dashboard-sessions.png
+- id: E-109
+  descripcion: "Azure Monitor, segunda ejecución: CPU de ARCA en milicores, con un máximo de 67."
+  ubicacion: evidencia/1-node/measured/arca-metrics-sessions.json
+- id: E-110
+  descripcion: "Contadores TCP del nodo después de la rampa contra `/`: `TcpPassiveOpens` en 66.561."
+  ubicacion: evidencia/1-node/measured/nodo-tcp-counters-root-ramp.txt
