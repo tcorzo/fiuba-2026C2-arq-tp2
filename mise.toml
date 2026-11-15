@@ -281,6 +281,22 @@ run = "node/zip.sh"
 description = "Zips the Node app and deploys it to every VMSS instance"
 run = "ansible/deploy.sh"
 
+[tasks."evidence:infra"]
+description = "Captures the deployed configuration's infra evidence into evidencia/<case>/. Run it while the case is deployed"
+usage = '''
+arg "<case>" help="Case name, e.g. escalado: the files go in evidencia/<case>/"
+'''
+run = 'scripts/capture-infra-evidence.sh "${usage_case}"'
+
+[tasks."evidence:run"]
+description = "Captures a load test's evidence after it ends: Azure Monitor metrics of Postgres, the load balancer and ARCA, and a snapshot of every instance. Run it before the infra is destroyed"
+usage = '''
+arg "<dest>" help="Evidence directory, e.g. evidencia/scaled"
+arg "<start>" help="UTC ISO 8601: the run's start minus 2 minutes"
+arg "<end>" help="UTC ISO 8601: the run's end plus 3 minutes"
+'''
+run = 'scripts/capture-run-evidence.sh "${usage_dest}" "${usage_start}" "${usage_end}"'
+
 [tasks."perf:install"]
 description = "Installs Artillery"
 dir = "perf"
@@ -291,9 +307,10 @@ description = "Runs an Artillery scenario against the load balancer. Export DATA
 usage = '''
 arg "<scenario>" help="Scenario file in perf/, without .yaml"
 arg "<output>" help="Report path, without .json"
+arg "[environment]" help="Artillery environment of the scenario, e.g. ramp in baseline.yaml"
 '''
 dir = "perf"
-run = './run.sh "${usage_scenario}" "${usage_output}"'
+run = './run.sh "${usage_scenario}" "${usage_output}" "${usage_environment:-}"'
 
 [tasks.up]
 description = "Logs into Azure, applies foundation and platform in HCP Terraform, then installs and deploys the app. Applies without asking"

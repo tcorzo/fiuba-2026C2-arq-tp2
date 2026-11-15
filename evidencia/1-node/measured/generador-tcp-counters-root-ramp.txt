@@ -1,0 +1,6 @@
+Sat 14 Nov 21:26:25 UTC 2026
+$ nstat -az TcpActiveOpens TcpAttemptFails TcpExtTCPSynRetrans (cumulative since boot; 10249 SynRetrans at 21:17 UTC, before root-ramp)
+#kernel
+TcpActiveOpens                  1385770            0.0
+TcpAttemptFails                 613962             0.0
+TcpExtTCPSynRetrans             43980              0.0

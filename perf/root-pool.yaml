@@ -1,0 +1,37 @@
+# Diagnostic: can the load generator deliver 1000 rps over a shared
+# keep-alive pool?
+#
+#   mise run perf:run root-pool results/<case>/root-pool
+#
+# root-ramp.yaml showed that one new connection per request loses SYNs before
+# the node above about 200 per second. Here arrivals are the same open loop
+# (one request per virtual user, at the step's rate), but http.pool makes each
+# Artillery worker share one keep-alive agent: a request reuses an idle socket
+# and a new connection opens only when every socket is busy.
+#
+# The pool size is per worker (15 workers on this generator). 1000 is far above
+# what any step needs, so no request ever waits for a socket inside Artillery:
+# that would add generator queueing to the measured latency.
+#
+# GET / does no work (no ARCA, no Postgres), so the service is not the limit.
+config:
+  target: "{{ $processEnvironment.TARGET }}"
+  http:
+    pool: 1000
+  phases:
+    - { name: "step-300", duration: 60, arrivalRate: 300 }
+    - { name: "step-600", duration: 60, arrivalRate: 600 }
+    - { name: "step-1000", duration: 60, arrivalRate: 1000 }
+  plugins:
+    publish-metrics:
+      - type: datadog
+        apiKey: "{{ $processEnvironment.DATADOG_API_KEY }}"
+        # No apiHost: datadog-metrics reads the site from DATADOG_SITE.
+        prefix: "artillery."
+        tags:
+          - "test:root-pool"
+
+scenarios:
+  - flow:
+      - get:
+          url: "/"

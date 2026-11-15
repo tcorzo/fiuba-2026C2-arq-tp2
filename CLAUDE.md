@@ -61,6 +61,7 @@ Domain and statistics terms stay Spanish: mediana, latencia, escenario, réplica
 | Cite in prose | Write the ID in brackets, as the assignment does: `La p95 sube a 410 ms [E-07].` The template links it to its index row. An undeclared ID renders red. |
 | Evidence lives in the repo | The infrastructure is destroyed at the end. Raw Artillery reports in `perf/results/<case>/` next to the scenario that produced them (`perf/run.sh` writes them with `--output`); Datadog screenshots that show the test's time range, plus the exported dashboard JSON; infra outputs and log extracts in `evidencia/<case>/`. Links to Datadog or Azure are never the only evidence. |
 | Infra evidence per configuration | For every measured configuration, while it is deployed: the output of `terraform state list` and `terraform output` of each stack, and `az vmss list-instances` (only non-identifying columns), saved under `evidencia/<case>/`. Plus the Terraform/Ansible change in the commit history. |
+| Capture only with the scripts | `mise run evidence:infra <case>` while deployed, `scripts/with-vmstat.sh` around the test, `mise run evidence:run <dir> <start> <end>` right after it (`docs/infra/overview.md`, *Capture the evidence of a case*). They reproduce the 1-node files name by name, so every case compares with it. Never capture by hand. A tactic that needs more evidence extends the scripts, in its own commit, before its test. |
 | Code claims | A reproducible execution, request and response, that shows the behaviour. A code citation alone is not enough. |
 | ARCA | A log extract with approved validations (with their authorisation code) and rejected ones. |
 | Raw is raw | Evidence files are committed exactly as the command wrote them. The pre-commit whitespace fixers skip `perf/results/` and `evidencia/` for this reason. Never edit, trim or "clean up" an output. If a number was not observed in a run, it does not go in the report. |
@@ -119,16 +120,24 @@ The structure is fixed by the assignment (README.md, *Formato y extensión*), an
 | Prediction vs. result | `#prediccion(metrica:, predicho:, observado:, evidencia:)`. |
 | Unwritten content | `#pendiente[...]`. Renders a yellow box; `report:check --final` fails while any remains. The assignment rejects deliveries with undeveloped or filler sections. |
 | Repo links | `#commit("ref")`, `#sha("abc1234")`, `#diff(a, b)`, `#codigo("node/app.js", "11-24", en: "<sha>")`. `en:` is required: a citation against `main` drifts as `main` moves. TP 1 links take `repo: repositorio-tp1`. These links do not replace `[E-NN]`. |
-| Prose | ASD-STE100 applied to Spanish: at most 25 words per sentence, active voice, literal verbs, one term per thing. After each `.typ` edit, run `typstyle -i` and `mise run report`, then look at the rendered page. |
+| Prose | ASD-STE100 applied to Spanish: at most 25 words per sentence, active voice, literal verbs, one term per thing. Natural but professional, with no filler and no AI slop: **`docs/informe/CLAUDE.md` has the full style guide, with before/after examples. Read it before writing or reviewing any `.typ` prose.** After each `.typ` edit, run `typstyle -i` and `mise run report`, then look at the rendered page. |
 | Headings | Levels 1–3 are numbered and listed in the index; level 4 and deeper render unnumbered and unlisted. |
 | Figures | Under `docs/informe/figuras/<case>/`. |
 | PDF | `docs/informe/informe.pdf` is gitignored while we work. The delivery PR adds it with `git add -f`. |
 
 ## AI disclosure (UTMOST importance)
 
-AI use is allowed and does not cost marks by itself; the group must understand, verify and be able to defend everything delivered. Section 12 (`secciones/uso-de-ia.typ`) must list the tools and what they were used for, and **at least one concrete case** where the tool proposed something wrong, incomplete, outdated or unfit for this system (e.g. a Terraform resource or attribute that does not exist, an insecure configuration, a conclusion the metrics do not support): what it proposed, how we caught it — ideally with an `[E-NN]` — and what we did instead.
+AI use is allowed and does not cost marks by itself; the group must understand, verify and be able to defend everything delivered. The assignment asks section 12 (`secciones/uso-de-ia.typ`) for two things: the tools and the parts of the work they were used for, and **at least one concrete case** where the tool proposed something wrong, incomplete, outdated or unfit for this system (e.g. a Terraform resource or attribute that does not exist, an insecure configuration, a conclusion the metrics do not support): what it proposed, how we caught it — ideally with an `[E-NN]` — and what we did instead.
 
-**What this means for work done in this session:** add a row to the usage table in `uso-de-ia.typ` in the same PR as the work. When Claude proposes something that turns out wrong and gets corrected, **say so explicitly to the user and suggest recording it** — those cases are required content, and they are easy to lose. Never present generated analysis as a measured result. Commits made with Claude carry the `Co-Authored-By: Claude …` trailer, which makes the record verifiable from `git log`.
+**Section 12 fits in one page and has exactly three parts:**
+
+| Part | What goes in | What does not |
+|---|---|---|
+| *Herramientas* | Which tools the group used (the whole group uses Claude) and how the use is traceable (the `Co-Authored-By` trailer). Two or three sentences. | — |
+| *Para qué la usamos* | One row per **area** of the project (infra, service, measurements, report, tooling) saying what the tool was used for there. | A log of every task, PR or issue. A new piece of work does not add a row; edit a row only when the tool is used in an area the table does not list. |
+| *Propuestas incorrectas* | **One or two** cases, the strongest ones: what it proposed, how we caught it (with `[E-NN]` when there is one) and what we did instead. A short paragraph or two each. | A third case. A new case only goes in by replacing a weaker one, when it is better backed by evidence or matches the assignment's examples more closely. |
+
+**What this means for work done in this session:** do not add rows or cases to `uso-de-ia.typ` as a side effect of other work. When Claude proposes something that turns out wrong and gets corrected, **say so explicitly to the user**, record it in the commit message that fixes it, and suggest it as a candidate for section 12 only if it beats one of the current cases. Never present generated analysis as a measured result. Commits made with Claude carry the `Co-Authored-By: Claude …` trailer, which makes the record verifiable from `git log`.
 
 ## Commands
 

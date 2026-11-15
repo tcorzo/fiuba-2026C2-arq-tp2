@@ -138,6 +138,8 @@ The dashboard has two template variables: `$test` (Artillery's `test:<scenario>`
 Things to note:
 
 - **It outlives `mise run down`.** `down` destroys `platform` and `foundation` only, so the dashboard of a destroyed configuration can still be screenshotted and exported.
+- **It doesn't see Postgres or ARCA.** Both are PaaS, with no agent. Their evidence comes from Azure Monitor, through the capture scripts below.
+
 - **The dashboard doesn't depend on the tag configurations.** A missing metric fails only its own tag configuration; the dashboard is still created.
 - **The exchange's own span is `arvault.exchange.processing.duration`, not `arvault.exchange.duration`.** Datadog accepted a tag configuration for `arvault.exchange.duration` and dropped it within a minute, three applies in a row, and its UI could not enable percentiles on it either. Two probe distributions with new names kept theirs, one of them with an `exchange` segment, so the segment is not the cause. The cause was not found; the new name works.
 - **The prefix is `arvault.`, never `exchange.`.** Datadog reserves `exchange.*` for its Microsoft Exchange Server integration and treats every metric under it as an integration metric: `400 Cannot configure tags on metric because metric is an integration metric`. A new namespace must not collide with an integration's either.
@@ -145,6 +147,16 @@ Things to note:
 - **Artillery's percentiles are per 10-second window.** Over a longer range, Datadog averages them; that average is not the run's p95. The run's p95 comes from the raw report in `perf/results/`.
 - **Metric names are frozen from the 1-node run to the last tactic.** A custom metric can't be deleted or renamed in Datadog: its data stays under the old name for 15 months, and the dashboard only queries the new one. A rename between two measured cases breaks their comparison on the same widget. If a name must change, change it before the first measured run, or re-run every case it touches.
 - **Probe metrics go under `arvault.probe.*`, and never during a measured run.** The organization is shared: the prefix tells everyone a series is not the service's, and keeps it out of every dashboard query. A probe sent during a run lands in that run's time range and its screenshots. Turn off any percentiles enabled on a probe when done; the metric itself stops reporting on its own.
+
+### Capture the evidence of a case
+
+These scripts are the only way the group captures evidence. The scaled case and the tactics reuse them, or extend them. Their file names, commands and columns are those of the 1-node case (`evidencia/1-node/measured/`), so every case compares file by file with it.
+
+1. **While the case is deployed:** `mise run evidence:infra <case>`. It writes `terraform state list` and `terraform output` of both stacks, the VMSS and its instances, the load balancer, Postgres and its `max_connections` and `metrics.collector_database_activity` parameters, the ARCA container, and every instance's runtime into `evidencia/<case>/`.
+2. **During the test:** `scripts/with-vmstat.sh evidencia/<case>/generador-vmstat.txt mise run perf:run <scenario> results/<case>/<report> <environment>`. It records the load generator's CPU, and prints the run's UTC window at the end.
+3. **Right after the test:** `mise run evidence:run evidencia/<case> <start> <end>`, with the window from step 2, 2 minutes earlier and 3 minutes later. It saves the Azure Monitor metrics of Postgres (CPU, CPU credits, connections, sessions by wait event), the load balancer (availability, also per instance, and traffic) and ARCA (CPU, memory), and runs `scripts/node-post-run.sh` on every instance: pm2 restarts and the kernel's listen-queue drops. Run it before `mise run down`: the metrics go away with the resources.
+
+The scripts refuse to overwrite a file, and stop on anything that looks like a secret or the subscription id. Read every file before committing anyway.
 
 ## Network topology
 

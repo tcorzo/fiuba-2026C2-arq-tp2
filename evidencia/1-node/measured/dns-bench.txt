@@ -1,0 +1,17 @@
+Sat 14 Nov 21:17:24 UTC 2026
+$ getent -s files hosts zvbdmzasop.centralus.cloudapp.azure.com
+74.249.255.112  zvbdmzasop.centralus.cloudapp.azure.com
+$ getent -s files hosts lfvwrhpipi.centralus.cloudapp.azure.com
+(not found, rc=2)
+$ getent -s dns hosts zvbdmzasop.centralus.cloudapp.azure.com
+74.249.255.112  zvbdmzasop.centralus.cloudapp.azure.com
+$ getent -s dns hosts lfvwrhpipi.centralus.cloudapp.azure.com
+20.9.43.105     lfvwrhpipi.centralus.cloudapp.azure.com
+$ node perf/dns-bench.mjs lfvwrhpipi.centralus.cloudapp.azure.com 1500
+host=lfvwrhpipi.centralus.cloudapp.azure.com pool=4 lookups=1500 lookups_per_s=134 wait_median_ms=5689.1 wait_p95_ms=10661.0 wait_max_ms=11171
+$ UV_THREADPOOL_SIZE=64 node perf/dns-bench.mjs lfvwrhpipi.centralus.cloudapp.azure.com 1500
+host=lfvwrhpipi.centralus.cloudapp.azure.com pool=64 lookups=1500 lookups_per_s=1809 wait_median_ms=405.5 wait_p95_ms=784.6 wait_max_ms=820
+$ node perf/dns-bench.mjs zvbdmzasop.centralus.cloudapp.azure.com 1500
+host=zvbdmzasop.centralus.cloudapp.azure.com pool=4 lookups=1500 lookups_per_s=96865 wait_median_ms=5.3 wait_p95_ms=11.3 wait_max_ms=12
+$ node perf/dns-bench.mjs zvbdmzasop.centralus.cloudapp.azure.com 20000
+host=zvbdmzasop.centralus.cloudapp.azure.com pool=4 lookups=20000 lookups_per_s=153415 wait_median_ms=62.8 wait_p95_ms=77.2 wait_max_ms=85
