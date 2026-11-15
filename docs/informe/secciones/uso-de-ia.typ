@@ -52,14 +52,18 @@ falló con `Unsupported attribute`. Lo reprodujimos con un plan de destroy, sin
 destruir nada [E-01]. Destruimos con el commit que había creado esa
 infraestructura, #sha("7d6e8c3"), y recién después aplicamos la branch nueva.
 
-=== Prefijo de métricas reservado por Datadog
+=== Causa equivocada del colapso a 200 rps
 
-En #sha("02e712f"), el agente mantuvo el prefijo `exchange.` que las métricas
-tenían en el TP 1. Datadog reserva `exchange.*` para su integración con
-Microsoft Exchange Server, y el `apply` del stack `observability` falló en las
-tres distribuciones: `Cannot configure tags on metric because metric is an
-integration metric`.
+La primera ejecución del caso de 1 nodo colapsó en el escalón de 200 rps: de
+54.600 requests, 24.655 terminaron en timeout [E-84]. El agente, y un subagente
+que revisó su análisis, atribuyeron el colapso a la tabla NAT del router y al
+swap del generador de carga.
 
-Sin esa configuración, Datadog no calcula los percentiles de esas métricas. En
-#sha("ca6a3f3") cambiamos el prefijo a `arvault.`, y el siguiente `apply`
-terminó sin errores.
+Las métricas no respaldaban esa conclusión. Desde su arranque, el nodo registró
+30.570 conexiones entrantes, casi tantas como los 29.945 requests respondidos
+[E-84] [E-85]. Los requests con timeout nunca llegaron al nodo.
+
+El límite estaba en el generador. Artillery resuelve el nombre del load
+balancer en cada conexión nueva, y la máquina resolvía 134 nombres por segundo
+[E-86]. Con el nombre en `/etc/hosts` (#sha("32eaed5")), los escalones de
+200 rps tuvieron 3 timeouts en 10.000 requests [E-87].
