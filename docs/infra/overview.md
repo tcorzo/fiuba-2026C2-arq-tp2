@@ -156,6 +156,8 @@ These scripts are the only way the group captures evidence. The scaled case and 
 2. **During the test:** `scripts/with-vmstat.sh evidencia/<case>/generador-vmstat.txt mise run perf:run <scenario> results/<case>/<report> <environment>`. It records the load generator's CPU, and prints the run's UTC window at the end.
 3. **Right after the test:** `mise run evidence:run evidencia/<case> <start> <end>`, with the window from step 2, 2 minutes earlier and 3 minutes later. It saves the Azure Monitor metrics of Postgres (CPU, CPU credits, connections, sessions by wait event), the load balancer (availability, also per instance, and traffic) and ARCA (CPU, memory), and runs `scripts/node-post-run.sh` on every instance: pm2 restarts and the kernel's listen-queue drops. Run it before `mise run down`: the metrics go away with the resources.
 
+4. **After the test, too:** `mise run evidence:datadog <dir> <run> <start> <end> <dashboard-file>` exports the service's Datadog series (responses by route and by host, p50 by route, ARCA and exchange p50, event loop lag and CPU by host) and the dashboard's definition. The dashboard screenshot is still taken with Playwright, as in the 1-node case.
+
 The scripts refuse to overwrite a file, and stop on anything that looks like a secret or the subscription id. Read every file before committing anyway.
 
 ## Network topology

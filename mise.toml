@@ -297,6 +297,17 @@ arg "<end>" help="UTC ISO 8601: the run's end plus 3 minutes"
 '''
 run = 'scripts/capture-run-evidence.sh "${usage_dest}" "${usage_start}" "${usage_end}"'
 
+[tasks."evidence:datadog"]
+description = "Exports the service's Datadog series over a test's time range, and the dashboard's definition. Run it after the test"
+usage = '''
+arg "<dest>" help="Evidence directory, e.g. evidencia/scaled/2026-11-15"
+arg "<run>" help="Names the files, e.g. pool-ramp"
+arg "<start>" help="UTC ISO 8601: about 15 s before the test"
+arg "<end>" help="UTC ISO 8601: about a minute after the test"
+arg "<dashboard>" help="Dashboard JSON path, next to the Artillery report"
+'''
+run = 'scripts/capture-datadog-evidence.sh "${usage_dest}" "${usage_run}" "${usage_start}" "${usage_end}" "${usage_dashboard}"'
+
 [tasks."perf:install"]
 description = "Installs Artillery"
 dir = "perf"
