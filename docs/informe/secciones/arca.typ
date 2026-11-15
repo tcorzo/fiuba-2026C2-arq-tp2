@@ -20,14 +20,18 @@ lo valida antes de llamar a ARCA: siete u ocho dígitos, sin cero adelante, entr
 1000000 y 99999999 [E-47] [E-48]. Un `dni` inválido responde `400` y no llega a
 ARCA [E-50] [E-53].
 
+El generador de carga manda un `dni` aleatorio en ese rango en cada exchange
+[E-77]. Lo manda como texto: corrimos el escenario contra un servidor local que
+imprime el body, y los 12 exchanges llegaron con el `dni` entre comillas [E-78].
+
 El adaptador llama a `POST {arcaUri}/validar` con `{"dni": …}`. Usa `fetch` de
 Node con una sola señal de timeout para toda la llamada [E-49]. El timeout es de
 2000 ms y llega a la app por el output `app_config` de Terraform [E-51]. Es
 cuatro veces la respuesta más lenta que observamos [E-45].
 
 El servicio valida el `dni` antes de cualquier escritura o transferencia
-[E-52]. Así, un rechazo o una falla de ARCA no mueve fondos ni escribe en el
-log. Los tests lo verifican para el rechazo, la falla y cualquier otro error
+[E-52]. Un rechazo o una falla de ARCA no mueve fondos ni agrega una entrada al
+log de exchanges. Los tests lo verifican para el rechazo, la falla y cualquier otro error
 del adaptador [E-53]. Un exchange aprobado devuelve el `codigoAutorizacion` de
 ARCA en la respuesta [E-50].
 
@@ -56,11 +60,11 @@ ARCA en la respuesta [E-50].
 
 El rechazo es un `403`: el pedido es válido, pero ARCA no autoriza al cliente.
 Una falla de ARCA es un `502`: el error es de la dependencia, no del cliente
-[E-55]. Así, un cliente y un dashboard distinguen las dos situaciones.
+[E-55]. Con esos dos códigos, un cliente y un dashboard distinguen las dos
+situaciones.
 
 El servicio no reintenta. Una falla de ARCA responde `502` en el primer intento
-[E-49]. Lo decidimos así para medir la tasa de fallas de ARCA tal como es. El
-reintento es una candidata a táctica superadora (sección 9).
+[E-49]. Lo decidimos así para medir la tasa de fallas de ARCA tal como es.
 
 == Log
 
@@ -90,8 +94,37 @@ Son 14 líneas para 15 requests: el `dni` inválido no llegó a ARCA [E-50]. Hub
 
 == Métricas propias
 
+La misma función que escribe la línea de log publica dos métricas por cada
+validación, con cualquier resultado [E-79] [E-80]:
+
+#table(
+  columns: (auto, auto, 1fr),
+  inset: (x: 6pt, y: 4pt),
+  stroke: 0.4pt + suave,
+  align: (left, left, left),
+  table.header([*Métrica*], [*Tipo*], [*Qué mide*]),
+  [`arvault.arca.validation.duration`],
+  [Distribución (ms)],
+  [La duración de cada llamada a `POST /validar`],
+
+  [`arvault.arca.validation.outcomes`],
+  [Contador],
+  [Las validaciones, con el tag `outcome`: `approved`, `rejected` o `error`],
+)
+
+La duración es una distribución y no un timer. Datadog calcula sus percentiles
+con las muestras de todos los nodos, y eso sirve también en el caso escalado
+[E-81].
+
+El exchange publica su propia duración, `arvault.exchange.processing.duration`,
+para correlacionar ARCA con arVault. Empieza a medir cuando termina la
+validación, así que las dos duraciones no se superponen [E-82]. El dashboard
+muestra las dos en un mismo gráfico, y las validaciones por resultado en otro
+[E-83].
+
 #pendiente[
-  Las métricas `arca.validation.duration` y `arca.validation.outcomes`, con un
-  screenshot de Datadog durante la medición de 1 nodo. Depende del PR \#18: hasta
-  ese cambio, las métricas de la app no llegaban al agente de Datadog.
+  El screenshot de esos dos gráficos durante la prueba de 1 nodo, con el JSON
+  exportado del dashboard. Con los datos, explicar qué parte de la latencia del
+  exchange es ARCA, y si la proporción de aprobaciones, rechazos y errores se
+  mantiene bajo carga.
 ]
