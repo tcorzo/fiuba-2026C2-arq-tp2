@@ -337,6 +337,39 @@
   ubicacion: ansible/vmss_setup.yml
   lineas: "5-8"
   commit: 3cf5482
+- id: E-77
+  descripcion: "Escenario de carga: cada exchange manda un `dni` aleatorio entre 1000000 y 99999999."
+  ubicacion: perf/baseline.yaml
+  lineas: "100-126"
+  commit: e0cbe46
+- id: E-78
+  descripcion: "`baseline.yaml` contra un servidor local que imprime el body de cada `POST /exchange` (`evidencia/arca/echo-server.mjs`): los 12 exchanges mandan el `dni` como texto. La salida de Artillery está en `dni-generador-de-carga-artillery.txt`."
+  ubicacion: evidencia/arca/dni-generador-de-carga.txt
+- id: E-79
+  descripcion: "`validateDni`: mide la llamada a ARCA y cuenta el resultado en cada caso, junto a la línea de log."
+  ubicacion: node/exchange.js
+  lineas: "222-250"
+  commit: 3cf5482
+- id: E-80
+  descripcion: "Las dos métricas de ARCA: la distribución `arca.validation.duration` y el contador `arca.validation.outcomes` con el tag `outcome`. El cliente les agrega el prefijo `arvault.`."
+  ubicacion: node/metrics.js
+  lineas: "128-138"
+  commit: 3cf5482
+- id: E-81
+  descripcion: "Las duraciones son distribuciones: Datadog calcula los percentiles sobre las muestras de todos los nodos. Terraform les habilita los percentiles."
+  ubicacion: infra/envs/prd/observability/main.tf
+  lineas: "13-35"
+  commit: 3cf5482
+- id: E-82
+  descripcion: "El exchange valida el `dni` y recién después arranca su timer: `exchange.processing.duration` no incluye a ARCA."
+  ubicacion: node/exchange.js
+  lineas: "118-124"
+  commit: 3cf5482
+- id: E-83
+  descripcion: "Dashboard de Datadog: un gráfico con las p50 y p95 de ARCA y del exchange, y otro con las validaciones por segundo según su resultado."
+  ubicacion: infra/envs/prd/observability/dashboards/load-test.json
+  lineas: "443-519"
+  commit: 3cf5482
 - id: E-84
   descripcion: "Primera ejecución del caso de 1 nodo (`baseline.yaml`): de 54.600 requests, 29.945 tienen respuesta y 24.655 terminan en timeout: 3 antes del escalón de 200 rps y 24.652 desde ahí."
   ubicacion: perf/results/1-node/baseline-ramp.json

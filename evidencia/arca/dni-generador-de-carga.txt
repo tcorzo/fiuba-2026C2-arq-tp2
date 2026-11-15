@@ -1,0 +1,12 @@
+{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"23959959"}  typeof dni=string
+{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"91162710"}  typeof dni=string
+{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"44665285"}  typeof dni=string
+{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"96657578"}  typeof dni=string
+{"baseCurrency":"USD","counterCurrency":"ARS","baseAccountId":102,"counterAccountId":101,"baseAmount":0.66,"dni":"10701338"}  typeof dni=string
+{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"87985915"}  typeof dni=string
+{"baseCurrency":"USD","counterCurrency":"ARS","baseAccountId":102,"counterAccountId":101,"baseAmount":0.66,"dni":"22915506"}  typeof dni=string
+{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"36309358"}  typeof dni=string
+{"baseCurrency":"USD","counterCurrency":"ARS","baseAccountId":102,"counterAccountId":101,"baseAmount":0.66,"dni":"99560342"}  typeof dni=string
+{"baseCurrency":"USD","counterCurrency":"ARS","baseAccountId":102,"counterAccountId":101,"baseAmount":0.66,"dni":"17506084"}  typeof dni=string
+{"baseCurrency":"ARS","counterCurrency":"USD","baseAccountId":101,"counterAccountId":102,"baseAmount":1000,"dni":"45455948"}  typeof dni=string
+{"baseCurrency":"USD","counterCurrency":"ARS","baseAccountId":102,"counterAccountId":101,"baseAmount":0.66,"dni":"12367796"}  typeof dni=string
