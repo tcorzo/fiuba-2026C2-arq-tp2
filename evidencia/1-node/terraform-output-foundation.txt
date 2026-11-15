@@ -1,0 +1,6 @@
+arca_uri = "http://10.0.4.128:8080"
+database_url = <sensitive>
+jumpbox_fqdn = "teesxlmtvy.centralus.cloudapp.azure.com"
+location = "centralus"
+resource_group_name = "RG-PRODUCTION"
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDKiXqxaHpWy1i3WZ0RtVhdvz9Fgm6E8ZdjmUfxla1NIDL1oMPbbZEq63LushVyeTCCoFQ8Lth1S+mcrJGi+/xwO3Aw9ll7UjXhOiOb+lgMaImHnEWdiOGDfUlD36uNvtkZIt111Owe0f6gysZlEvsVwpXBlDvoDcGqON5GU8aZC9ttl3akVbGhva4NfLWERYJGO9RollRD78g+V9o2riPrtZHqUw10h1HLKiYTx7pEaMyjL83c8NMoqc2YUTY+zHjor5YXpI+cX5fRy0vFZf8fX1STXkze7fg+OuYDqSowW4bw89Y6qNkMo2VA2+ug7CNLSOJ62GXnCmKACCUN8Ay91PVfs1W0ugFvUcEpxAlXhS5iVONbHdF7Gy5Cqi46tkzSlNsfje2M+QO3+DfRXCaUVhXSTZCPWrZ9NTHCARnTNzGaTZmioNG41iv6LReh2sEZT+9ld5/m8nyYBypUyrys+b7qJZGom/0qfI/bTNYEAwXpfWBBkTAvrTNCeDyxUwk= generated-by-azure"

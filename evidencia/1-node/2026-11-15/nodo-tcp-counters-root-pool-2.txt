@@ -1,0 +1,22 @@
+== before
+10.0.2.4 | CHANGED | rc=0 >>
+Sun Nov 15 14:23:22 UTC 2026
+$ nstat -az TcpPassiveOpens TcpExtTCPSynRetrans TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent
+#kernel
+TcpPassiveOpens                 513                0.0
+TcpExtSyncookiesSent            0                  0.0
+TcpExtListenOverflows           0                  0.0
+TcpExtListenDrops               0                  0.0
+TcpExtTCPReqQFullDrop           0                  0.0
+TcpExtTCPSynRetrans             42                 0.0
+== after
+10.0.2.4 | CHANGED | rc=0 >>
+Sun Nov 15 14:27:00 UTC 2026
+$ nstat -az TcpPassiveOpens TcpExtTCPSynRetrans TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent
+#kernel
+TcpPassiveOpens                 1012               0.0
+TcpExtSyncookiesSent            0                  0.0
+TcpExtListenOverflows           0                  0.0
+TcpExtListenDrops               0                  0.0
+TcpExtTCPReqQFullDrop           0                  0.0
+TcpExtTCPSynRetrans             42                 0.0

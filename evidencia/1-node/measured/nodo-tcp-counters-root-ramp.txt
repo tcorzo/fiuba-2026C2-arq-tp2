@@ -1,0 +1,9 @@
+Sat Nov 14 21:26:24 UTC 2026
+$ nstat -az TcpPassiveOpens TcpExtTCPSynRetrans TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent
+#kernel
+TcpPassiveOpens                 66561              0.0
+TcpExtSyncookiesSent            0                  0.0
+TcpExtListenOverflows           0                  0.0
+TcpExtListenDrops               0                  0.0
+TcpExtTCPReqQFullDrop           0                  0.0
+TcpExtTCPSynRetrans             118                0.0

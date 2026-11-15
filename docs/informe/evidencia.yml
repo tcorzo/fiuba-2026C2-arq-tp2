@@ -329,3 +329,101 @@
   ubicacion: ansible/vmss_setup.yml
   lineas: "5-8"
   commit: 3cf5482
+- id: E-84
+  descripcion: "Primera ejecución del caso de 1 nodo (`baseline.yaml`): de 54.600 requests, 29.945 tienen respuesta y 24.655 terminan en timeout: 3 antes del escalón de 200 rps y 24.652 desde ahí."
+  ubicacion: perf/results/1-node/baseline-ramp.json
+- id: E-85
+  descripcion: "Contadores TCP del nodo después de la primera ejecución: 30.570 conexiones entrantes (`TcpPassiveOpens`) desde su arranque, sin descartes en la cola de listen."
+  ubicacion: evidencia/1-node/measured/nodo-tcp-counters.txt
+- id: E-86
+  descripcion: "`perf/dns-bench.mjs` en el generador de carga: 134 resoluciones por segundo por DNS, con una espera mediana de 5,7 s. Desde `/etc/hosts`, 96.865 por segundo."
+  ubicacion: evidencia/1-node/measured/dns-bench.txt
+- id: E-87
+  descripcion: "Rampa contra `/` con el load balancer en `/etc/hosts`: los escalones de 200 rps tienen 3 timeouts en 10.000 requests."
+  ubicacion: perf/results/1-node/root-ramp.json
+- id: E-88
+  descripcion: "Predicciones del caso de 1 nodo, P1 a P9, commiteadas en `f78658e` antes de cualquier medición."
+  ubicacion: perf/predicciones.md
+- id: E-89
+  descripcion: "Conexión del generador de carga de los casos medidos: ethernet cableada (`enp4s0`) a 1.000 Mb/s."
+  ubicacion: evidencia/entorno/tcorzo/conexion.txt
+- id: E-90
+  descripcion: "Latencia de base contra `/` desde el generador cableado: 60 requests, mediana de 169 ms y p95 de 172,5 ms."
+  ubicacion: perf/results/baseline/root-tcorzo.json
+- id: E-92
+  descripcion: "Escenario `baseline.yaml`: la mezcla de exchanges y lecturas con `dni` aleatorio. El entorno `pool-ramp` repite los escalones del TP 1, agrega 400, 600, 800 y 1.000 rps y comparte conexiones keep-alive (`http.pool`)."
+  ubicacion: perf/baseline.yaml
+- id: E-94
+  descripcion: "Segunda ejecución del caso de 1 nodo (`sessions.yaml`): 158.776 requests, 157.497 respuestas y 1.279 timeouts; métricas por ruta en `plugins.metrics-by-endpoint`."
+  ubicacion: perf/results/1-node/sessions-ramp.json
+- id: E-110
+  descripcion: "Contadores TCP del nodo después de la rampa contra `/`: `TcpPassiveOpens` en 66.561."
+  ubicacion: evidencia/1-node/measured/nodo-tcp-counters-root-ramp.txt
+- id: E-111
+  descripcion: "Instancias del VMSS en el redespliegue del 15 de noviembre: una instancia `Standard_F1als_v7`."
+  ubicacion: evidencia/1-node/2026-11-15/az-vmss-list-instances.txt
+- id: E-112
+  descripcion: "Diagnóstico contra `/` con pool compartido a 300, 600 y 1.000 rps: 114.000 requests, 114.000 respuestas, sin errores."
+  ubicacion: perf/results/1-node/2026-11-15/root-pool.json
+- id: E-113
+  descripcion: "Contadores TCP del nodo alrededor del diagnóstico con pool: `TcpPassiveOpens` de 34 a 503."
+  ubicacion: evidencia/1-node/2026-11-15/nodo-tcp-counters-root-pool.txt
+- id: E-114
+  descripcion: "Ejecución final del caso de 1 nodo (`pool-ramp`): 222.600 requests, 193.280 respuestas y 29.320 timeouts; métricas por ruta en `plugins.metrics-by-endpoint`."
+  ubicacion: perf/results/1-node/2026-11-15/pool-ramp.json
+- id: E-115
+  descripcion: "Datadog, ejecución final: p50 de `arvault.http.duration` por ruta."
+  ubicacion: evidencia/1-node/2026-11-15/datadog-http-duration-p50-pool-ramp.json
+- id: E-116
+  descripcion: "Datadog, ejecución final: respuestas del nodo por ruta, por intervalo de 10 s."
+  ubicacion: evidencia/1-node/2026-11-15/datadog-http-responses-pool-ramp.json
+- id: E-117
+  descripcion: "Datadog, ejecución final: CPU user + system del nodo, con un máximo de 47,4 %."
+  ubicacion: evidencia/1-node/2026-11-15/datadog-cpu-pool-ramp.json
+- id: E-118
+  descripcion: "Datadog, ejecución final: lag máximo del event loop del nodo."
+  ubicacion: evidencia/1-node/2026-11-15/datadog-eventloop-lag-max-pool-ramp.json
+- id: E-119
+  descripcion: "Datadog, ejecución final: p50 de `arvault.arca.validation.duration`."
+  ubicacion: evidencia/1-node/2026-11-15/datadog-arca-validation-p50-pool-ramp.json
+- id: E-120
+  descripcion: "Datadog, ejecución final: p50 de `arvault.exchange.processing.duration`."
+  ubicacion: evidencia/1-node/2026-11-15/datadog-exchange-processing-p50-pool-ramp.json
+- id: E-121
+  descripcion: "Azure Monitor, ejecución final: CPU de Postgres por minuto, hasta 84,5 % de promedio."
+  ubicacion: evidencia/1-node/2026-11-15/postgres-cpu-percent.json
+- id: E-122
+  descripcion: "Azure Monitor, ejecución final: sesiones de Postgres por tipo de espera, por minuto; `Lock` hasta 8."
+  ubicacion: evidencia/1-node/2026-11-15/postgres-sessions-by-wait-event-type.json
+- id: E-123
+  descripcion: "Azure Monitor, ejecución final: créditos de CPU de Postgres, de 32 a 30."
+  ubicacion: evidencia/1-node/2026-11-15/postgres-cpu-credits-remaining.json
+- id: E-124
+  descripcion: "Azure Monitor, ejecución final: CPU de ARCA en milicores, con un máximo de 69."
+  ubicacion: evidencia/1-node/2026-11-15/arca-metrics.json
+- id: E-125
+  descripcion: "Contadores TCP del nodo antes y después de la ejecución final: `TcpPassiveOpens` de 1.280 a 5.636, sin descartes."
+  ubicacion: evidencia/1-node/2026-11-15/nodo-tcp-counters.txt
+- id: E-126
+  descripcion: "Contadores TCP del generador antes y después de la ejecución final: `TcpExtTCPSynRetrans` de 57.553 a 232.715."
+  ubicacion: evidencia/1-node/2026-11-15/generador-tcp-counters.txt
+- id: E-127
+  descripcion: "`vmstat` del generador durante la ejecución final: CPU idle de 0 a 1 % desde el escalón de 600 rps."
+  ubicacion: evidencia/1-node/2026-11-15/generador-vmstat.txt
+- id: E-128
+  descripcion: "Screenshot del dashboard de Datadog durante la ejecución final."
+  ubicacion: perf/results/1-node/2026-11-15/dashboard-pool-ramp.png
+- id: E-129
+  descripcion: "Límite de CPU del contenedor `db` en el TP 1: 0,25 cores."
+  ubicacion: .env
+  lineas: "39"
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-130
+  descripcion: "Ejecución final de la rampa del TP 1: completa hasta 150 rps, con timeouts desde 200 rps."
+  ubicacion: doc/informe/evidencia/final-main-baseline-ramp.json
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-131
+  descripcion: "Estado del nodo después de la ejecución final: sin reinicios de pm2 y sin descartes en las colas de listen y SYN."
+  ubicacion: evidencia/1-node/2026-11-15/nodo-post-ramp.txt

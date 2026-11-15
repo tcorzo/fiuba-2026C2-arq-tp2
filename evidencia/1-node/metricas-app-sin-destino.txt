@@ -1,0 +1,21 @@
+Thu Nov 12 22:24:58 UTC 2026
+$ getent hosts graphite
+(no address)
+$ METRICS_* in the app environment
+(none)
+$ ss -lunp | grep 8125
+UNCONN 0      0          127.0.0.1:8125      0.0.0.0:*    users:(("agent",pid=10762,fd=19))        
+$ datadog-agent status (DogStatsD)
+DogStatsD
+=========
+
+  Event Packets: 0
+  Event Parse Errors: 0
+  Metric Packets: 150
+  Metric Parse Errors: 0
+  Service Check Packets: 0
+  Service Check Parse Errors: 0
+  Udp Bytes: 16,626
+  Udp Packet Reading Errors: 0
+  Udp Packets: 12
+  Uds Bytes: 0
