@@ -51,7 +51,8 @@ This document describes the Azure infrastructure in `infra/` (stacks in `infra/e
 | | `module.app.azurerm_lb.this` | Load Balancer `tp2_lb` (Standard) | |
 | | `module.app.azurerm_lb_backend_address_pool.this` | Backend pool | VMSS NICs join it |
 | | `module.app.azurerm_lb_probe.this` | Health probe | TCP on port 3443 |
-| | `module.app.azurerm_lb_rule.http` | LB rules `HTTPSFwd`, `HTTPFwd` | TCP 443 → 3443, TCP 80 → 3080 |
+| | `module.app.azurerm_lb_rule.https` | LB rule `HTTPSFwd` | TCP 443 → 3443. The Node process terminates TLS |
+| | `module.app.azurerm_lb_rule.http` | LB rule `HTTPFwd` | TCP 80 → 3080, where the Node process answers `308` to HTTPS |
 
 Providers (each stack's `terraform.tf`): `azurerm ~>4.80` and `random ~>3.0`. State and runs live in HCP Terraform (organization `gaudi-followers`, project `arvault-prd`, one workspace per stack). `infra/bootstrap` creates the workspaces and the Azure identity the remote runs use. See the prd [README](../../infra/envs/prd/README.md).
 
@@ -233,6 +234,8 @@ sequenceDiagram
 This is the path of the course's example app, which `node/` no longer holds: it now holds tp1's exchange service (`node/server.js`), which does not call ARCA yet. The `dni` → `/validar` step comes back with the ARCA integration. Every route except `GET /` reads or writes PostgreSQL, over TLS on port 5432.
 
 `GET /` returns `Server is up.` without calling ARCA or PostgreSQL. The TP asks you to use it to measure baseline latency.
+
+A client that uses `http://` reaches port 3080 through `HTTPFwd`. The Node process answers `308` with `Location: https://<lb_fqdn><path>`, and Express never sees that request. A client that follows the redirect repeats it over HTTPS with the same method and body. The first request has already crossed the internet in plain text: the redirect stops a client from staying on HTTP, it does not protect what that client already sent.
 
 The probe is **TCP-only**. The LB marks an instance healthy as soon as something is listening on port 3443, even if the app cannot reach ARCA or its storage.
 
