@@ -1,0 +1,28 @@
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0* Host hddbobhwui.centralus.cloudapp.azure.com:80 was resolved.
+* IPv6: (none)
+* IPv4: 132.196.17.134
+*   Trying 132.196.17.134:80...
+* Established connection to hddbobhwui.centralus.cloudapp.azure.com (132.196.17.134 port 80) from 10.0.0.216 port 42260 
+* using HTTP/1.x
+> POST /exchange HTTP/1.1
+> Host: hddbobhwui.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 2
+> 
+} [2 bytes data]
+* upload completely sent off: 2 bytes
+< HTTP/1.1 308 Permanent Redirect
+< Location: https://hddbobhwui.centralus.cloudapp.azure.com/exchange
+< Date: Mon, 16 Nov 2026 17:54:15 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< Transfer-Encoding: chunked
+< 
+{ [5 bytes data]
+100      2   0      0 100      2      0      5                              0100      2   0      0 100      2      0      5                              0100      2   0      0 100      2      0      5                              0
+* Connection #0 to host hddbobhwui.centralus.cloudapp.azure.com:80 left intact
