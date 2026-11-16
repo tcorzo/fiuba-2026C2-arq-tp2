@@ -1,0 +1,42 @@
+== before
+10.0.2.5 | CHANGED | rc=0 >>
+Mon Nov 16 17:56:55 UTC 2026
+$ nstat -az TcpPassiveOpens TcpExtTCPSynRetrans TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent
+#kernel
+TcpPassiveOpens                 32231              0.0
+TcpExtSyncookiesSent            0                  0.0
+TcpExtListenOverflows           0                  0.0
+TcpExtListenDrops               0                  0.0
+TcpExtTCPReqQFullDrop           0                  0.0
+TcpExtTCPSynRetrans             577                0.0
+10.0.2.4 | CHANGED | rc=0 >>
+Mon Nov 16 17:56:55 UTC 2026
+$ nstat -az TcpPassiveOpens TcpExtTCPSynRetrans TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent
+#kernel
+TcpPassiveOpens                 46066              0.0
+TcpExtSyncookiesSent            0                  0.0
+TcpExtListenOverflows           0                  0.0
+TcpExtListenDrops               0                  0.0
+TcpExtTCPReqQFullDrop           0                  0.0
+TcpExtTCPSynRetrans             843                0.0
+== after
+10.0.2.4 | CHANGED | rc=0 >>
+Mon Nov 16 18:09:48 UTC 2026
+$ nstat -az TcpPassiveOpens TcpExtTCPSynRetrans TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent
+#kernel
+TcpPassiveOpens                 49772              0.0
+TcpExtSyncookiesSent            0                  0.0
+TcpExtListenOverflows           0                  0.0
+TcpExtListenDrops               0                  0.0
+TcpExtTCPReqQFullDrop           0                  0.0
+TcpExtTCPSynRetrans             851                0.0
+10.0.2.5 | CHANGED | rc=0 >>
+Mon Nov 16 18:09:48 UTC 2026
+$ nstat -az TcpPassiveOpens TcpExtTCPSynRetrans TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent
+#kernel
+TcpPassiveOpens                 36067              0.0
+TcpExtSyncookiesSent            0                  0.0
+TcpExtListenOverflows           0                  0.0
+TcpExtListenDrops               0                  0.0
+TcpExtTCPReqQFullDrop           0                  0.0
+TcpExtTCPSynRetrans             585                0.0
