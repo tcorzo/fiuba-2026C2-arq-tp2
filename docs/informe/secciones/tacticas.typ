@@ -11,3 +11,5 @@
   implementación, resultados y tradeoffs. Extensión orientativa: 3 páginas por
   táctica.
 ]
+
+#include "tacticas/tope-de-conexiones.typ"
