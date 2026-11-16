@@ -184,3 +184,101 @@ Los números del caso 1 nodo vienen de su ejecución final, con tag
   de 32 a 30, así que una ejecución igual no debería agotarlos.
 
 ## Tácticas
+
+### Terminación TLS (H-38)
+
+**Hipótesis:** terminar TLS en el proceso de Node no cambia la latencia que
+mide Artillery ni el componente que limita. Su costo aparece en la CPU de los
+nodos, que sube en los dos, más en el que atiende más requests, sin
+acercarse a saturarlos.
+
+- **Caso:** 2 nodos del VMSS (`Standard_F1als_v7`, 1 vCPU cada uno), con un
+  proceso de Node en pm2 por nodo que termina TLS con `node:https` en el 3443 y
+  responde `308` a HTTPS en el 3080. El load balancer reenvía TCP 443 → 3443 y
+  80 → 3080. Certificado autofirmado ECDSA P-256. Postgres `B_Standard_B1ms` y
+  ARCA en ACI con 0,5 vCPU, como en el caso escalado. Los cambios son
+  `898a868` a `4235673`; `vmss_instances` sigue en 2 (`2e78fc1`). Evidencia de
+  la infraestructura en `evidencia/tls-termination/`.
+- **Escenario:** el mismo que el caso escalado. `baseline.yaml`, entorno
+  `pool-ramp`: doce escalones de 60 s a 10, 25, 50, 75, 100, 150, 200, 300,
+  400, 600, 800 y 1.000 rps, la mezcla del TP 1 y un pool compartido de
+  conexiones keep-alive. Lo único que cambia es el esquema de la URL, de
+  `http://` a `https://`.
+- **Generador de carga:** otro equipo que el del caso escalado: una laptop en
+  Buenos Aires, con WSL2 sobre Windows, por WiFi (enlace de 585 Mbps, 88 y
+  96 Mbit/s de bajada; `evidencia/entorno/matias/`). Su latencia de base contra
+  `/`, ya por HTTPS, tiene mediana de 194,4 ms y p95 de 202,4 ms, con un rango
+  de 188 a 207 ms (`perf/results/baseline/root-matias.json`). La del caso
+  escalado, desde la estación cableada, tiene mediana de 169 ms y un rango de
+  11 ms (`perf/results/baseline/root-tcorzo.json`). Las latencias en el
+  cliente se comparan restando la latencia de base de cada equipo. La CPU de
+  los nodos se mide en el servidor y no depende del generador.
+
+Los números del caso escalado vienen de su ejecución, con tag
+`measured/scaled`, tal como los resume el informe (sección *Caso escalado*).
+
+#### Predicciones
+
+| # | Métrica | Predicción | Escalado |
+|---|---|---|---|
+| T1 | Mediana en el cliente de cada escalón, de 10 a 400 rps, menos la latencia de base de su generador | La del mismo escalón del caso escalado, con una diferencia menor que los 19 ms de ruido de esta red: medianas de 198 a 205 ms | 3,5 a 10,5 ms sobre la base (172,5 a 179,5 ms) |
+| T2 | Último escalón atendido completo (sin timeouts y con el 95 % de las respuestas) | 400 rps | 400 rps |
+| T3 | Componente que limita | Postgres, en la escritura sobre las cuentas internas | El mismo |
+| T4 | CPU de cada nodo en el escalón de 400 rps (Datadog, user + system) | Sube, a unos 13,5 % el menos cargado y 20 % el más cargado | 11,3 % y 15,6 % |
+| T5 | CPU máxima de los nodos en la ejecución (Datadog, user + system) | Sube, entre 22,9 % y 30 % | 22,9 % |
+| T6 | Diferencia de CPU entre los dos nodos en el escalón de 400 rps | Crece, a unos 7 puntos (entre 6 y 8) | 4,3 puntos |
+
+#### Razonamiento
+
+- **T1.** TLS tiene dos fases. El handshake, con criptografía asimétrica, pasa
+  una vez por conexión. Después, cada request y cada respuesta se cifran con
+  AES-256-GCM, que cuesta microsegundos por mensaje. `http.response_time` de
+  Artillery es la fase `firstByte`, medida con la conexión ya abierta, así que
+  no incluye el handshake (TP 1, `encrypt-data.typ`, citando
+  `artillery/core/lib/engine_http.js:825`). Además, `pool-ramp` reutiliza las
+  conexiones (`http.pool: 1000`): hay pocos handshakes. El cifrado por mensaje
+  queda muy por debajo del ruido. La red cambia: este generador está 25 ms más
+  lejos que el del caso escalado y varía 19 ms en lugar de 11. Por eso T1
+  compara lo que la mediana suma sobre la latencia de base de cada equipo.
+- **T2 y T3.** Los nodos no fueron el límite del caso escalado: llegaron como
+  máximo al 22,9 % de CPU, y el límite fue Postgres, con 63 % de CPU a 600 rps
+  y hasta 12 esperas por lock. TLS no cambia el trabajo de Postgres.
+- **T4 y T5.** Cada request cuesta un poco más: el cifrado corre en el hilo del
+  event loop de Node, sobre la única vCPU de cada nodo, el mismo que atiende
+  los requests. Suman CPU los handshakes de las conexiones que abre el pool al
+  subir la concurrencia de cada escalón, y el cifrado y descifrado de cada
+  mensaje. A la misma carga, los mismos requests cuestan más CPU. Cada
+  operación es barata, y cada nodo atiende la mitad de los requests, así que
+  esperamos una subida chica: en T4, unos 2 puntos en el nodo menos cargado y
+  4 en el más cargado, un 28 % más. La CPU máxima se da donde los nodos
+  atienden más requests, y ese techo lo pone Postgres. Si el techo no cambia
+  (T3), los nodos llegan al mismo throughput máximo con más trabajo por
+  request. En T5 esperamos la misma proporción que en el nodo más cargado:
+  22,9 % más un 28 % es unos 29 %, así que la máxima queda por debajo del
+  30 %.
+- **T6.** Los dos nodos terminan TLS, pero el costo de TLS es por request, no
+  por nodo. Los dos no atienden la misma cantidad de requests en cada escalón:
+  el load balancer reparte conexiones, y con el pool cada conexión lleva
+  muchos requests. El nodo que atiende más paga más TLS, así que la diferencia
+  entre los dos se estira.
+
+#### Qué cambiaría la predicción
+
+- **Si la CPU de los nodos sube más de lo previsto,** el costo de TLS en Node
+  es mayor que el de la criptografía sola: llamadas al sistema y copias de
+  buffers por cada mensaje. Fallan T4 y T5.
+- **Si la CPU de un nodo llega al 100 % antes de los 400 rps,** el límite pasa
+  a los nodos. Fallan T2 y T3, y la táctica sí cuesta throughput.
+- **Si la diferencia entre nodos no crece, o pasa de 8 puntos,** el load
+  balancer repartió distinto las conexiones del pool. Reparte conexiones y no
+  requests, y con pocas conexiones el reparto de un escalón puede desviarse,
+  con o sin TLS. Falla T6 sin que TLS sea la causa; lo verificamos con las
+  respuestas por nodo (`datadog-http-responses-by-host`).
+- **Si la mediana, menos la latencia de base, se mueve más de 19 ms,** el
+  cifrado por mensaje no es despreciable, o la red cambió entre la latencia de
+  base y la ejecución. Hay que medir de nuevo la latencia de base para separar
+  las dos causas.
+- **Si el generador se satura antes de los 400 rps,** la latencia y los
+  timeouts miden el generador y no el servicio. Lo verificamos con
+  `generador-vmstat.txt`. El del caso escalado usó toda su CPU recién desde
+  600 rps.
