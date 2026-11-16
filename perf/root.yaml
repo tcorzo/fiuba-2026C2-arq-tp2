@@ -1,5 +1,8 @@
 config:
   target: "{{ $processEnvironment.TARGET }}"
+  # The certificate is self-signed (`mise run app:certs`): not validated.
+  tls:
+    rejectUnauthorized: false
   phases:
     - duration: 60
       arrivalRate: 1
