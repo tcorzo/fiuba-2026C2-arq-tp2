@@ -1,0 +1,218 @@
+{
+  "interval": "PT1M",
+  "timespan": "2026-11-16T01:09:35Z/2026-11-16T01:27:11Z",
+  "value": [
+    {
+      "name": "DipAvailability",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:09:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:10:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:11:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:12:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:13:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:14:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:15:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:16:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:17:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:18:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:19:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:20:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:21:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:22:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:23:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:24:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:25:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:26:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "BackendIPAddress",
+                "value": "BackendIPAddress"
+              },
+              "value": "10.0.2.5"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:09:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:10:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:11:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:12:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:13:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:14:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:15:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:16:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:17:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:18:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:19:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:20:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:21:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:22:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:23:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:24:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:25:00Z"
+            },
+            {
+              "average": 100.0,
+              "maximum": 100.0,
+              "timeStamp": "2026-11-16T01:26:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "BackendIPAddress",
+                "value": "BackendIPAddress"
+              },
+              "value": "10.0.2.4"
+            }
+          ]
+        }
+      ],
+      "unit": "Count"
+    }
+  ]
+}
