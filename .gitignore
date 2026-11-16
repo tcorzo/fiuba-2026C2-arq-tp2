@@ -66,3 +66,7 @@ certs/
 # A module's lock file comes from `terraform validate` initialising it on its own.
 # Only a stack's lock file is authoritative.
 infra/modules/**/.terraform.lock.hcl
+
+# Snapshots and console logs of the Playwright MCP, used for the dashboard
+# screenshots. Tool output, not evidence.
+.playwright-mcp/
