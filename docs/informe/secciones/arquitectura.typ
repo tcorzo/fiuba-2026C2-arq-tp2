@@ -4,7 +4,8 @@
 
 Las dos configuraciones medidas tienen los mismos componentes y conectores.
 Sólo cambia la cantidad de nodos del VMSS: uno en el caso de 1 nodo y dos en el
-caso escalado. Terraform fija esa cantidad en el VMSS [E-05].
+caso escalado. Terraform fija esa cantidad con la variable `vmss_instances`
+[E-136].
 
 == Componentes
 
@@ -120,15 +121,56 @@ agente. El load balancer reparte las conexiones entre los dos nodos [E-05].
 Postgres y ARCA no se replican: los dos nodos usan el mismo servidor y el mismo
 contenedor [E-04] [E-59].
 
-#pendiente[
-  *Evidencia de cada configuración desplegada.* Una oración por caso que cite
-  la salida de `terraform state list`, `terraform output` y
-  `az vmss list-instances`, tomada mientras esa configuración estaba levantada.
-  Prueba que existió lo que dibujan los diagramas.
-  - 1 nodo: los archivos ya están en `evidencia/1-node/` (PR \#22). Citarlos
-    cuando ese PR llegue a `main`.
-  - Escalado: tomar la salida al desplegar los 2 nodos y citarla.
+== Lo que estaba desplegado en cada ejecución
 
+Capturamos cada configuración el 15 de noviembre, mientras estaba levantada. La @tabla-desplegado compara las dos capturas.
+
+#figure(
+  {
+    set par(justify: false)
+    table(
+      columns: (auto, 1fr, 1fr),
+      inset: (x: 6pt, y: 4pt),
+      stroke: 0.4pt + suave,
+      align: (left, left, left),
+      table.header([*Componente*], [*Caso 1 nodo*], [*Caso escalado*]),
+      [Terraform],
+      [`foundation`: 24 entradas en el state; `platform`: 8 [E-200] [E-201]. Las
+        salidas, sin secretos [E-202] [E-203]],
+      [Las mismas entradas y salidas [E-211] [E-212] [E-213] [E-214]],
+
+      [VMSS],
+      [Capacidad 1, `Standard_F1als_v7` [E-204]. Una instancia [E-111]],
+      [Capacidad 2 [E-215]. Dos instancias con el último modelo [E-137]],
+
+      [Nodo],
+      [1 CPU, 1.893 MiB, Node v24.22.3 y pm2 7.1.2 [E-205]],
+      [Lo mismo en cada nodo [E-216]],
+
+      [Load balancer],
+      [Regla TCP 80 → 3000 y probe TCP al 3000 cada 15 s [E-206] [E-207]],
+      [Igual [E-217] [E-218]],
+
+      [Postgres],
+      [18, `Standard_B1ms` Burstable, 32 GB, sin acceso público,
+        `max_connections` 50 [E-208] [E-209]],
+      [Igual [E-219] [E-220]],
+
+      [ARCA],
+      [`arqsoft/arca:1.0.0`, 0,5 CPU, 0,5 GB, IP privada en el 8080 [E-210]],
+      [Igual [E-221]],
+    )
+  },
+  caption: [Estado de cada configuración desplegada, según `terraform` y
+    `az`.],
+) <tabla-desplegado>
+
+Los dos states tienen las mismas entradas: el VMSS es un solo recurso, y la
+cantidad de instancias es un atributo suyo. El caso escalado cambió sólo la
+variable `vmss_instances` [E-136]. Después, Ansible instaló y desplegó el
+servicio en el nodo nuevo, con el mismo runtime [E-216].
+
+#pendiente[
   *Diagrama de cada táctica superadora.* Si una táctica agrega o cambia un
   componente o un conector (por ejemplo, un Application Gateway), agregar su
   diagrama C&C. Si sólo cambia código dentro del servicio, alcanza con una
