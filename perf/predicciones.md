@@ -393,3 +393,77 @@ explicar el resultado, no para compararlo.
 - **Si Postgres se queda sin créditos de CPU,** Azure lo limita y el
   throughput baja por eso y no por el tope. Lo verificamos con
   `postgres-cpu-credits-remaining.json`.
+
+### Base del tope de conexiones: TLS desde la estación cableada
+
+**Hipótesis:** la configuración de la táctica TLS, medida desde la estación
+cableada, se comporta como el caso escalado medido desde esa misma estación.
+TLS no cambia el trabajo de Postgres (T3), y el generador es el del caso
+escalado. Postgres limita por CPU, con más esperas por lock que con 1 nodo.
+
+Esta ejecución reemplaza a la de la táctica TLS como base del tope de
+conexiones. Aquella corrió desde otro generador, y la táctica corre desde
+esta estación: así las dos ejecuciones comparadas difieren solo en
+`db_pool_max`.
+
+- **Caso:** la configuración de la táctica TLS. 2 nodos del VMSS
+  (`Standard_F1als_v7`, 1 vCPU cada uno), TLS en el proceso de Node,
+  10 conexiones a Postgres por nodo (`9431c65`). Postgres `B_Standard_B1ms` y
+  ARCA en ACI con 0,5 vCPU. Evidencia de la infraestructura en
+  `evidencia/db-pool-cap/`.
+- **Escenario:** el de la táctica TLS. `baseline.yaml`, entorno `pool-ramp`,
+  sobre `https://`.
+- **Generador de carga:** la estación cableada del caso escalado. Latencia de
+  base contra `/` por HTTPS: mediana de 169 ms, p95 de 172,5 ms, rango de 162
+  a 177 ms (`perf/results/baseline/root-tcorzo-https.json`).
+
+Método: el de la sección anterior, con una precisión. La CPU de Postgres de un
+escalón es el mayor promedio por minuto entre los minutos de Azure Monitor
+que se superponen con él. En el caso escalado, el escalón de 600 rps cae
+mitad en un minuto y mitad en el siguiente, y esta regla da el 63,0 % del
+informe.
+
+#### Predicciones
+
+| # | Métrica | Predicción | Escalado (esta estación, sin TLS) | TLS (otra estación) |
+|---|---|---|---|---|
+| B1 | CPU de Postgres en el escalón de 600 rps | 65 %, con un margen de 5 puntos | 63,0 % | 65,7 % |
+| B2 | CPU de Postgres por respuesta en el escalón de 600 rps | 1,1 ms, con un margen de 0,1 ms | 1,08 ms | 1,11 ms |
+| B3 | Máximo de sesiones de Postgres esperando un lock (`Lock`) | Entre 12 y 16 | 12 | 16 |
+| B4 | Máximo de conexiones activas en Postgres | 28, con un margen de 1 | 28 | 28 |
+| B5 | Respuestas por segundo en el escalón de 800 rps | Entre 540 y 600 | 540,5 | 572,8 |
+| B6 | Último escalón atendido completo (sin timeouts y con el 95 % de las respuestas) | 400 rps | 400 rps | 600 rps |
+| B7 | p50 de `GET /rates` en el servidor, escalón de 600 rps | Más de 100 ms | 165,3 ms | 261,4 ms |
+| B8 | Mediana en el cliente de cada intervalo de 10 s, escalones de 10 a 400 rps | 169 a 190 ms: menos de 21 ms sobre la latencia de base | 172 a 180 ms | 180 a 416 ms, sobre 194,4 ms |
+| B9 | Componente que limita | Postgres, por CPU | Postgres | Postgres |
+
+#### Razonamiento
+
+- **B1 a B5 y B9.** Del lado de Postgres, esta ejecución es igual al caso
+  escalado: 2 nodos con 10 conexiones cada uno, la misma mezcla y las mismas
+  filas de `accounts`. La ejecución TLS confirmó que TLS no le agrega trabajo
+  a Postgres: 1,11 ms de CPU por respuesta, contra 1,08 ms sin TLS. Las dos
+  ejecuciones anteriores marcan el rango de B3 y B5.
+- **B6.** El escalón de 600 rps está en el borde. Desde esta estación, el
+  caso escalado no lo completó: tuvo timeouts desde los 20 s. Desde la otra
+  estación, la ejecución TLS lo completó, con la mediana hasta 633 ms. El
+  generador es el del caso escalado, así que esperamos su resultado.
+- **B7.** A 600 rps, Postgres está saturado en las dos ejecuciones
+  anteriores, y los requests esperan conexión. `GET /rates` pasa de unos
+  2 ms a más de 100 ms en el servidor.
+- **B8.** Hasta 400 rps, el servicio responde en pocos milisegundos, y la
+  mediana es casi toda latencia de base. La latencia de base de esta
+  estación es la misma con HTTPS que sin él. El caso escalado quedó entre 3,5
+  y 10,5 ms sobre ella. El margen suma el rango de 15 ms de la latencia de
+  base.
+
+#### Qué cambiaría la predicción
+
+- **Si la CPU por respuesta queda cerca de 0,84 ms,** el costo extra de las
+  ejecuciones anteriores con 2 nodos no se repite. Entonces el tope de
+  conexiones no tiene nada que corregir, y su predicción D cambia.
+- **Si completa el escalón de 600 rps,** el resultado de B6 depende de la
+  ejecución y no del generador: el borde está justo en 600 rps. Comparamos
+  la táctica con las métricas del servidor, que no tienen ese borde.
+- **Si el generador se satura antes de los 600 rps,** la ejecución mide el
+  generador. Lo verificamos con `generador-vmstat.txt`.
