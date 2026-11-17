@@ -61,31 +61,19 @@
           stroke: 0.4pt + suave,
           align: (left, right, right),
           table.header([], [*Escalado (HTTP)*], [*TLS*]),
-          [Mediana en el cliente, de 10 a 400 rps],
-          [172,5 a 179,5 ms [E-138]],
-          [175,9 a 186,8 ms [E-304]],
+          [Mediana en el cliente, de 10 a 400 rps], [172,5 a 179,5 ms [E-138]], [175,9 a 186,8 ms [E-304]],
 
-          [p95 en el cliente, de 10 a 400 rps],
-          [889 a 983 ms [E-138]],
-          [872 a 1.086 ms [E-304]],
+          [p95 en el cliente, de 10 a 400 rps], [889 a 983 ms [E-138]], [872 a 1.086 ms [E-304]],
 
           [Último escalón completo], [400 rps [E-138]], [600 rps [E-304]],
-          [Respuestas por segundo, escalón de 800 rps],
-          [534,0 [E-140]],
-          [573,2 [E-305]],
+          [Respuestas por segundo, escalón de 800 rps], [534,0 [E-140]], [573,2 [E-305]],
 
-          [CPU de cada nodo, escalón de 400 rps],
-          [11,3 y 15,6 % [E-142]],
-          [23,5 y 13,1 % [E-311]],
+          [CPU de cada nodo, escalón de 400 rps], [11,3 y 15,6 % [E-142]], [23,5 y 13,1 % [E-311]],
 
           [CPU máxima de los nodos], [22,9 % [E-142]], [38,3 % [E-311]],
-          [Lag máximo del event loop, 400 rps],
-          [4,5 y 5,3 ms [E-143]],
-          [14,8 y 2,5 ms [E-161]],
+          [Lag máximo del event loop, 400 rps], [4,5 y 5,3 ms [E-143]], [14,8 y 2,5 ms [E-161]],
 
-          [Conexiones aceptadas por los dos nodos],
-          [11.524 [E-163]],
-          [7.542 [E-162]],
+          [Conexiones aceptadas por los dos nodos], [11.524 [E-163]], [7.542 [E-162]],
         )
       },
       caption: [Caso escalado y TLS, desde la misma estación y con
@@ -192,10 +180,10 @@
     [E-311].
   ],
   compromiso: [
-    El primer request en HTTP todavía viaja en claro. Un cliente que manda
-    `POST /exchange` al puerto 80 entrega el body, con el `dni`, antes de
-    recibir el `308` [E-158]. HSTS evita ese request sólo en los clientes que
-    lo implementan, y después de una primera respuesta por HTTPS.
+    La redirección no protege el primer request. Si un cliente manda
+    `POST /exchange` al puerto 80, el `dni` ya cruzó internet sin cifrar cuando
+    llega el `308` [E-158]. HSTS evita que se repita, pero sólo en clientes que
+    lo respetan y que ya recibieron una respuesta por HTTPS.
 
     Un certificado autofirmado cifra el canal, pero no autentica al servidor.
     El cliente tiene que confiar en él por otro medio o desactivar la
@@ -206,8 +194,5 @@
     que cambia cada vez que `platform` recrea la IP pública. En los dos casos
     hay que generarlo y desplegarlo de nuevo. La clave privada queda en cada
     nodo y en la máquina del operador.
-
-    El cifrado corre en el event loop, sobre la única vCPU del nodo, junto con
-    los requests. Con conexiones reutilizadas, su costo no se notó en el nodo~2. No medimos una carga que abra una conexión nueva por request.
   ],
 )
