@@ -461,7 +461,7 @@
   repositorio: tp1
   commit: f6d14f1
 - id: E-130
-  descripcion: "Ejecución final de la rampa del TP 1: completa hasta 150 rps, con timeouts desde 200 rps."
+  descripcion: "Ejecución final de la rampa del TP 1: completa hasta 150 rps, con timeouts desde 200 rps. La mediana de `/rates` es 1 ms hasta 100 rps."
   ubicacion: doc/informe/evidencia/final-main-baseline-ramp.json
   repositorio: tp1
   commit: f6d14f1
@@ -538,6 +538,128 @@
 - id: E-153
   descripcion: "Screenshot del dashboard de Datadog durante la ejecución escalada."
   ubicacion: perf/results/scaled/2026-11-15/dashboard-pool-ramp.png
+- id: E-200
+  descripcion: "Caso 1 nodo, 15 de noviembre. `terraform state list` de `foundation`: red, jumpbox, Postgres y ARCA, 24 entradas, dos de ellas `data`."
+  ubicacion: evidencia/1-node/2026-11-15/terraform-state-list-foundation.txt
+- id: E-201
+  descripcion: "Caso 1 nodo, 15 de noviembre. `terraform state list` de `platform`: load balancer, probe, regla, IP pública y VMSS, 8 entradas, una de ellas `data`."
+  ubicacion: evidencia/1-node/2026-11-15/terraform-state-list-platform.txt
+- id: E-202
+  descripcion: "Caso 1 nodo, 15 de noviembre. `terraform output` de `foundation`: la IP privada de ARCA y la región; la URL de Postgres sale como `<sensitive>`."
+  ubicacion: evidencia/1-node/2026-11-15/terraform-output-foundation.txt
+- id: E-203
+  descripcion: "Caso 1 nodo, 15 de noviembre. `terraform output` de `platform`: el FQDN del load balancer y el nombre del VMSS."
+  ubicacion: evidencia/1-node/2026-11-15/terraform-output-platform.txt
+- id: E-204
+  descripcion: "Caso 1 nodo, 15 de noviembre. VMSS `tp2vmss`: `Standard_F1als_v7` con capacidad 1."
+  ubicacion: evidencia/1-node/2026-11-15/az-vmss-show.txt
+- id: E-205
+  descripcion: "Caso 1 nodo, 15 de noviembre. Runtime del nodo, por Ansible: 1 CPU, 1.893 MiB de memoria, Node v24.22.3 y pm2 7.1.2."
+  ubicacion: evidencia/1-node/2026-11-15/nodo-runtime.txt
+- id: E-206
+  descripcion: "Caso 1 nodo, 15 de noviembre. Regla del load balancer: TCP del puerto 80 al 3000."
+  ubicacion: evidencia/1-node/2026-11-15/az-lb-rule.txt
+- id: E-207
+  descripcion: "Caso 1 nodo, 15 de noviembre. Probe del load balancer: TCP al puerto 3000, cada 15 s, con umbral 1."
+  ubicacion: evidencia/1-node/2026-11-15/az-lb-probe.txt
+- id: E-208
+  descripcion: "Caso 1 nodo, 15 de noviembre. Postgres: versión 18, `Standard_B1ms` Burstable, 32 GB y acceso público deshabilitado."
+  ubicacion: evidencia/1-node/2026-11-15/az-postgres-show.txt
+- id: E-209
+  descripcion: "Caso 1 nodo, 15 de noviembre. Postgres: `max_connections` en 50."
+  ubicacion: evidencia/1-node/2026-11-15/az-postgres-max-connections.txt
+- id: E-210
+  descripcion: "Caso 1 nodo, 15 de noviembre. ARCA: `arqsoft/arca:1.0.0`, 0,5 CPU, 0,5 GB, IP privada, puerto 8080 y reinicio `Always`."
+  ubicacion: evidencia/1-node/2026-11-15/az-arca-container-show.txt
+- id: E-211
+  descripcion: "Caso escalado, 15 de noviembre. `terraform state list` de `foundation`: red, jumpbox, Postgres y ARCA, 24 entradas, dos de ellas `data`."
+  ubicacion: evidencia/scaled/2026-11-15/terraform-state-list-foundation.txt
+- id: E-212
+  descripcion: "Caso escalado, 15 de noviembre. `terraform state list` de `platform`: load balancer, probe, regla, IP pública y VMSS, 8 entradas, una de ellas `data`."
+  ubicacion: evidencia/scaled/2026-11-15/terraform-state-list-platform.txt
+- id: E-213
+  descripcion: "Caso escalado, 15 de noviembre. `terraform output` de `foundation`: la IP privada de ARCA y la región; la URL de Postgres sale como `<sensitive>`."
+  ubicacion: evidencia/scaled/2026-11-15/terraform-output-foundation.txt
+- id: E-214
+  descripcion: "Caso escalado, 15 de noviembre. `terraform output` de `platform`: el FQDN del load balancer y el nombre del VMSS."
+  ubicacion: evidencia/scaled/2026-11-15/terraform-output-platform.txt
+- id: E-215
+  descripcion: "Caso escalado, 15 de noviembre. VMSS `tp2vmss`: `Standard_F1als_v7` con capacidad 2."
+  ubicacion: evidencia/scaled/2026-11-15/az-vmss-show.txt
+- id: E-216
+  descripcion: "Caso escalado, 15 de noviembre. Runtime de los dos nodos, por Ansible: cada uno con 1 CPU, 1.893 MiB de memoria, Node v24.22.3 y pm2 7.1.2."
+  ubicacion: evidencia/scaled/2026-11-15/nodo-runtime.txt
+- id: E-217
+  descripcion: "Caso escalado, 15 de noviembre. Regla del load balancer: TCP del puerto 80 al 3000."
+  ubicacion: evidencia/scaled/2026-11-15/az-lb-rule.txt
+- id: E-218
+  descripcion: "Caso escalado, 15 de noviembre. Probe del load balancer: TCP al puerto 3000, cada 15 s, con umbral 1."
+  ubicacion: evidencia/scaled/2026-11-15/az-lb-probe.txt
+- id: E-219
+  descripcion: "Caso escalado, 15 de noviembre. Postgres: versión 18, `Standard_B1ms` Burstable, 32 GB y acceso público deshabilitado."
+  ubicacion: evidencia/scaled/2026-11-15/az-postgres-show.txt
+- id: E-220
+  descripcion: "Caso escalado, 15 de noviembre. Postgres: `max_connections` en 50."
+  ubicacion: evidencia/scaled/2026-11-15/az-postgres-max-connections.txt
+- id: E-221
+  descripcion: "Caso escalado, 15 de noviembre. ARCA: `arqsoft/arca:1.0.0`, 0,5 CPU, 0,5 GB, IP privada, puerto 8080 y reinicio `Always`."
+  ubicacion: evidencia/scaled/2026-11-15/az-arca-container-show.txt
+- id: E-222
+  descripcion: "Perfil de hardware del TP 1: tres réplicas de la `api` con 0,25 CPU y 128 MB cada una. El presupuesto de la `api` se divide entre las réplicas."
+  ubicacion: .env
+  lineas: "22-31"
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-223
+  descripcion: "TP 1: Docker reinicia la `api` si termina (`restart: on-failure`), y su healthcheck pide `GET /rates` cada 5 s."
+  ubicacion: docker-compose.perf.yml
+  lineas: "8-44"
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-224
+  descripcion: "TP 1: la contraseña de Postgres, `exchange`, está escrita en `docker-compose.yml`."
+  ubicacion: docker-compose.yml
+  lineas: "1-15"
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-225
+  descripcion: "TP 1: Artillery corre en el mismo equipo que los contenedores, fuera de sus límites."
+  ubicacion: doc/informe/secciones/caso-base.typ
+  lineas: "39"
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-226
+  descripcion: "TP 1: cada integrante midió en su máquina, y los valores absolutos sólo se comparan entre ejecuciones de la misma máquina."
+  ubicacion: doc/informe/secciones/maquinas.typ
+  lineas: "3-11"
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-227
+  descripcion: "TP 1: Graphite, Grafana y cAdvisor corren en el mismo equipo, con límites de CPU para no quitarle CPU al sistema bajo prueba."
+  ubicacion: .env
+  lineas: "50-56"
+  repositorio: tp1
+  commit: f6d14f1
+- id: E-228
+  descripcion: "Terraform genera la contraseña de Postgres: 32 letras y dígitos al azar, que no están en el repositorio."
+  ubicacion: infra/modules/database/main.tf
+  lineas: "16-20"
+  commit: 85d8af2
+- id: E-229
+  descripcion: "Terraform habilita `metrics.collector_database_activity` en Postgres: sin ese parámetro, Azure Monitor no publica las sesiones por tipo de espera."
+  ubicacion: infra/modules/database/main.tf
+  lineas: "69-77"
+  commit: 85d8af2
+- id: E-230
+  descripcion: "`mise run up`: aplica `foundation` y `platform` en HCP Terraform, y después corre el setup y el deploy de Ansible."
+  ubicacion: mise.toml
+  lineas: "326-357"
+  commit: 85d8af2
+- id: E-231
+  descripcion: "Postgres se factura por hora: `mise run down` destruye `foundation` al final de cada sesión, y `seed.js` recarga el estado inicial."
+  ubicacion: infra/modules/database/main.tf
+  lineas: "37-40"
+  commit: 85d8af2
 # Tope de conexiones a Postgres (táctica). Bloque E-300: los IDs después de
 # E-153 quedan para la táctica TLS, que se escribe en paralelo.
 - id: E-300
