@@ -6,48 +6,47 @@
   base: "measured/db-pool-cap-base",
   commit: "measured/db-pool-cap",
   problema: [
-    La base es la ejecución de la táctica TLS (sección 9.1), desde la estación
-    cableada: 2 nodos con 10 conexiones a Postgres cada uno [E-301] [E-302].
-    Su latencia de base por HTTPS es de 169 ms de mediana [E-303].
+    Partimos de la ejecución de la táctica TLS (sección 9.1): 2 nodos con 10
+    conexiones a Postgres cada uno [E-301] [E-302]. La latencia de base de la
+    estación cableada por HTTPS es de 169 ms de mediana [E-303].
 
-    Con 2 nodos, Postgres sigue siendo el límite y gasta más CPU por respuesta
-    que con 1. A 630 respuestas por segundo, cada respuesta le costó 1,13 ms de
-    CPU, contra 1,02 ms de 1 nodo a 668 [E-305] [E-307] [E-116] [E-121]. Las
-    sesiones que esperan un lock llegaron a 16, contra 8, y las conexiones
-    activas a 29, contra 19 [E-308] [E-309] [E-122] [E-148]. En el escalón de
-    800 rps, la base atendió 584,9 respuestas por segundo, y 1 nodo 673,9
-    [E-305] [E-116].
+    Con 2 nodos, Postgres siguió limitando, y cada respuesta le costó más CPU
+    que con 1 nodo: 1,13 ms a 630 respuestas por segundo, contra 1,02 ms a 668
+    [E-305] [E-307] [E-116] [E-121]. Las sesiones que esperan un lock pasaron
+    de 8 a 16, y las conexiones activas, de 19 a 29 [E-308] [E-309] [E-122]
+    [E-148]. En el escalón de 800 rps, la base atendió 584,9 respuestas por
+    segundo, contra 673,9 de 1 nodo [E-305] [E-116].
 
-    Cada exchange aprobado actualiza las mismas dos filas de `accounts`, ARS y
-    USD. Con dos pools de 10, hasta 20 transacciones compiten por ellas.
-    Interpretamos que esa competencia es el costo extra, y la táctica lo pone a
-    prueba: limita las conexiones de cada nodo.
+    Cada exchange aprobado actualiza las mismas dos filas de `accounts`, la de
+    ARS y la de USD. Con dos pools de 10, hasta 20 transacciones compiten por
+    esas filas. Nuestra hipótesis es que esa competencia explica el costo
+    extra, y la táctica la pone a prueba al limitar las conexiones de cada
+    nodo.
 
-    Las predicciones de la base, B1 a B9, están en `perf/predicciones.md`
-    [E-300]. Acertamos siete. B6 predijo 400 rps como último escalón completo, y
-    la base completó el de 600 rps, que el caso escalado sin TLS no completó
-    [E-304] [E-138]. No medimos la causa. B1 predijo 65 % de CPU a 600 rps, y
-    observamos 71,3 % [E-307], con el problema de método que explicamos en los
-    resultados.
+    Para la base predijimos B1 a B9 [E-300], y acertamos siete. B6 esperaba
+    400 rps como último escalón completo, pero la base completó el de 600 rps,
+    que el caso escalado sin TLS no había completado [E-304] [E-138]. No
+    medimos por qué. B1 esperaba 65 % de CPU a 600 rps, y observamos 71,3 %
+    [E-307], por un problema de método que explicamos en los resultados.
   ],
   prediccion: [
-    Con 5 conexiones por nodo, Postgres recibe las mismas 10 transacciones
-    simultáneas que con 1 nodo. Predijimos que trabaja como con 1 nodo: menos
-    CPU por respuesta, a lo sumo 8 esperas `Lock` y entre 640 y 700 respuestas
-    por segundo en el escalón de 800 rps. Las predicciones, D1 a D11, están en
-    `perf/predicciones.md` [E-320]. Las commiteamos en #sha("c7b3646"), después
-    de la base y antes de la ejecución de la táctica.
+    Con 5 conexiones por nodo, Postgres vuelve a recibir a lo sumo 10
+    transacciones simultáneas, como con 1 nodo. Esperábamos que se comportara
+    igual: menos CPU por respuesta, no más de 8 esperas `Lock` y entre 640 y
+    700 respuestas por segundo a 800 rps. Commiteamos las predicciones, D1 a
+    D11, en #sha("c7b3646"), después de medir la base y antes de medir la
+    táctica [E-320].
   ],
   implementacion: [
-    `db_pool_max` es una variable del stack `platform`. Llega a la app por
-    `app_config`, y `connectStore` la pasa a `pg.Pool` como `max` [E-322]. La
-    agregamos con 10, el valor por defecto de pg, en un commit sin cambio de
-    comportamiento (#sha("472e6aa")). La táctica cambia una línea: 10 pasa a 5
-    [E-301] [E-321]. Aplicamos `platform` y redesplegamos la app con Ansible,
-    sobre las mismas dos instancias [E-323].
+    El tamaño del pool es la variable `db_pool_max` del stack `platform`. Llega
+    a la app por `app_config`, y `connectStore` la pasa a `pg.Pool` como `max`
+    [E-322]. Primero la agregamos con 10, el valor por defecto de pg, sin
+    cambiar el comportamiento (#sha("472e6aa")). La táctica cambia una sola
+    línea, de 10 a 5 [E-301] [E-321]. Aplicamos `platform` y volvimos a
+    desplegar la app con Ansible, sobre las mismas dos instancias [E-323].
 
-    Las conexiones activas en Postgres bajaron de 29 a 20 [E-309] [E-329]: 9
-    menos, casi las 10 que quitamos de los pools.
+    Las conexiones activas en Postgres bajaron de 29 a 20 [E-309] [E-329], casi
+    las 10 que sacamos de los pools.
   ],
   resultados: [
     #figure(
@@ -85,27 +84,30 @@
           [CPU máxima de los nodos], [38,3 % [E-311]], [35,8 % [E-331]],
         )
       },
-      caption: [Base y táctica, misma estación y mismo escenario. Respuestas
-        por segundo: Datadog, promedio de los 40 s centrales del escalón.
-        Mediana en el cliente: rango de las medianas de cada intervalo de
-        10 s. CPU por transacción: segundos de vCPU de Azure Monitor durante
-        la ejecución, sobre el aumento de `xact_commit`.],
+      caption: [Base y táctica, desde la misma estación y con el mismo
+        escenario. Respuestas por segundo: promedio de Datadog en los 40 s
+        centrales del escalón. Mediana en el cliente: rango de las medianas de
+        cada intervalo de 10 s. CPU por transacción: segundos de vCPU de Azure
+        Monitor durante la ejecución, divididos por el aumento de
+        `xact_commit`.],
     ) <tabla-tope>
 
-    El tope atendió un 18 % más en el escalón de 800 rps, con menos de la
-    mitad de timeouts. Las lecturas dejaron de esperar a Postgres: a 600 rps,
-    `GET /rates` bajó de 131,1 a 3,9 ms en el servidor. Hasta 400 rps, las dos
-    ejecuciones responden igual, dentro del ruido de la latencia de base
-    [E-304] [E-324] [E-303]. Postgres no se quedó sin créditos de CPU: bajaron de 194 a 192 en las
-    dos ejecuciones [E-313] [E-333]. Los dashboards de Datadog de las dos
-    están en [E-314] y [E-334].
+    Con el tope, el escalón de 800 rps atendió un 18 % más de respuestas, con
+    menos de la mitad de los timeouts. Las lecturas dejaron de esperar a
+    Postgres: a 600 rps, el p50 de `GET /rates` en el servidor bajó de 131,1 a
+    3,9 ms. Hasta 400 rps, las dos ejecuciones responden igual, dentro de la
+    variación de la latencia de base [E-304] [E-324] [E-303].
 
-    *El método por escalón comparó cargas distintas.* Para la CPU de Postgres
-    de un escalón, el método toma el minuto más cargado de los que se
-    superponen con él. En la base, ese minuto tuvo 20 s del escalón de 600 rps
-    y 40 s del de 800. En la táctica, 40 s y 20 s. Por eso B1, D5 y D6 miden
-    cargas distintas. La comparación por minuto, a carga parecida, no depende
-    de esa regla:
+    Los créditos de CPU de Postgres no limitaron ninguna de las dos
+    ejecuciones: bajaron de 194 a 192 en cada una [E-313] [E-333]. Los
+    dashboards de Datadog están en [E-314] y [E-334].
+
+    *El método por escalón comparó cargas distintas.* Azure Monitor da la CPU
+    de Postgres por minuto, y el método asigna a cada escalón el minuto más
+    cargado de los que se superponen con él. En la base, ese minuto tuvo 20 s
+    del escalón de 600 rps y 40 s del de 800; en la táctica, al revés. Por eso
+    B1, D5 y D6 compararon cargas distintas. La @tabla-tope-minutos compara
+    minutos con carga parecida y no depende de esa regla:
 
     #figure(
       {
@@ -130,14 +132,15 @@
         )
       },
       caption: [CPU de Postgres por respuesta, minuto a minuto: promedio de
-        Azure Monitor sobre las respuestas de Datadog en ese minuto [E-305]
-        [E-307] [E-325] [E-327].],
+        Azure Monitor dividido por las respuestas de Datadog en ese minuto
+        [E-305] [E-307] [E-325] [E-327].],
     ) <tabla-tope-minutos>
 
-    Por debajo de 500 respuestas por segundo, las dos cuestan lo mismo. A unas
-    635, la táctica gasta 0,91 ms por respuesta y la base 1,13 ms: un 20 %
-    menos, al nivel de 1 nodo. La base se saturó a 553 respuestas por segundo,
-    con 91,8 % de CPU. La táctica atendió 686,8 con 80,2 %.
+    Por debajo de 500 respuestas por segundo, las dos ejecuciones cuestan lo
+    mismo. Cerca de 635, la táctica gasta 0,91 ms de CPU por respuesta y la
+    base 1,13 ms: un 20 % menos, y menos que los 1,02 ms de 1 nodo [E-121]. La base se
+    saturó con 91,8 % de CPU, atendiendo 553 respuestas por segundo. La
+    táctica atendió 686,8 con 80,2 %.
 
     #[#set par(justify: false)
       #grid(
@@ -216,33 +219,33 @@
         ),
       )]
 
-    Acertamos D1 a D3 y D7 a D9: el tope bajó la competencia por las filas y
-    subió el throughput. D5 y D6 fallan por el método de arriba. Con la
-    comparación por minuto, el costo por respuesta queda en 0,91 ms, dentro
-    del margen de D6. D10 erró por 0,005 ms.
+    Acertamos D1 a D3 y D7 a D9: el tope redujo la competencia por las filas y
+    subió el throughput. D5 y D6 fallaron por la regla de método que
+    explicamos arriba. Comparando por minuto, el costo por respuesta queda en
+    0,91 ms, dentro del margen de D6. D10 falló por 0,005 ms.
 
-    D4 y D11 tienen el mismo límite: el generador. Su CPU idle bajó a 1 %
-    desde la mitad del escalón de 600 rps, en las dos ejecuciones [E-312]
-    [E-332]. Desde ahí, la latencia en el cliente incluye la espera en el
-    generador, y no podemos atribuir el límite de 800 rps solo a Postgres.
+    D4 y D11 chocan con el mismo límite, el generador. En las dos ejecuciones,
+    su CPU idle bajó a 1 % desde la mitad del escalón de 600 rps [E-312]
+    [E-332]. A partir de ahí, la latencia en el cliente incluye la espera en el
+    generador, y el límite de 800 rps no se puede atribuir sólo a Postgres.
 
-    Otro cambio entre ejecuciones: Postgres resolvió las lecturas de `accounts`
-    con otro plan. Los recorridos secuenciales bajaron de 209.455 a 78.698, y
-    los de índice subieron de 165.939 a 315.148 [E-310] [E-330]. La tabla tiene
-    4 filas, así que tomamos el efecto como menor, pero no lo medimos.
+    Entre las dos ejecuciones también cambió el plan con que Postgres lee
+    `accounts`. Los recorridos secuenciales bajaron de 209.455 a 78.698, y los
+    de índice subieron de 165.939 a 315.148 [E-310] [E-330]. La tabla tiene 4
+    filas, así que suponemos un efecto menor, pero no lo medimos.
   ],
   compromiso: [
-    La espera pasa de Postgres a Node. `connectStore` no configura
-    `connectionTimeoutMillis` [E-322], y su valor por defecto en pg es 0: un
-    request espera una conexión libre sin límite de tiempo. Con más carga de
-    la que Postgres atiende, la cola crece dentro de cada proceso.
+    El tope mueve la espera de Postgres a Node. `connectStore` no configura
+    `connectionTimeoutMillis` [E-322], y en pg su valor por defecto es 0: un
+    request espera una conexión libre sin límite de tiempo. Si llega más carga
+    de la que Postgres atiende, la cola crece dentro de cada proceso.
 
-    El tope depende de la cantidad de nodos. Con 5 conexiones por nodo, 2
-    nodos dan las 10 de 1 nodo. Con 3 nodos vuelven a ser 15, y si un nodo cae,
-    el que queda atiende todo con 5. Cada cambio de `vmss_instances` exige
-    recalcular `db_pool_max` en el mismo commit.
+    El valor correcto depende de la cantidad de nodos. Con 5 conexiones por
+    nodo, 2 nodos suman las 10 de 1 nodo, pero 3 nodos sumarían 15. Si un nodo
+    cae, el que queda atiende toda la carga con 5. Cada cambio de
+    `vmss_instances` obliga a recalcular `db_pool_max` en el mismo commit.
 
-    Por debajo de la saturación, el tope no cambia nada: hasta 400 rps, base y
+    Por debajo de la saturación, el tope no aporta nada: hasta 400 rps, base y
     táctica responden con la misma latencia [E-304] [E-324].
   ],
 )
