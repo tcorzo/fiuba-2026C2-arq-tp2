@@ -1,0 +1,992 @@
+{
+  "interval": "PT1M",
+  "timespan": "2026-11-16T17:55:00Z/2026-11-16T18:12:38Z",
+  "value": [
+    {
+      "name": "sessions_by_wait_event_type",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "average": 3.0,
+              "maximum": 4.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 4.0,
+              "maximum": 4.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 3.0,
+              "maximum": 3.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 4.0,
+              "maximum": 6.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 6.5,
+              "maximum": 8.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 8.5,
+              "maximum": 9.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 12.0,
+              "maximum": 12.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 10.0,
+              "maximum": 10.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 12.0,
+              "maximum": 16.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 15.0,
+              "maximum": 16.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 18.0,
+              "maximum": 23.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 20.5,
+              "maximum": 21.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 13.5,
+              "maximum": 23.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 5.0,
+              "maximum": 6.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 7.5,
+              "maximum": 9.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 9.0,
+              "maximum": 14.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 4.0,
+              "maximum": 4.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "Client"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 1.5,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 8.0,
+              "maximum": 16.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 11.0,
+              "maximum": 15.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 11.0,
+              "maximum": 15.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 5.0,
+              "maximum": 10.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "Lock"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "IPC"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "Extension"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 1.5,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 1.5,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 1.5,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 2.0,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 1.5,
+              "maximum": 2.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "None"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 0.5,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 4.5,
+              "maximum": 8.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 2.5,
+              "maximum": 5.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "LWLock"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 0.5,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 0.5,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 0.5,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 0.5,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 0.5,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 0.5,
+              "maximum": 1.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "IO"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "Activity"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "Timeout"
+            }
+          ]
+        },
+        {
+          "data": [
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:55:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:56:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:57:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:58:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T17:59:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:00:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:01:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:02:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:03:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:04:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:05:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:06:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:07:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:08:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:09:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:10:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-11-16T18:11:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "waiteventtype",
+                "value": "waiteventtype"
+              },
+              "value": "BufferPin"
+            }
+          ]
+        }
+      ],
+      "unit": "Count"
+    }
+  ]
+}

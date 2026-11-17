@@ -538,6 +538,40 @@
 - id: E-153
   descripcion: "Screenshot del dashboard de Datadog durante la ejecución escalada."
   ubicacion: perf/results/scaled/2026-11-15/dashboard-pool-ramp.png
+# Terminación TLS (táctica). Su ejecución es la base del tope de conexiones
+# (E-302 a E-314); estos IDs cubren lo que esa sección no cita.
+- id: E-154
+  descripcion: "Predicciones de la terminación TLS, T1 a T6, commiteadas en `19e050d` antes de la ejecución."
+  ubicacion: perf/predicciones.md
+  lineas: "188-284"
+  commit: 19e050d
+- id: E-155
+  descripcion: "Reglas del load balancer en la ejecución TLS: TCP 443 → 3443 y 80 → 3080."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/az-lb-rule.txt
+- id: E-156
+  descripcion: "Probe del load balancer en la ejecución TLS: TCP al puerto 3443, cada 15 s."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/az-lb-probe.txt
+- id: E-157
+  descripcion: "`curl -v` a `https://<FQDN>/` validando contra el certificado: handshake TLS 1.3, certificado ECDSA P-256 para el FQDN, `200` con `Strict-Transport-Security`."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/tls-handshake.txt
+- id: E-158
+  descripcion: "`POST /exchange` en HTTP al puerto 80: el nodo responde `308` con `Location: https://<FQDN>/exchange`."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/http-redirect.txt
+- id: E-159
+  descripcion: "`openssl s_client` contra el puerto 443: TLS 1.3, `TLS_AES_256_GCM_SHA384`, firma ECDSA y verificación del nombre `OK`."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/tls-s-client.txt
+- id: E-160
+  descripcion: "Datadog, ejecución TLS: respuestas por nodo, por intervalo de 10 s."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/datadog-http-responses-by-host-pool-ramp.json
+- id: E-161
+  descripcion: "Datadog, ejecución TLS: lag máximo del event loop de cada nodo."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/datadog-eventloop-lag-max-pool-ramp.json
+- id: E-162
+  descripcion: "Contadores TCP de los nodos antes y después de la ejecución TLS: `TcpPassiveOpens` sube 3.706 en 10.0.2.4 y 3.836 en 10.0.2.5."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/nodo-tcp-counters.txt
+- id: E-163
+  descripcion: "Contadores TCP de los nodos antes y después de la ejecución escalada: `TcpPassiveOpens` sube 5.696 en 10.0.2.4 y 5.828 en 10.0.2.5."
+  ubicacion: evidencia/scaled/2026-11-15/nodo-tcp-counters.txt
 - id: E-200
   descripcion: "Caso 1 nodo, 15 de noviembre. `terraform state list` de `foundation`: red, jumpbox, Postgres y ARCA, 24 entradas, dos de ellas `data`."
   ubicacion: evidencia/1-node/2026-11-15/terraform-state-list-foundation.txt
@@ -660,3 +694,105 @@
   ubicacion: infra/modules/database/main.tf
   lineas: "37-40"
   commit: 85d8af2
+# Tope de conexiones a Postgres (táctica). Bloque E-300: los IDs después de
+# E-153 quedan para la táctica TLS, que se escribe en paralelo.
+- id: E-300
+  descripcion: "Predicciones de la base del tope de conexiones, B1 a B9, commiteadas en `a915fd4` antes de su ejecución."
+  ubicacion: perf/predicciones.md
+  lineas: "397-469"
+  commit: a915fd4
+- id: E-301
+  descripcion: "Variable `db_pool_max` del stack `platform` en 10 conexiones por nodo: la configuración de la base."
+  ubicacion: infra/envs/prd/platform/variables.tf
+  lineas: "43-47"
+  commit: 9431c65
+- id: E-302
+  descripcion: "Instancias del VMSS en la base: dos `Standard_F1als_v7`, con el último modelo aplicado."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/az-vmss-list-instances.txt
+- id: E-303
+  descripcion: "Latencia de base por HTTPS desde la estación cableada: 60 requests a `/`, mediana de 169 ms, p95 de 172,5 ms, de 162 a 177 ms."
+  ubicacion: perf/results/baseline/root-tcorzo-https.json
+- id: E-304
+  descripcion: "Ejecución de la base (`pool-ramp`): 222.600 requests, 184.170 respuestas y 38.430 timeouts, todos desde 800 rps."
+  ubicacion: perf/results/db-pool-cap/2026-11-16/base/pool-ramp.json
+- id: E-305
+  descripcion: "Datadog, base: respuestas de los dos nodos por ruta, por intervalo de 10 s."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/datadog-http-responses-pool-ramp.json
+- id: E-306
+  descripcion: "Datadog, base: p50 de `arvault.http.duration` por ruta."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/datadog-http-duration-p50-pool-ramp.json
+- id: E-307
+  descripcion: "Azure Monitor, base: CPU de Postgres por minuto, hasta 91,8 % de promedio."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/postgres-cpu-percent.json
+- id: E-308
+  descripcion: "Azure Monitor, base: sesiones de Postgres por tipo de espera, por minuto; `Lock` llega a 16."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/postgres-sessions-by-wait-event-type.json
+- id: E-309
+  descripcion: "Azure Monitor, base: conexiones activas en Postgres, hasta 29."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/postgres-active-connections.json
+- id: E-310
+  descripcion: "Estadísticas acumuladas de Postgres antes y después de la base: 563.627 transacciones confirmadas y 74.924 actualizaciones de `accounts`."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/postgres-stats.txt
+- id: E-311
+  descripcion: "Datadog, base: CPU user + system de cada nodo, con un máximo de 38,3 %."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/datadog-cpu-pool-ramp.json
+- id: E-312
+  descripcion: "`vmstat` del generador durante la base: CPU idle de 0 a 1 % desde la mitad del escalón de 600 rps."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/generador-vmstat.txt
+- id: E-313
+  descripcion: "Azure Monitor, base: créditos de CPU de Postgres, de 194 a 192."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/base/postgres-cpu-credits-remaining.json
+- id: E-314
+  descripcion: "Screenshot del dashboard de Datadog durante la base."
+  ubicacion: perf/results/db-pool-cap/2026-11-16/base/dashboard-pool-ramp.png
+- id: E-320
+  descripcion: "Predicciones del tope de conexiones, D1 a D11, contra la base medida, commiteadas en `c7b3646` antes de la ejecución."
+  ubicacion: perf/predicciones.md
+  lineas: "375-468"
+  commit: c7b3646
+- id: E-321
+  descripcion: "Variable `db_pool_max` del stack `platform` en 5 conexiones por nodo: el cambio de la táctica."
+  ubicacion: infra/envs/prd/platform/variables.tf
+  lineas: "43-47"
+  commit: e97a927
+- id: E-322
+  descripcion: "`connectStore` pasa el tope a `pg.Pool` como `max`."
+  ubicacion: node/pg-repositories.js
+  lineas: "216-218"
+  commit: e97a927
+- id: E-323
+  descripcion: "Instancias del VMSS en la táctica: las mismas dos `Standard_F1als_v7` que en la base."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/az-vmss-list-instances.txt
+- id: E-324
+  descripcion: "Ejecución de la táctica (`pool-ramp`): 222.600 requests, 197.140 respuestas y 25.460 timeouts, todos desde 800 rps."
+  ubicacion: perf/results/db-pool-cap/2026-11-16/tactic/pool-ramp.json
+- id: E-325
+  descripcion: "Datadog, táctica: respuestas de los dos nodos por ruta, por intervalo de 10 s."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/datadog-http-responses-pool-ramp.json
+- id: E-326
+  descripcion: "Datadog, táctica: p50 de `arvault.http.duration` por ruta."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/datadog-http-duration-p50-pool-ramp.json
+- id: E-327
+  descripcion: "Azure Monitor, táctica: CPU de Postgres por minuto, hasta 88,0 % de promedio."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/postgres-cpu-percent.json
+- id: E-328
+  descripcion: "Azure Monitor, táctica: sesiones de Postgres por tipo de espera, por minuto; `Lock` llega a 6."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/postgres-sessions-by-wait-event-type.json
+- id: E-329
+  descripcion: "Azure Monitor, táctica: conexiones activas en Postgres, hasta 20."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/postgres-active-connections.json
+- id: E-330
+  descripcion: "Estadísticas acumuladas de Postgres antes y después de la táctica: 591.474 transacciones confirmadas y 78.316 actualizaciones de `accounts`."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/postgres-stats.txt
+- id: E-331
+  descripcion: "Datadog, táctica: CPU user + system de cada nodo, con un máximo de 35,8 %."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/datadog-cpu-pool-ramp.json
+- id: E-332
+  descripcion: "`vmstat` del generador durante la táctica: CPU idle de 0 a 1 % desde la mitad del escalón de 600 rps."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/generador-vmstat.txt
+- id: E-333
+  descripcion: "Azure Monitor, táctica: créditos de CPU de Postgres, de 194 a 192."
+  ubicacion: evidencia/db-pool-cap/2026-11-16/tactic/postgres-cpu-credits-remaining.json
+- id: E-334
+  descripcion: "Screenshot del dashboard de Datadog durante la táctica."
+  ubicacion: perf/results/db-pool-cap/2026-11-16/tactic/dashboard-pool-ramp.png

@@ -466,7 +466,10 @@
   show raw: set text(font: "DejaVu Sans Mono", size: 9pt)
   show regex("\[E-\d{2,3}\]"): citar-evidencia
   show link: it => text(fill: acento, it)
+  // Cada sección arranca en una página nueva. `weak` no deja una página en
+  // blanco si la sección ya empieza al principio de una.
   show heading.where(level: 1): it => {
+    pagebreak(weak: true)
     v(0.6em)
     text(size: 16pt, it)
     v(0.3em)

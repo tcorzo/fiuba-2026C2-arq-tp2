@@ -39,3 +39,9 @@ variable "vmss_instances" {
   type        = number
   default     = 2
 }
+
+variable "db_pool_max" {
+  description = "Postgres connections each instance's app opens, at most. With N instances, Postgres sees up to N times this. Each measured case changes it here, in its own commit."
+  type        = number
+  default     = 5
+}

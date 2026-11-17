@@ -11,6 +11,12 @@
 # from the service's: requests that time out without the node opening a
 # connection never reached it (4a679f3, 353902f). Same counters as those runs.
 #
+# Before and after the command it also takes Postgres's cumulative statistics
+# (scripts/postgres-stats.mjs, run from one instance) into postgres-stats next
+# to <file>: transactions, row updates per table and WAL fsyncs. Their
+# difference is the work the test made Postgres do. Added for the contention
+# tactic; the runs before it do not have this file.
+#
 # Prints the run's UTC window at the end, for capture-run-evidence.sh.
 #
 # Usage: scripts/with-vmstat.sh <file> <command...>
@@ -37,7 +43,8 @@ case "$BASE" in
 esac
 GEN_TCP="$DIR/${BASE/generador-vmstat/generador-tcp-counters}"
 NODE_TCP="$DIR/${BASE/generador-vmstat/nodo-tcp-counters}"
-for f in "$FILE" "$GEN_TCP" "$NODE_TCP"; do
+PG_STATS="$DIR/${BASE/generador-vmstat/postgres-stats}"
+for f in "$FILE" "$GEN_TCP" "$NODE_TCP" "$PG_STATS"; do
   if [ -e "$f" ]; then
     echo "$f exists. Evidence is never overwritten." >&2
     exit 1
@@ -56,11 +63,19 @@ node_counters() {
   ansible vmss -i "$ROOT/ansible/vmss_hosts" --private-key "$ROOT/key.pem" -u azureuser \
     -m shell -a 'date -u; echo "$ nstat -az TcpPassiveOpens TcpExtTCPSynRetrans TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent"; nstat -az TcpPassiveOpens TcpExtTCPSynRetrans TcpExtListenOverflows TcpExtListenDrops TcpExtTCPReqQFullDrop TcpExtSyncookiesSent'
 }
+# The database is reachable only from inside the VNet. One instance is enough:
+# the counters are the server's. The app is unzipped in azureuser's home
+# (ansible/vmss_deploy.yml), where the script finds config.js and pg.
+postgres_stats() {
+  ansible 'vmss[0]' -i "$ROOT/ansible/vmss_hosts" --private-key "$ROOT/key.pem" -u azureuser \
+    -m script -a "$ROOT/scripts/postgres-stats.mjs chdir=/home/azureuser executable=node"
+}
 
 # Every instance the VMSS has now, not the ones a stale inventory remembers.
 "$ROOT/ansible/update_vmss_inventory.sh" >/dev/null || exit 1
 { echo "== before"; node_counters; } >"$NODE_TCP" || exit 1
 { echo "== before"; gen_counters; } >"$GEN_TCP"
+{ echo "== before"; postgres_stats; } >"$PG_STATS" || exit 1
 
 START=$(date -u +%FT%TZ)
 vmstat -t 5 >"$FILE" &
@@ -72,6 +87,9 @@ END=$(date -u +%FT%TZ)
 
 { echo "== after"; gen_counters; } >>"$GEN_TCP"
 { echo "== after"; node_counters; } >>"$NODE_TCP"
+# Last, so every backend has been idle for more than a second: Postgres adds a
+# backend's counters to the totals when it goes idle, at most once a second.
+{ echo "== after"; postgres_stats; } >>"$PG_STATS"
 
 echo "Run window (UTC): $START $END" >&2
 exit "$STATUS"

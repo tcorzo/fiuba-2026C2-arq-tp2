@@ -282,3 +282,187 @@ Los números del caso escalado vienen de su ejecución, con tag
   timeouts miden el generador y no el servicio. Lo verificamos con
   `generador-vmstat.txt`. El del caso escalado usó toda su CPU recién desde
   600 rps.
+
+### Tope de conexiones a Postgres: primera predicción, reemplazada
+
+Esta predicción tomaba como base la ejecución de la táctica TLS, medida desde
+otra estación. La reemplaza la sección *Tope de conexiones a Postgres*, al
+final, contra una base medida desde la estación cableada. Las predicciones
+originales quedan en el historial (`cb131a3`). Queda acá su método, que usan
+las secciones siguientes.
+
+Método de las métricas por escalón: los 60 s de cada escalón salen del
+reporte de Artillery (el primer intervalo marca el inicio del escalón de
+10 rps). Respuestas por segundo: Datadog, `arvault.http.responses` de los dos
+nodos, promedio de los 40 s centrales. p50 en el servidor: mediana de los p50
+de 10 s de Datadog dentro del escalón. CPU de Postgres: Azure Monitor,
+promedio del minuto que más se superpone con el escalón.
+
+### Base del tope de conexiones: TLS desde la estación cableada
+
+**Hipótesis:** la configuración de la táctica TLS, medida desde la estación
+cableada, se comporta como el caso escalado medido desde esa misma estación.
+TLS no cambia el trabajo de Postgres (T3), y el generador es el del caso
+escalado. Postgres limita por CPU, con más esperas por lock que con 1 nodo.
+
+Esta ejecución reemplaza a la de la táctica TLS como base del tope de
+conexiones. Aquella corrió desde otro generador, y la táctica corre desde
+esta estación: así las dos ejecuciones comparadas difieren solo en
+`db_pool_max`.
+
+- **Caso:** la configuración de la táctica TLS. 2 nodos del VMSS
+  (`Standard_F1als_v7`, 1 vCPU cada uno), TLS en el proceso de Node,
+  10 conexiones a Postgres por nodo (`9431c65`). Postgres `B_Standard_B1ms` y
+  ARCA en ACI con 0,5 vCPU. Evidencia de la infraestructura en
+  `evidencia/db-pool-cap/`.
+- **Escenario:** el de la táctica TLS. `baseline.yaml`, entorno `pool-ramp`,
+  sobre `https://`.
+- **Generador de carga:** la estación cableada del caso escalado. Latencia de
+  base contra `/` por HTTPS: mediana de 169 ms, p95 de 172,5 ms, rango de 162
+  a 177 ms (`perf/results/baseline/root-tcorzo-https.json`).
+
+Método: el de la sección anterior, con una precisión. La CPU de Postgres de un
+escalón es el mayor promedio por minuto entre los minutos de Azure Monitor
+que se superponen con él. En el caso escalado, el escalón de 600 rps cae
+mitad en un minuto y mitad en el siguiente, y esta regla da el 63,0 % del
+informe.
+
+#### Predicciones
+
+| # | Métrica | Predicción | Escalado (esta estación, sin TLS) | TLS (otra estación) |
+|---|---|---|---|---|
+| B1 | CPU de Postgres en el escalón de 600 rps | 65 %, con un margen de 5 puntos | 63,0 % | 65,7 % |
+| B2 | CPU de Postgres por respuesta en el escalón de 600 rps | 1,1 ms, con un margen de 0,1 ms | 1,08 ms | 1,11 ms |
+| B3 | Máximo de sesiones de Postgres esperando un lock (`Lock`) | Entre 12 y 16 | 12 | 16 |
+| B4 | Máximo de conexiones activas en Postgres | 28, con un margen de 1 | 28 | 28 |
+| B5 | Respuestas por segundo en el escalón de 800 rps | Entre 540 y 600 | 540,5 | 572,8 |
+| B6 | Último escalón atendido completo (sin timeouts y con el 95 % de las respuestas) | 400 rps | 400 rps | 600 rps |
+| B7 | p50 de `GET /rates` en el servidor, escalón de 600 rps | Más de 100 ms | 165,3 ms | 261,4 ms |
+| B8 | Mediana en el cliente de cada intervalo de 10 s, escalones de 10 a 400 rps | 169 a 190 ms: menos de 21 ms sobre la latencia de base | 172 a 180 ms | 180 a 416 ms, sobre 194,4 ms |
+| B9 | Componente que limita | Postgres, por CPU | Postgres | Postgres |
+
+#### Razonamiento
+
+- **B1 a B5 y B9.** Del lado de Postgres, esta ejecución es igual al caso
+  escalado: 2 nodos con 10 conexiones cada uno, la misma mezcla y las mismas
+  filas de `accounts`. La ejecución TLS confirmó que TLS no le agrega trabajo
+  a Postgres: 1,11 ms de CPU por respuesta, contra 1,08 ms sin TLS. Las dos
+  ejecuciones anteriores marcan el rango de B3 y B5.
+- **B6.** El escalón de 600 rps está en el borde. Desde esta estación, el
+  caso escalado no lo completó: tuvo timeouts desde los 20 s. Desde la otra
+  estación, la ejecución TLS lo completó, con la mediana hasta 633 ms. El
+  generador es el del caso escalado, así que esperamos su resultado.
+- **B7.** A 600 rps, Postgres está saturado en las dos ejecuciones
+  anteriores, y los requests esperan conexión. `GET /rates` pasa de unos
+  2 ms a más de 100 ms en el servidor.
+- **B8.** Hasta 400 rps, el servicio responde en pocos milisegundos, y la
+  mediana es casi toda latencia de base. La latencia de base de esta
+  estación es la misma con HTTPS que sin él. El caso escalado quedó entre 3,5
+  y 10,5 ms sobre ella. El margen suma el rango de 15 ms de la latencia de
+  base.
+
+#### Qué cambiaría la predicción
+
+- **Si la CPU por respuesta queda cerca de 0,84 ms,** el costo extra de las
+  ejecuciones anteriores con 2 nodos no se repite. Entonces el tope de
+  conexiones no tiene nada que corregir, y su predicción D cambia.
+- **Si completa el escalón de 600 rps,** el resultado de B6 depende de la
+  ejecución y no del generador: el borde está justo en 600 rps. Comparamos
+  la táctica con las métricas del servidor, que no tienen ese borde.
+- **Si el generador se satura antes de los 600 rps,** la ejecución mide el
+  generador. Lo verificamos con `generador-vmstat.txt`.
+
+### Tope de conexiones a Postgres
+
+**Hipótesis:** con 2 nodos, el límite es la CPU de Postgres, y crece con la
+cantidad de transacciones simultáneas sobre las cuentas internas. Con un tope
+de 5 conexiones por nodo, Postgres recibe las mismas 10 transacciones
+simultáneas que en el caso 1 nodo. Entonces trabaja como con 1 nodo: menos
+CPU por respuesta, menos esperas por lock y más throughput sostenido que la
+base.
+
+- **Caso:** la base con un solo cambio: `db_pool_max` baja de 10 a 5
+  conexiones por nodo (`e97a927`). 2 nodos del VMSS (`Standard_F1als_v7`,
+  1 vCPU cada uno), TLS en el proceso de Node, Postgres `B_Standard_B1ms` y
+  ARCA en ACI con 0,5 vCPU. Evidencia de la infraestructura en
+  `evidencia/db-pool-cap/`.
+- **Base:** la ejecución de la sección anterior, con tag
+  `measured/db-pool-cap-base` (`perf/results/db-pool-cap/2026-11-16/base/`,
+  `evidencia/db-pool-cap/2026-11-16/base/`). La columna *1 nodo* es la
+  ejecución final de 1 nodo (`measured/1-node-pool`), con 10 conexiones en
+  total.
+- **Escenario y generador:** los de la base. `baseline.yaml`, entorno
+  `pool-ramp`, sobre `https://`, desde la estación cableada (latencia de base
+  con mediana de 169 ms).
+
+Método: el de la sección anterior. Además, la CPU de Postgres por transacción
+es la suma de los promedios por minuto de `cpu_percent` mientras corre la
+ejecución, convertida en segundos de vCPU, dividida por el aumento de
+`xact_commit` en `postgres-stats.txt`.
+
+#### Predicciones
+
+| # | Métrica | Predicción | Base | 1 nodo |
+|---|---|---|---|---|
+| D1 | ¿El throughput sostenido mejora respecto de la base? | Sí | — | — |
+| D2 | Respuestas por segundo en el escalón de 800 rps | Entre 640 y 700 | 584,9 | 673,9 |
+| D3 | Último escalón atendido completo (sin timeouts y con el 95 % de las respuestas) | 600 rps; el de 800 rps no se completa | 600 rps | 600 rps |
+| D4 | Mediana en el cliente de cada intervalo de 10 s del escalón de 600 rps, menos la latencia de base | Menos de 20 ms: medianas de 169 a 189 ms | 10,5 a 309,3 ms (180 a 478 ms) | 11 a 14 ms (180 a 183 ms) |
+| D5 | CPU de Postgres en el escalón de 600 rps (Azure Monitor, `cpu_percent`) | 50 %, con un margen de 5 puntos | 71,3 % | 50,5 % |
+| D6 | CPU de Postgres por respuesta en el escalón de 600 rps (D5 dividido las respuestas por segundo) | 0,84 ms, con un margen de 0,1 ms | 1,20 ms | 0,84 ms |
+| D7 | Máximo de sesiones de Postgres esperando un lock (`Lock`) | 8 o menos | 16 | 8 |
+| D8 | Máximo de conexiones activas en Postgres (`active_connections`) | 19, con un margen de 1 | 29 | 19 |
+| D9 | p50 de `GET /rates` en el servidor, escalón de 600 rps (Datadog) | Menos de 10 ms | 131,1 ms | 2,6 ms |
+| D10 | CPU de Postgres por transacción confirmada, en toda la ejecución | 0,46 ms o menos | 0,513 ms | — |
+| D11 | Componente que limita | Postgres, por CPU, desde 800 rps | Postgres | Postgres |
+
+#### Razonamiento
+
+- **D1, D2, D5 y D6.** A igual carga, Postgres usó más CPU con 2 nodos que
+  con 1: 71,3 % contra 50,5 % a 600 rps, para casi las mismas respuestas por
+  segundo (594,0 contra 599,5). Cada respuesta le costó 1,20 ms de CPU,
+  contra 0,84 ms. Del lado de Postgres, lo único que cambió fue la cantidad
+  de conexiones, de 10 a 20. Cada exchange aprobado actualiza las dos mismas
+  filas de `accounts`, ARS y USD. Con más transacciones simultáneas, más
+  esperan el lock de esas filas: 16 sesiones, contra 8. Interpretamos, como
+  en la sección 8, que esas esperas le cuestan CPU a Postgres. Con 5
+  conexiones por nodo, la concurrencia vuelve a 10, y el costo por respuesta
+  vuelve al de 1 nodo. Con menos CPU por respuesta, Postgres atiende más
+  antes de saturarse: el escalón de 800 rps vuelve a las 673,9 respuestas
+  por segundo de 1 nodo.
+- **D3.** 1 nodo tampoco completó el escalón de 800 rps: el límite sigue en
+  Postgres. El tope baja el costo por respuesta, pero no alcanza para
+  atender 800.
+- **D4.** Con 1 nodo, la mediana del escalón de 600 rps quedó entre 11 y
+  14 ms sobre la latencia de base. Con la base, Postgres empezó a saturarse
+  a 600 rps, y la mediana subió hasta 309 ms sobre ella. Con el costo de 1
+  nodo, Postgres no se satura a 600 rps. El generador usó casi toda su CPU
+  en ese escalón, en la base y en 1 nodo, así que no explica la diferencia.
+- **D7 y D8.** La suma de los pools acota las transacciones simultáneas. Con
+  1 nodo, Postgres tuvo 19 conexiones activas con un pool de 10. En la base,
+  29 con dos pools de 10. Unas 9 conexiones no salen de los pools de la
+  app. Con dos pools de 5, esperamos 10 de la app más esas 9. Con la misma
+  concurrencia que 1 nodo, las esperas `Lock` vuelven a las 8 de 1 nodo.
+- **D9.** La espera pasa de Postgres a Node. Un request que encuentra
+  ocupadas las 5 conexiones de su nodo espera una libre dentro del proceso.
+  Cada nodo atiende la mitad de los requests con la mitad de las conexiones:
+  la misma proporción que 1 nodo con 10. Con 1 nodo, `GET /rates` tardó
+  2,6 ms en el servidor a 600 rps.
+- **D10.** Hasta 400 rps no hay contención, y el costo por transacción no
+  cambia. Desde 600 rps, la base pagó la contención en cada transacción. Un
+  poco más de la mitad de las transacciones de la ejecución ocurren desde
+  600 rps. Si ese tramo cuesta un 20 % menos, el total baja un 10 %, de
+  0,513 a unos 0,46 ms.
+- **D11.** Los nodos no limitaron la base: llegaron como máximo al 38,3 % de
+  CPU. El tope no le agrega trabajo a Postgres por request.
+
+#### Qué cambiaría la predicción
+
+- **Si la CPU de Postgres por respuesta no baja,** su costo extra con 2 nodos
+  no viene de la concurrencia sobre las filas. Viene de algo que crece con los
+  nodos y no con las conexiones. Fallan D1, D2, D5, D6 y D10.
+- **Si `GET /rates` tarda más en el servidor antes de que Postgres se sature,**
+  el tope solo movió la cola a Node, sin acortarla. Fallan D4 y D9.
+- **Si Postgres se queda sin créditos de CPU,** Azure lo limita y el
+  throughput baja por eso y no por el tope. Lo verificamos con
+  `postgres-cpu-credits-remaining.json`. La base los bajó de 194 a 192.

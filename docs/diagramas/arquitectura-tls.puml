@@ -1,0 +1,18 @@
+@startuml arquitectura-tls
+' arVault — TP 2. Componentes y conectores de la táctica de terminación TLS
+' (H-38), sobre el caso escalado a 2 nodos.
+' Render: mise run diagrams
+
+
+!$nodos = 2
+!$tls = %true()
+!include arquitectura.iuml
+
+note bottom of LB #E3F2FD
+  **TLS de punta a punta hasta el proceso**
+  El load balancer reenvía TCP: el handshake
+  y el cifrado los hace Node en cada nodo,
+  con el mismo certificado.
+end note
+
+@enduml

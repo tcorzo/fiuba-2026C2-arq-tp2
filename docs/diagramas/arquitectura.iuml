@@ -7,6 +7,12 @@
 '
 ' Cada valor sale de infra/, ansible/ o node/; el informe cita de dónde.
 
+' $tls: la táctica de terminación TLS (H-38). Cambia la interfaz pública, las
+' reglas del load balancer y la interfaz de cada nodo; el resto queda igual.
+!if %not(%variable_exists("$tls"))
+!$tls = %false()
+!endif
+
 skinparam componentStyle uml2
 skinparam linetype ortho
 skinparam shadowing false
@@ -39,7 +45,11 @@ skinparam database {
 ' Fuera de Azure
 ' ═════════════════════════════════════════════════════════════
 package "Internet" <<boundary>> #F5F5F5 {
+!if $tls
+  component "Artillery\ngenerador de carga\nBuenos Aires, estación cableada" <<load generator>> as Artillery
+!else
   component "Artillery\ngenerador de carga\nBuenos Aires, WiFi" <<load generator>> as Artillery
+!endif
   component "Operador\nTerraform + Ansible" <<admin>> as Operador
 }
 
@@ -50,8 +60,13 @@ component "Datadog\n(SaaS)" <<observabilidad>> as Datadog
 ' ═════════════════════════════════════════════════════════════
 package "Azure · centralus · RG-PRODUCTION" {
 
+!if $tls
+  interface "IPública\nHTTPS :443 · HTTP :80" as IPublica
+  component "Load balancer Standard (capa 4)\nreglas TCP 443 → 3443 y 80 → 3080\nhash de 5-tupla · probe TCP :3443\n//reenvía TLS sin terminarlo//" <<load balancer>> as LB
+!else
   interface "IPúblicaHTTP\n:80" as IPublica
   component "Load balancer Standard (capa 4)\nregla TCP 80 → 3000, hash de 5-tupla\nprobe TCP :3000\n//sin TLS, sin rutas, sin rate limit//" <<load balancer>> as LB
+!endif
 
   package "VNet 10.0.0.0/16" {
 
@@ -59,8 +74,13 @@ package "Azure · centralus · RG-PRODUCTION" {
 !$i = 0
 !while $i < $nodos
       package "Nodo $i del VMSS\nStandard_F1als_v7 · 1 vCPU · 2 GiB" as Nodo$i #E8F5E9 {
+!if $tls
+        interface "IExchangeREST\nHTTPS :3443 · HTTP :3080 (308)" as IRest$i
+        component "exchange-service\nNode 24 + Express\n**un proceso** (pm2, fork)\n**termina TLS** (node:https)\n//transferencias simuladas//\n//en el proceso, 200–400 ms//" <<servicio>> as App$i
+!else
         interface "IExchangeREST\n:3000" as IRest$i
         component "exchange-service\nNode 24 + Express\n**un proceso** (pm2, fork)\n//transferencias simuladas//\n//en el proceso, 200–400 ms//" <<servicio>> as App$i
+!endif
         component "Agente de Datadog\nDogStatsD 127.0.0.1:8125" <<agente>> as Agente$i
       }
 !$i = $i + 1
@@ -86,7 +106,11 @@ package "Azure · centralus · RG-PRODUCTION" {
 ' ═════════════════════════════════════════════════════════════
 ' Conectores — camino del request
 ' ═════════════════════════════════════════════════════════════
+!if $tls
+Artillery ..> IPublica : <<HTTPS>>\npor internet, TLS 1.2 o más\ncertificado autofirmado
+!else
 Artillery ..> IPublica : <<HTTP/1.1>>\npor internet, sin TLS
+!endif
 IPublica -down- LB
 
 ' Los conectores de cada nodo son iguales: sólo los del nodo 0 llevan

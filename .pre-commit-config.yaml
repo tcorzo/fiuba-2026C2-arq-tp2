@@ -26,6 +26,9 @@ repos:
             exclude: *raw-output
           - id: check-merge-conflict
           - id: check-added-large-files
+            # A pool-ramp report weighs 510-550 KB, over the 500 KB limit, and
+            # cannot be trimmed: raw is raw. Everything else stays checked.
+            exclude: ^perf/results/.*\.json$
           - id: check-yaml
             # Artillery scenarios, Ansible playbooks, evidencia.yml
           - id: check-json

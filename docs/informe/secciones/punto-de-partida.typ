@@ -91,7 +91,8 @@ ejecuta las tres tácticas que estaban en nginx.
 *Encrypt Data (H-38).* En el TP 1, nginx terminaba TLS [E-38]. Ahora ningún
 componente termina TLS. El tráfico entre el
 cliente y el nodo viaja sin cifrar por internet, en HTTP al puerto 80 [E-05]
-[E-19].
+[E-19]. La reimplementamos como táctica superadora: el proceso de Node termina
+TLS (sección 9.1).
 
 *Rate Limiting (H-02).* Ningún componente limita los requests por cliente. En
 el TP 1, sin el límite, un solo cliente a 200 rps provocó 152 timeouts [E-39].
@@ -109,9 +110,9 @@ exchange que ARCA aprueba. `GET /log` y `GET /exchanges/:id` lo devuelven a
 cualquier cliente [E-20].
 
 #pendiente[
-  Falta la decisión del grupo para cada una de las tres tácticas. El grupo
-  puede aceptar el riesgo, reimplementarla en otro componente o elegirla como
-  táctica superadora. El servicio y Application Gateway son dos componentes
+  Falta la decisión del grupo para Rate Limiting y Limit Exposure. Encrypt
+  Data ya volvió como táctica superadora. El grupo puede aceptar el riesgo o
+  reimplementarla en otro componente. El servicio y Application Gateway son dos componentes
   posibles. Limit Exposure es la más grave, porque cualquier cliente puede
   cambiar una tasa.
 ]

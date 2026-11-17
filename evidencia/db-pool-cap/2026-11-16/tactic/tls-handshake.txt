@@ -1,0 +1,67 @@
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0* Host hddbobhwui.centralus.cloudapp.azure.com:443 was resolved.
+* IPv6: (none)
+* IPv4: 132.196.17.134
+*   Trying 132.196.17.134:443...
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [1598 bytes data]
+* SSL Trust Anchors:
+*   CAfile: /home/tcorzo/orca/workspaces/fiuba-2026C2-arq-tp2/contention/certs/server.crt
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [1210 bytes data]
+* TLSv1.3 (IN), TLS change cipher, Change cipher spec (1):
+{ [1 bytes data]
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+{ [25 bytes data]
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+{ [513 bytes data]
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+{ [79 bytes data]
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+{ [52 bytes data]
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384 / X25519MLKEM768 / id-ecPublicKey
+* ALPN: server accepted http/1.1
+* Server certificate:
+*   subject: CN=hddbobhwui.centralus.cloudapp.azure.com
+*   start date: Nov 16 17:23:48 2026 GMT
+*   expire date: Dec 16 17:23:48 2026 GMT
+*   issuer: CN=hddbobhwui.centralus.cloudapp.azure.com
+*   Certificate level 0: Public key type EC/prime256v1 (256/128 Bits/secBits), signed using ecdsa-with-SHA256
+*   subjectAltName: "hddbobhwui.centralus.cloudapp.azure.com" matches cert's "hddbobhwui.centralus.cloudapp.azure.com"
+* SSL certificate verified via OpenSSL.
+* Established connection to hddbobhwui.centralus.cloudapp.azure.com (132.196.17.134 port 443) from 10.0.0.216 port 45676 
+* using HTTP/1.x
+} [5 bytes data]
+> GET / HTTP/1.1
+> Host: hddbobhwui.centralus.cloudapp.azure.com
+> User-Agent: curl/8.18.0
+> Accept: */*
+> 
+* Request completely sent off
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [313 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [313 bytes data]
+< HTTP/1.1 200 OK
+< Strict-Transport-Security: max-age=31536000
+< X-Powered-By: Express
+< Content-Type: text/html; charset=utf-8
+< Content-Length: 13
+< ETag: W/"d-aGTv12Omx4QelmA2daCP+sXihWo"
+< Date: Mon, 16 Nov 2026 18:23:33 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [13 bytes data]
+100     13 100     13   0      0     24      0                              0100     13 100     13   0      0     24      0                              0100     13 100     13   0      0     24      0                              0
+* Connection #0 to host hddbobhwui.centralus.cloudapp.azure.com:443 left intact
+Server is up.
