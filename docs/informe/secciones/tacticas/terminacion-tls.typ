@@ -194,5 +194,8 @@
     que cambia cada vez que `platform` recrea la IP pública. En los dos casos
     hay que generarlo y desplegarlo de nuevo. La clave privada queda en cada
     nodo y en la máquina del operador.
+
+    El cifrado corre en el event loop, sobre la única vCPU del nodo, junto con
+    los requests. Con conexiones reutilizadas, su costo no se notó en el nodo~2. No medimos una carga que abra una conexión nueva por request.
   ],
 )
