@@ -6,49 +6,50 @@
   base: "measured/scaled",
   commit: "measured/db-pool-cap-base",
   problema: [
-    En el caso escalado, ningún componente cifra el tráfico. El cliente llega
-    al load balancer en HTTP al puerto 80, y el load balancer reenvía TCP al
-    3000 [E-217] [E-19]. Cada `POST /exchange` lleva el `dni` del cliente en el
-    body [E-77], en claro por internet. En el TP 1, nginx terminaba TLS (H-38)
-    [E-38]. Acá no hay nginx, y el load balancer sólo reenvía TCP [E-217].
+    En el caso escalado, el tráfico entre el cliente y los nodos viaja sin
+    cifrar. El load balancer recibe HTTP en el puerto 80 y reenvía TCP al 3000
+    de cada nodo [E-217] [E-19]. Cada `POST /exchange` lleva en el body el
+    `dni` del cliente [E-77], legible para cualquiera en el camino.
+
+    En el TP 1, nginx terminaba TLS (H-38) [E-38]. En este despliegue no hay
+    nginx, y el load balancer trabaja en la capa 4: reenvía TCP sin leerlo
+    [E-217].
   ],
   prediccion: [
-    Predijimos que TLS no cambia la latencia que mide Artillery ni el
-    componente que limita, y que su costo aparece en la CPU de los nodos. El
-    handshake pasa una vez por conexión, y `pool-ramp` reutiliza las
-    conexiones. Las predicciones, T1 a T6, están en `perf/predicciones.md`
-    [E-154]. Las commiteamos en #sha("19e050d"), antes de la ejecución.
-
-    Las escribimos para una ejecución desde una laptop por WiFi. Esa ejecución
-    no es comparable con el caso escalado, porque cambia el generador, y no la
-    usamos. Evaluamos T1 a T6 con la ejecución desde la estación cableada, que
-    es también la base del tope de conexiones. T1 compara cada mediana contra
-    la latencia de base de su generador, así que aplica igual.
+    Esperábamos que TLS no moviera la latencia que mide Artillery ni el
+    componente que limita, y que su costo apareciera en la CPU de los nodos.
+    El handshake ocurre una vez por conexión, y `pool-ramp` reutiliza las
+    conexiones entre requests. Commiteamos las predicciones, T1 a T6, en
+    #sha("19e050d"), antes de medir [E-154].
   ],
   implementacion: [
-    El proceso de Node termina TLS con `node:https`, sin componentes nuevos
-    (#codigo("node/server.js", "18-31", en: "3ee54a4")). Atiende HTTPS en el
-    3443, con TLS 1.2 como mínimo y `Strict-Transport-Security` en cada
-    respuesta. En el 3080 atiende HTTP y sólo responde `308` hacia HTTPS
-    (#codigo("node/transport.js", "19-30", en: "3ee54a4")). El `308`, a
-    diferencia de un `301`, conserva el método y el body del `POST /exchange`.
+    Node termina TLS en el mismo proceso que atiende los requests, con
+    `node:https`, sin componentes nuevos
+    (#codigo("node/server.js", "18-31", en: "3ee54a4")). El servidor HTTPS
+    escucha en el 3443, acepta TLS 1.2 o superior y agrega
+    `Strict-Transport-Security` a cada respuesta. Otro servidor, en el 3080,
+    sólo responde `308` hacia la misma URL en HTTPS
+    (#codigo("node/transport.js", "19-30", en: "3ee54a4")). Usamos `308` y no
+    `301` porque conserva el método y el body: un `POST /exchange` redirigido
+    sigue siendo un `POST`.
 
-    pm2 corre el proceso como `azureuser`, que no puede abrir puertos menores
-    que 1024. Por eso el load balancer traduce 443 → 3443 y 80 → 3080, y el
-    probe mira el 3443 [E-155] [E-156]. El NSG de los nodos permite 3443 y
-    3080, y ya no el 3000 (#codigo("infra/modules/network/main.tf", "74-91", en: "3ee54a4")).
+    pm2 ejecuta el proceso como `azureuser`, que no puede abrir puertos por
+    debajo de 1024. Por eso el load balancer traduce 443 → 3443 y 80 → 3080, y
+    el probe consulta el 3443 [E-155] [E-156]. El NSG de los nodos abre el
+    3443 y el 3080 y cierra el 3000
+    (#codigo("infra/modules/network/main.tf", "74-91", en: "3ee54a4")).
 
-    El certificado es autofirmado, ECDSA P-256, para el FQDN del load
-    balancer. Lo genera `mise run app:certs` en `certs/`, que git ignora
-    (#codigo("mise.toml", "280-301", en: "3ee54a4")). Ansible copia el par a
-    cada nodo, con la clave privada en modo `0600`
+    El certificado es autofirmado, ECDSA P-256, emitido para el FQDN del load
+    balancer. `mise run app:certs` lo genera en `certs/`, un directorio fuera
+    de git (#codigo("mise.toml", "280-301", en: "3ee54a4")). Ansible copia el
+    par a cada nodo, con la clave privada en modo `0600`
     (#codigo("ansible/vmss_deploy.yml", "16-33", en: "3ee54a4")). Artillery
-    apunta a `https://` y no valida el certificado, como en el TP 1.
+    apunta a `https://` sin validar el certificado, igual que en el TP 1.
 
-    Con la táctica desplegada, `curl` negocia TLS 1.3 con ese certificado y
-    recibe `200` con HSTS [E-157]. `openssl s_client` verifica el nombre del
-    servidor [E-159]. Un `POST /exchange` al puerto 80 recibe `308` hacia
-    `https://` [E-158].
+    Con la táctica desplegada, `curl` negocia TLS 1.3, valida el certificado y
+    recibe `200` con HSTS [E-157]. `openssl s_client` confirma el nombre del
+    servidor [E-159]. Un `POST /exchange` al puerto 80 recibe `308` con
+    `Location` en `https://` [E-158].
   ],
   resultados: [
     #figure(
@@ -87,17 +88,17 @@
           [7.542 [E-162]],
         )
       },
-      caption: [Caso escalado y TLS, desde la estación cableada, con
-        `pool-ramp`. Mediana y p95: rango de los intervalos de 10 s enteros
-        de cada escalón. Respuestas por segundo y CPU: Datadog, promedio de
-        los 40 s centrales del escalón. La latencia de base es de 169 ms con
-        HTTP y con HTTPS [E-90] [E-303].],
+      caption: [Caso escalado y TLS, desde la misma estación y con
+        `pool-ramp`. Mediana y p95: rango de los intervalos de 10 s enteros de
+        cada escalón. Respuestas por segundo y CPU: promedio de Datadog en los
+        40 s centrales del escalón. La latencia de base es de 169 ms con HTTP
+        y con HTTPS [E-90] [E-303].],
     ) <tabla-tls>
 
-    Hasta 400 rps, TLS no cambió la latencia. En cada escalón, la mediana
-    quedó a lo sumo 10,9 ms sobre la del caso escalado, dentro del rango de
-    15 ms de la latencia de base [E-303]. El costo apareció en la CPU de los
-    nodos, pero repartido de forma desigual:
+    Hasta 400 rps, la latencia no cambió. Escalón por escalón, la mediana con
+    TLS quedó a lo sumo 10,9 ms por encima de la del caso escalado. La latencia
+    de base varía 15 ms entre requests [E-303]. La CPU de los nodos sí subió,
+    casi toda en uno de los dos:
 
     #figure(
       {
@@ -114,10 +115,10 @@
             [*CPU cada 100 rps, 600 rps*],
             [*Lag máximo, 400 rps*],
           ),
-          [Escalado, nodo 0], [189 / 11,3 %], [273 / 15,7 %], [5,8 %], [4,5 ms],
+          [Escalado, nodo~0], [189 / 11,3 %], [273 / 15,7 %], [5,8 %], [4,5 ms],
           [Escalado, nodo 1], [211 / 15,6 %], [295 / 20,7 %], [7,0 %], [5,3 ms],
-          [TLS, nodo 0], [175 / 23,5 %], [300 / 31,2 %], [10,4 %], [14,8 ms],
-          [TLS, nodo 2], [225 / 13,1 %], [302 / 17,2 %], [5,7 %], [2,5 ms],
+          [TLS, nodo~0], [175 / 23,5 %], [300 / 31,2 %], [10,4 %], [14,8 ms],
+          [TLS, nodo~2], [225 / 13,1 %], [302 / 17,2 %], [5,7 %], [2,5 ms],
         )
       },
       caption: [Requests por segundo que atendió cada nodo y su CPU, promedio
@@ -125,14 +126,15 @@
         [E-311] [E-161].],
     ) <tabla-tls-nodos>
 
-    El nodo 2 gastó por request lo mismo que los nodos sin TLS. El nodo 0
-    gastó casi el doble: a 600 rps atendió los mismos requests que el nodo 2,
-    con 31,2 % de CPU contra 17,2 %. Los handshakes no explican la
-    diferencia. Los dos nodos aceptaron casi las mismas conexiones, 3.706 y
-    3.836 [E-162], y entre los dos, menos que sin TLS [E-163]. No medimos la
-    causa: la evidencia tiene la CPU total de cada nodo, no la de cada
-    proceso. Con esta ejecución no podemos separar el costo de TLS de la
-    diferencia entre los nodos.
+    A 600 rps, cada nodo atendió unos 300 rps. El nodo~2 usó 17,2 % de CPU, lo
+    mismo por request que los nodos sin TLS. El nodo~0 usó 31,2 %, casi el
+    doble. Los handshakes no explican esa diferencia: cada nodo aceptó unas
+    3.700 conexiones [E-162], menos que sin TLS [E-163].
+
+    No identificamos qué consumió la CPU de más en el nodo~0, porque la
+    evidencia registra la CPU total de cada nodo y no la de cada proceso. En el
+    nodo~2, el costo de TLS por request queda dentro de la diferencia que ya
+    había entre los dos nodos sin TLS.
 
     #[#set par(justify: false)
       #grid(
@@ -178,32 +180,34 @@
         ),
       )]
 
-    Acertamos T1 y T3: TLS no movió la latencia ni el límite, que siguió en
-    Postgres [E-307] [E-308]. T2 falla, pero el escalón de 600 rps está en el
-    borde: el caso escalado no lo completó por 63 timeouts entre 30.000
-    requests [E-138]. TLS no cambia el trabajo de Postgres, así que no le
-    atribuimos la diferencia.
+    T1 y T3 se cumplieron: la latencia no cambió, y Postgres siguió como límite
+    con hasta 91,8 % de CPU y 16 sesiones esperando un lock [E-307] [E-308].
+    T2 falló por un escalón. El caso escalado no completó el de 600 rps por 63
+    timeouts en 30.000 requests [E-138]. Como TLS no cambia el trabajo de
+    Postgres, no le atribuimos esa diferencia.
 
-    T4 a T6 fallan por el nodo 0. T6 suponía que el nodo con más requests
-    gasta más CPU. A 400 rps pasó lo contrario: el nodo 0 atendió 175 rps
-    con 23,5 % de CPU, y el nodo 2, 225 con 13,1 % [E-160] [E-311].
+    T4, T5 y T6 fallaron por el nodo~0. T6 suponía que el nodo con más
+    requests usaría más CPU, y a 400 rps pasó lo contrario. El nodo~0 atendió
+    175 rps con 23,5 % de CPU, y el nodo~2, 225 rps con 13,1 % [E-160]
+    [E-311].
   ],
   compromiso: [
-    El primer request en HTTP viaja en claro. Un `POST /exchange` al puerto 80
-    manda su body, con el `dni`, antes de recibir el `308` [E-158]. HSTS evita
-    ese request sólo en clientes que lo implementan y ya visitaron el sitio.
+    El primer request en HTTP todavía viaja en claro. Un cliente que manda
+    `POST /exchange` al puerto 80 entrega el body, con el `dni`, antes de
+    recibir el `308` [E-158]. HSTS evita ese request sólo en los clientes que
+    lo implementan, y después de una primera respuesta por HTTPS.
 
-    El certificado autofirmado no autentica al servidor. Un cliente tiene que
-    recibirlo por otro canal o desactivar la validación, como hace Artillery.
-    Un certificado de una CA necesita un dominio propio, que no tenemos.
+    Un certificado autofirmado cifra el canal, pero no autentica al servidor.
+    El cliente tiene que confiar en él por otro medio o desactivar la
+    validación, como hace Artillery. Un certificado de una CA requiere un
+    dominio propio, que no tenemos.
 
-    El certificado vence a los 30 días [E-157] y está atado al FQDN, que
-    cambia cada vez que `platform` recrea la IP pública. Cada vez hay que
-    generarlo y redesplegarlo. La clave privada vive en cada nodo y en la
-    máquina del operador.
+    El certificado vence a los 30 días [E-157] y está emitido para el FQDN,
+    que cambia cada vez que `platform` recrea la IP pública. En los dos casos
+    hay que generarlo y desplegarlo de nuevo. La clave privada queda en cada
+    nodo y en la máquina del operador.
 
-    El cifrado corre en el event loop del único proceso de cada nodo, junto
-    con los requests. Con conexiones reutilizadas, su costo no se distingue
-    en el nodo 2. No medimos una carga con una conexión nueva por request.
+    El cifrado corre en el event loop, sobre la única vCPU del nodo, junto con
+    los requests. Con conexiones reutilizadas, su costo no se notó en el nodo~2. No medimos una carga que abra una conexión nueva por request.
   ],
 )
