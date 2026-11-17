@@ -76,6 +76,8 @@ resource "azurerm_network_security_group" "vmss_http" {
   location            = var.location
   resource_group_name = var.resource_group_name
 
+  # The backend ports the LB forwards to: 3443 (HTTPS) and 3080 (the 308
+  # redirect). An NSG sees the backend port, not the LB's frontend one.
   security_rule {
     name                       = "HTTP"
     priority                   = 1001
@@ -83,7 +85,7 @@ resource "azurerm_network_security_group" "vmss_http" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "3000"
+    destination_port_ranges    = ["3080", "3443"]
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }

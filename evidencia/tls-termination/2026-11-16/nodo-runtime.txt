@@ -1,0 +1,14 @@
+10.0.2.4 | CHANGED | rc=0 >>
+1
+               total        used        free      shared  buff/cache   available
+Mem:            1893         681         207           4        1256        1212
+Swap:              0           0           0
+v24.22.3
+7.1.2
+10.0.2.5 | CHANGED | rc=0 >>
+1
+               total        used        free      shared  buff/cache   available
+Mem:            1893         667         307           4        1173        1226
+Swap:              0           0           0
+v24.22.3
+7.1.2

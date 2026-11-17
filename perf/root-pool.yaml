@@ -16,6 +16,9 @@
 # GET / does no work (no ARCA, no Postgres), so the service is not the limit.
 config:
   target: "{{ $processEnvironment.TARGET }}"
+  # The certificate is self-signed (`mise run app:certs`): not validated.
+  tls:
+    rejectUnauthorized: false
   http:
     pool: 1000
   phases:

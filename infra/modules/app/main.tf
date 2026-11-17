@@ -1,6 +1,14 @@
 ###############################################################################
-# Load balancer: public IP, frontend, backend pool, probe and the 80 → 3000 rule
+# Load balancer: public IP, frontend, backend pool, probe and the 443 → 3443
+# and 80 → 3080 rules
 ###############################################################################
+
+# The ports the Node process listens on. app_config hands them to the app, so
+# the LB rules and the listeners cannot drift apart.
+locals {
+  https_backend_port    = 3443
+  redirect_backend_port = 3080
+}
 
 resource "random_string" "lb_dns_label" {
   length  = 10
@@ -32,18 +40,35 @@ resource "azurerm_lb" "this" {
   }
 }
 
+# The probe checks the HTTPS port: an instance whose TLS listener is down
+# leaves the pool, even if the redirect listener still answers.
 resource "azurerm_lb_probe" "this" {
   name            = "lb_probe"
   loadbalancer_id = azurerm_lb.this.id
-  port            = 3000
+  port            = local.https_backend_port
 }
 
+# The LB is layer 4: it forwards TCP and terminates no TLS. The Node process
+# terminates it (H-38). pm2 runs the app as azureuser, which cannot bind ports
+# below 1024, so the LB maps the standard ports to unprivileged ones.
+resource "azurerm_lb_rule" "https" {
+  loadbalancer_id                = azurerm_lb.this.id
+  name                           = "HTTPSFwd"
+  protocol                       = "Tcp"
+  frontend_port                  = 443
+  backend_port                   = local.https_backend_port
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.this.id]
+  probe_id                       = azurerm_lb_probe.this.id
+  frontend_ip_configuration_name = azurerm_lb.this.frontend_ip_configuration[0].name
+}
+
+# Plain HTTP reaches only the listener that answers 308 to HTTPS.
 resource "azurerm_lb_rule" "http" {
   loadbalancer_id                = azurerm_lb.this.id
   name                           = "HTTPFwd"
   protocol                       = "Tcp"
   frontend_port                  = 80
-  backend_port                   = 3000
+  backend_port                   = local.redirect_backend_port
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.this.id]
   probe_id                       = azurerm_lb_probe.this.id
   frontend_ip_configuration_name = azurerm_lb.this.frontend_ip_configuration[0].name
@@ -65,7 +90,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "this" {
   sku                 = var.vm_size
   instances           = var.instances
   admin_username      = "azureuser"
-  depends_on          = [azurerm_lb_rule.http]
+  depends_on          = [azurerm_lb_rule.https, azurerm_lb_rule.http]
   upgrade_mode        = "Automatic"
 
   admin_ssh_key {

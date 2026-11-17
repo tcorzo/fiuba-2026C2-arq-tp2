@@ -3,7 +3,8 @@
 The Node app's tier: a VM Scale Set behind a public Standard Load Balancer.
 
 - **Load balancer** `tp2_lb`: a public IP with a random DNS label, one backend pool, a TCP
-  probe on port 3000, and the rule `HTTPFwd` (TCP 80 → 3000).
+  probe on port 3443, and two rules: `HTTPSFwd` (TCP 443 → 3443), where the Node process
+  terminates TLS, and `HTTPFwd` (TCP 80 → 3080), where it answers `308` to HTTPS.
 - **Scale set** `tp2vmss`: 1 instance, `upgrade_mode = Automatic`, `StandardSSD_LRS`
   disk. Its NICs join the backend pool. The image is plain Ubuntu: Ansible installs Node,
   pm2, the Datadog agent and the app afterwards, so a new instance boots empty.

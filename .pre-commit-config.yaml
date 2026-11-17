@@ -41,7 +41,7 @@ repos:
             name: forbid terraform state, tfvars and private keys
             entry: these files hold secrets and must never be committed (README, Setup)
             language: fail
-            files: (\.tfvars|\.tfstate(\..*)?|\.pem|(^|/)ddog_api_key)$
+            files: (\.tfvars|\.tfstate(\..*)?|\.pem|\.key|(^|/)ddog_api_key)$
 
           # Scans the staged diff for API keys and tokens. Pinned in mise.toml.
           - id: gitleaks
