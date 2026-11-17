@@ -6,11 +6,9 @@
   base: "measured/db-pool-cap-base",
   commit: "measured/db-pool-cap",
   problema: [
-    La base es la configuración de la táctica TLS, medida de nuevo desde la
-    estación cableada: 2 nodos con 10 conexiones a Postgres cada uno [E-301]
-    [E-302]. Su latencia de base por HTTPS es de 169 ms de mediana [E-303]. La
-    repetimos porque la ejecución TLS corrió desde otro generador, y la táctica
-    se compara con una ejecución del mismo equipo.
+    La base es la ejecución de la táctica TLS (sección 9.1), desde la estación
+    cableada: 2 nodos con 10 conexiones a Postgres cada uno [E-301] [E-302].
+    Su latencia de base por HTTPS es de 169 ms de mediana [E-303].
 
     Con 2 nodos, Postgres sigue siendo el límite y gasta más CPU por respuesta
     que con 1. A 630 respuestas por segundo, cada respuesta le costó 1,13 ms de

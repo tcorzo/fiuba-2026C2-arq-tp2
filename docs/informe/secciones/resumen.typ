@@ -29,9 +29,8 @@
     limitante: [Postgres, por CPU, con más conexiones que 1 nodo],
     evidencia: "E-138",
   ),
-  (caso: [Táctica], nodos: none),
   (
-    caso: [Tope de conexiones: base (10 por nodo)],
+    caso: [Terminación TLS, base del tope de conexiones (10 por nodo)],
     nodos: 2,
     escenario: [rampa del TP 1 con pool (pool-ramp), por HTTPS],
     throughput: [600 rps; 584,9 respuestas/s a 800 rps],
