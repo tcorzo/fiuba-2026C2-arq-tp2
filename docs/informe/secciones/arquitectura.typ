@@ -170,9 +170,18 @@ cantidad de instancias es un atributo suyo. El caso escalado cambió sólo la
 variable `vmss_instances` [E-136]. Después, Ansible instaló y desplegó el
 servicio en el nodo nuevo, con el mismo runtime [E-216].
 
-#pendiente[
-  *Diagrama de cada táctica superadora.* Si una táctica agrega o cambia un
-  componente o un conector (por ejemplo, un Application Gateway), agregar su
-  diagrama C&C. Si sólo cambia código dentro del servicio, alcanza con una
-  oración que diga que la arquitectura no cambia.
-]
+== Tácticas superadoras
+
+#figure(
+  image("../../diagramas/arquitectura-tls.svg", width: 100%),
+  caption: [Componentes y conectores de la terminación TLS, sobre el caso
+    escalado.],
+) <cc-tls>
+
+La terminación TLS cambia dos conectores y ningún componente. El cliente llega
+en HTTPS al 443, y el load balancer reenvía TCP al 3443 de cada nodo, donde
+Node termina TLS [E-155] [E-157]. El 80 pasa al 3080, que sólo responde `308`
+hacia HTTPS [E-158]. El probe mira el 3443 [E-156].
+
+El tope de conexiones no cambia la arquitectura: cada nodo abre un pool de 5
+conexiones a Postgres en lugar de 10 [E-301] [E-321].
