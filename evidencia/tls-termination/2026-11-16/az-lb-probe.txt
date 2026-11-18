@@ -1,3 +1,0 @@
-Name      Protocol    Port    IntervalSeconds    Threshold
---------  ----------  ------  -----------------  -----------
-lb_probe  Tcp         3443    15                 1

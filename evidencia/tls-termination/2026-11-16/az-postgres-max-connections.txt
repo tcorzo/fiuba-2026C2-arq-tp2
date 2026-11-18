@@ -1,3 +1,0 @@
-Name             Value
----------------  -------
-max_connections  50
