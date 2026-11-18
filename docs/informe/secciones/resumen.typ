@@ -34,8 +34,6 @@ ejecuciones [E-127] [E-152] [E-312] [E-332].
 TLS. Es la configuración que más respuestas atendió a 800 rps, contra 647,6 de
 1 nodo [E-325] [E-116]. Con este Postgres, más nodos no suben el techo, y
 cada cambio de `vmss_instances` exige recalcular `db_pool_max` (sección 9.2).
-No probamos la caída de un nodo. Aceptamos sin reimplementar Rate Limiting y
-Limit Exposure, que en el TP 1 ejecutaba nginx (sección 3).
 
 #tabla-resultados((
   (
