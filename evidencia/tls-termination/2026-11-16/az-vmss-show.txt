@@ -1,3 +1,0 @@
-Name     Sku                Capacity    Location    UpgradeMode
--------  -----------------  ----------  ----------  -------------
-tp2vmss  Standard_F1als_v7  2           centralus   Automatic

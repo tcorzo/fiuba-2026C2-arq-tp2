@@ -1,3 +1,0 @@
-Version    Sku            Tier       StorageGb    PublicAccess    Location
----------  -------------  ---------  -----------  --------------  ----------
-18         Standard_B1ms  Burstable  32           Disabled        Central US

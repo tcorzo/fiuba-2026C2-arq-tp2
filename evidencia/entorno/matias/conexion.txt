@@ -1,8 +1,0 @@
-
-Name                               InterfaceDescription                  LinkSpeed
-----                               --------------------                  ---------
-Wi-Fi                              Intel(R) Wi-Fi 6E AX211 160MHz        585 Mbps 
-Ethernet 2                         VirtualBox Host-Only Ethernet Adapter 1 Gbps   
-vEthernet (WSL (Hyper-V firewall)) Hyper-V Virtual Ethernet Adapter      10 Gbps  
-
-

@@ -1,4 +1,0 @@
-Name      Protocol    FrontendPort    BackendPort    IdleTimeoutMinutes    Distribution
---------  ----------  --------------  -------------  --------------------  --------------
-HTTPSFwd  Tcp         443             3443           4                     Default
-HTTPFwd   Tcp         80              3080           4                     Default

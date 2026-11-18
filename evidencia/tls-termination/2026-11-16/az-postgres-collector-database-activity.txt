@@ -1,3 +1,0 @@
-Name                                 Value    Source
------------------------------------  -------  -------------
-metrics.collector_database_activity  on       user-override

@@ -1,3 +1,0 @@
-app_config = <sensitive>
-lb_fqdn = "hddbobhwui.centralus.cloudapp.azure.com"
-vmss_name = "tp2vmss"
