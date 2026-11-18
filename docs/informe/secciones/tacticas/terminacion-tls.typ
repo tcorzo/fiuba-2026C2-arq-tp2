@@ -21,8 +21,8 @@
     El handshake ocurre una vez por conexión, y `pool-ramp` reutiliza las
     conexiones entre requests. Commiteamos las predicciones, T1 a T6, en
     #sha("19e050d"), antes de medir [E-154]. Las escribimos para una ejecución
-    desde otro generador, que descartamos por no salir de la estación
-    cableada. T1 compara la diferencia sobre la latencia de base de cada
+    desde otro generador, que descartamos porque no corrió desde la
+    estación cableada. T1 compara la diferencia sobre la latencia de base de cada
     generador, así que la evaluamos igual contra esta ejecución.
   ],
   implementacion: [
