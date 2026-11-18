@@ -17,9 +17,9 @@ las sesiones de Postgres que esperan un lock subieron de 8 a 12 [E-62] [E-122]
 [E-146].
 
 *El tope de conexiones recuperó el throughput.* Con 5 conexiones por nodo, los
-dos nodos atendieron 690,5 respuestas por segundo a 800 rps, contra 584,9 con
+dos nodos atendieron 681,8 respuestas por segundo a 800 rps, contra 573,2 con
 10 [E-305] [E-325]. A 600 rps, el p50 de `GET /rates` en el servidor bajó de
-131,1 a 3,9 ms [E-306] [E-326].
+131,1 a 5,2 ms [E-306] [E-326].
 
 *TLS cifró el tráfico sin cambiar la latencia.* Hasta 400 rps, la mediana en
 el cliente quedó a lo sumo 10,9 ms sobre la del caso escalado, dentro de la
@@ -62,9 +62,9 @@ cada cambio de `vmss_instances` exige recalcular `db_pool_max` (sección 9.2).
     caso: [Terminación TLS, base del tope de conexiones (10 por nodo)],
     nodos: 2,
     escenario: [rampa del TP 1 con pool (pool-ramp), por HTTPS],
-    throughput: [600 rps; 584,9 respuestas/s a 800 rps],
-    mediana: [179,5 a 478,3 ms],
-    p95: [963 a 2.780 ms],
+    throughput: [600 rps; 573,2 respuestas/s a 800 rps],
+    mediana: [262,5 a 478,3 ms],
+    p95: [1.408 a 2.780 ms],
     errores: [sin timeouts; 9,8 % de 502 de ARCA],
     limitante: [Postgres, por CPU, con 16 esperas `Lock`],
     evidencia: "E-304",
@@ -73,7 +73,7 @@ cada cambio de `vmss_instances` exige recalcular `db_pool_max` (sección 9.2).
     caso: [Tope de conexiones (5 por nodo)],
     nodos: 2,
     escenario: [rampa del TP 1 con pool (pool-ramp), por HTTPS],
-    throughput: [600 rps; 690,5 respuestas/s a 800 rps],
+    throughput: [600 rps; 681,8 respuestas/s a 800 rps],
     mediana: [183,1 a 257,3 ms],
     p95: [983 a 1.408 ms],
     errores: [sin timeouts; 9,9 % de 502 de ARCA],
