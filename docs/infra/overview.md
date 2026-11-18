@@ -215,6 +215,8 @@ Things to note about the topology:
 
 ## Request path
 
+`POST /exchange` is the only route that calls ARCA (`node/exchange.js`, `validateDni`). The client sends the `dni` in the JSON body.
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -222,16 +224,29 @@ sequenceDiagram
     participant LB as Azure Standard LB
     participant N as Node app (VMSS instance)
     participant A as ARCA (ACI)
+    participant P as PostgreSQL
 
-    C->>LB: GET https://<lb_fqdn>/<dni> (TLS passes through the LB)
-    LB->>N: forward to :3443 (healthy backend chosen by 5-tuple hash)
+    C->>LB: POST https://<lb_fqdn>/exchange {currencies, accounts, baseAmount, dni}
+    LB->>N: forward to :3443, TLS untouched (backend chosen by 5-tuple hash)
+    Note over N: terminates TLS, checks the body (400 VALIDATION_ERROR)
+    N->>P: read accounts and rates: is the pair tradable? (422 if not)
     N->>A: POST http://<aci-private-ip>:8080/validar {dni}
-    A-->>N: 200 + body
-    N-->>LB: 200 + body (or 500 on error)
-    LB-->>C: response
+    alt ARCA rejects the dni
+        A-->>N: 200 {ok: false}
+        N-->>C: 403 ARCA_REJECTED (through the LB)
+    else ARCA fails: non-200, malformed body, or no answer in 2000 ms
+        N-->>C: 502 ARCA_UNAVAILABLE (through the LB)
+    else ARCA approves
+        A-->>N: 200 {ok: true, codigoAutorizacion}
+        N->>P: read rates and accounts, reserve the counter amount (UPDATE ... balance >= amount)
+        Note over N: both transfers run in-process, 200-400 ms each, in parallel
+        N->>P: BEGIN, credit the base account, append the log entry, COMMIT
+        N->>P: read every account (balance gauges)
+        N-->>C: 200 {..., ok: true, codigoAutorizacion} (through the LB)
+    end
 ```
 
-This is the path of the course's example app, which `node/` no longer holds: it now holds tp1's exchange service (`node/server.js`), which does not call ARCA yet. The `dni` → `/validar` step comes back with the ARCA integration. Every route except `GET /` reads or writes PostgreSQL, over TLS on port 5432.
+A rejected or failed validation writes nothing: no reservation, no transfer and no log entry (`node/exchange.js`, `validateDni`). It still costs the pair check's reads. When the reservation fails, the exchange answers `409 INSUFFICIENT_INTERNAL_FUNDS` and logs an entry with `ok: false`. Every route except `GET /` reads or writes PostgreSQL, over TLS on port 5432.
 
 `GET /` returns `Server is up.` without calling ARCA or PostgreSQL. The TP asks you to use it to measure baseline latency.
 
