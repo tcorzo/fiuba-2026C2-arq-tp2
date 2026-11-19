@@ -51,3 +51,7 @@ de cada proceso, no podemos atribuirle esa diferencia a TLS (sección 9.1).
   5 conexiones (sección 9.2).
 - El certificado es autofirmado: cifra el canal, pero no autentica al servidor
   (sección 9.1).
+- El password de Postgres está en texto plano en el state de HCP Terraform y
+  en la configuración de cada nodo. `terraform output` lo oculta [E-202],
+  pero quien lea el state o entre a un nodo lo obtiene
+  (#codigo("infra/modules/database/outputs.tf", "1-7", en: "4444086")).
