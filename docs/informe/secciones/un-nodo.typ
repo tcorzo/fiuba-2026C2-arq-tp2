@@ -246,14 +246,19 @@ en todos los escalones [E-114] [E-115], la latencia de base.
     prediccion(
       metrica: [P9: componente que limita],
       predicho: [Postgres, en la escritura del exchange],
-      observado: [Postgres, en la escritura del exchange],
+      observado: [Postgres, en la escritura del exchange, con hasta 8 esperas
+        `Lock` [E-122]],
       evidencia: "E-120",
     ),
   )]
 
 Acertamos P1, P3, P4, P5 y P6, que dependen del código, de ARCA y de la red, no
-de la carga. ARCA respondió en unos 300 ms y no en los 371 ms del issue \#14,
-medidos desde el jumpbox; no investigamos esa diferencia.
+de la carga. También acertamos P8.
+
+P2 erró la base. Los 371 ms son la mediana de las aprobaciones [E-45], pero la
+métrica registra toda validación
+(#codigo("node/metrics.js", "130-133", en: "036470c")), también los `500`, que
+tardan 2 ms. Con los `500`, la mediana de las 200 llamadas de [E-45] es 320 ms.
 
 P9 acertó el componente, y P7 erró la capacidad por cuatro. P7 tomó el quiebre
 del TP 1, después de 150 rps [E-130], y supuso que se compensaban dos efectos

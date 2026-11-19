@@ -76,9 +76,10 @@ local [E-41]. En Azure, Terraform genera la contraseña [E-228], que no está en
 repositorio. Postgres no tiene acceso público [E-208], y el servicio se conecta
 con `sslmode=verify-full` [E-65]. Los nodos no tienen IP pública [E-05].
 
-El load balancer, en cambio, expone el servicio a internet, sin TLS [E-206]. En
-el TP 1, nginx terminaba TLS [E-38]. En Azure, el tráfico del cliente cruza
-internet en texto plano (sección 3).
+El load balancer, en cambio, expone el servicio a internet sin TLS [E-206]. En
+el TP 1, nginx terminaba TLS [E-38]. En el despliegue base, el tráfico del
+cliente cruza internet en texto plano (sección 3). La táctica de la sección 9.1
+lo cifra: el proceso de Node termina TLS [E-155] [E-157].
 
 == Observabilidad
 

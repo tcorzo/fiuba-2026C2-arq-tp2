@@ -121,8 +121,8 @@ nodo no la acelera. Predijimos el mismo escalón completo que con 1 nodo,
 
 Hasta 400 rps, los dos nodos respondieron cada escalón completo, con la misma
 latencia que el caso 1 nodo [E-138] [E-114]. El escalón de 600 rps no se
-completó: a los 20 s, la mediana en el cliente subió de 179,5 a 497,8 ms, y hubo
-63 timeouts [E-138].
+completó: entre los 23 y 33 s, la mediana de `GET /rates` en el cliente subió de
+179,5 a 497,8 ms, y hubo 63 timeouts [E-138].
 
 El throughput bajó al escalar. Los dos nodos atendieron 568,5 respuestas por
 segundo como máximo, contra 647,6 de 1 nodo [E-140] [E-116]. A 800 y 1.000 rps
@@ -198,7 +198,7 @@ eso medimos con el reporte crudo de Artillery y con las respuestas de los nodos.
     prediccion(
       metrica: [C4: componente que limita],
       predicho: [Postgres, en la escritura sobre las cuentas internas],
-      observado: [Postgres, por CPU, con más esperas `Lock`],
+      observado: [Postgres, por CPU, con más esperas `Lock` [E-146]],
       evidencia: "E-145",
     ),
 
@@ -239,6 +239,9 @@ eso medimos con el reporte crudo de Artillery y con las respuestas de los nodos.
 Acertamos que el throughput no escala (C1), el componente (C4) y el reparto del
 load balancer (C8). También acertamos C5 y C7: más esperas `Lock` y la mitad de
 CPU por nodo.
+
+C4 acertó el componente, no el mecanismo. Predijo una cola sobre las filas de
+las cuentas internas, y el límite fue la CPU de Postgres [E-145].
 
 Erramos el escalón (C2), la CPU de Postgres (C6) y la latencia a 600 rps (C9).
 Las tres fallan por el mismo supuesto. C6 suponía que, a igual carga, Postgres
