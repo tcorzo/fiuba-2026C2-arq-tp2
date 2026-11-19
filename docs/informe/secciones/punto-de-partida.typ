@@ -109,13 +109,13 @@ Desde la integración con ARCA, el log guarda el `dni` del cliente en cada
 exchange que ARCA aprueba. `GET /log` y `GET /exchanges/:id` lo devuelven a
 cualquier cliente [E-20].
 
-#pendiente[
-  Falta la decisión del grupo para Rate Limiting y Limit Exposure. Encrypt
-  Data ya volvió como táctica superadora. El grupo puede aceptar el riesgo o
-  reimplementarla en otro componente. El servicio y Application Gateway son dos componentes
-  posibles. Limit Exposure es la más grave, porque cualquier cliente puede
-  cambiar una tasa.
-]
+*Decisión.* Aceptamos el riesgo de Rate Limiting y de Limit Exposure. Usamos
+las dos tácticas superadoras en Encrypt Data y en el tope de conexiones
+(sección 9), y no reimplementamos estas dos. Queda publicado en internet lo que
+describimos arriba: los `PUT` de administración llegan a la app, y `GET /log`
+devuelve el `dni` de los clientes [E-19] [E-20]. Reimplementarlas exige un
+componente que lea HTTP: el propio servicio, o un Application Gateway delante
+del VMSS.
 
 == Las tácticas de Docker dejan de aplicar
 

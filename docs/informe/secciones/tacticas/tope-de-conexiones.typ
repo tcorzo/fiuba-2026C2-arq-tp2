@@ -11,7 +11,7 @@
     cableada, la latencia de base por HTTPS es de 169 ms de mediana [E-303].
 
     Con 2 nodos, el servicio atendió menos que con 1. En el escalón de 800 rps,
-    la base respondió 584,9 requests por segundo, y el caso de 1 nodo, 673,9
+    la base respondió 573,2 requests por segundo, y el caso de 1 nodo, 647,6
     [E-305] [E-116]. Postgres siguió como límite, pero cada respuesta le costó
     más CPU: 1,13 ms a 630 respuestas por segundo, contra 1,02 ms a 668 con 1
     nodo [E-305] [E-307] [E-116] [E-121].
@@ -66,22 +66,22 @@
           align: (left, right, right),
           table.header([], [*Base (10 por nodo)*], [*Táctica (5 por nodo)*]),
           [Respuestas por segundo, escalón de 800 rps],
-          [584,9 [E-305]],
-          [690,5 [E-325]],
+          [573,2 [E-305]],
+          [681,8 [E-325]],
 
           [Timeouts del escalón de 800 rps], [8.253 [E-304]], [3.901 [E-324]],
           [Último escalón completo], [600 rps], [600 rps],
           [Mediana en el cliente, escalón de 600 rps],
-          [179,5 a 478,3 ms [E-304]],
+          [262,5 a 478,3 ms [E-304]],
           [183,1 a 257,3 ms [E-324]],
 
           [p50 de `GET /rates` en el servidor, 600 rps],
           [131,1 ms [E-306]],
-          [3,9 ms [E-326]],
+          [5,2 ms [E-326]],
 
           [p50 de `POST /exchange` en el servidor, 600 rps],
           [1.082,5 ms [E-306]],
-          [572,0 ms [E-326]],
+          [589,9 ms [E-326]],
 
           [Máximo de sesiones esperando un lock], [16 [E-308]], [6 [E-328]],
           [CPU de Postgres por transacción confirmada],
@@ -92,16 +92,17 @@
         )
       },
       caption: [Base y táctica, desde la misma estación y con el mismo
-        escenario. Respuestas por segundo: promedio de Datadog en los 40 s
-        centrales del escalón. Mediana en el cliente: rango de las medianas de
-        cada intervalo de 10 s. CPU por transacción: segundos de vCPU de Azure
+        escenario, con el método de la @tabla-escalado. Respuestas por
+        segundo: promedio de Datadog en los 40 s centrales del escalón. Mediana
+        en el cliente: rango de las medianas de los intervalos de 10 s enteros
+        del escalón. CPU por transacción: segundos de vCPU de Azure
         Monitor durante la ejecución, divididos por el aumento de
         `xact_commit`.],
     ) <tabla-tope>
 
-    El tope subió un 18 % las respuestas del escalón de 800 rps y redujo los
+    El tope subió un 19 % las respuestas del escalón de 800 rps y redujo los
     timeouts a menos de la mitad. La mejora más grande está en las lecturas: a
-    600 rps, el p50 de `GET /rates` en el servidor bajó de 131,1 a 3,9 ms.
+    600 rps, el p50 de `GET /rates` en el servidor bajó de 131,1 a 5,2 ms.
     Hasta 400 rps no hay diferencia: las dos ejecuciones quedan dentro de la
     variación de la latencia de base [E-304] [E-324] [E-303].
 
@@ -157,13 +158,13 @@
         prediccion(
           metrica: [D1: ¿mejora el throughput sostenido?],
           predicho: [sí],
-          observado: [sí: de 584,9 a 690,5 respuestas por segundo a 800 rps],
+          observado: [sí: de 573,2 a 681,8 respuestas por segundo a 800 rps],
           evidencia: "E-325",
         ),
         prediccion(
           metrica: [D2: respuestas por segundo a 800 rps],
           predicho: [entre 640 y 700],
-          observado: [690,5],
+          observado: [681,8],
           evidencia: "E-325",
         ),
 
@@ -209,7 +210,7 @@
         prediccion(
           metrica: [D9: p50 de `GET /rates` a 600 rps],
           predicho: [menos de 10 ms],
-          observado: [3,9 ms],
+          observado: [5,2 ms],
           evidencia: "E-326",
         ),
         prediccion(
