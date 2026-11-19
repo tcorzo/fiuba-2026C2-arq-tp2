@@ -198,7 +198,7 @@ eso medimos con el reporte crudo de Artillery y con las respuestas de los nodos.
     prediccion(
       metrica: [C4: componente que limita],
       predicho: [Postgres, en la escritura sobre las cuentas internas],
-      observado: [Postgres, por CPU, con más esperas `Lock`],
+      observado: [Postgres, por CPU, con más esperas `Lock` [E-146]],
       evidencia: "E-145",
     ),
 
@@ -239,6 +239,9 @@ eso medimos con el reporte crudo de Artillery y con las respuestas de los nodos.
 Acertamos que el throughput no escala (C1), el componente (C4) y el reparto del
 load balancer (C8). También acertamos C5 y C7: más esperas `Lock` y la mitad de
 CPU por nodo.
+
+C4 acertó el componente, no el mecanismo. Predijo una cola sobre las filas de
+las cuentas internas, y el límite fue la CPU de Postgres [E-145].
 
 Erramos el escalón (C2), la CPU de Postgres (C6) y la latencia a 600 rps (C9).
 Las tres fallan por el mismo supuesto. C6 suponía que, a igual carga, Postgres
