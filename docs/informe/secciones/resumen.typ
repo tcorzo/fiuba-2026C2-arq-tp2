@@ -8,18 +8,19 @@ Azure Container Instances (sección 4). Medimos 1 nodo, 2 nodos y dos tácticas
 superadoras con la rampa del TP 1, desde un generador en Buenos Aires
 (sección 2). La tabla de abajo resume cada caso.
 
-*El límite es Postgres, no los nodos.* Con 1 nodo, el servicio sostuvo
-600 rps sin timeouts [E-114]. En toda la ejecución, la CPU de Postgres llegó a 84,5 %, y la del nodo, a 47,4 % [E-121] [E-117].
+*El límite es Postgres, no los nodos.* Con 1 nodo, el servicio sostuvo 600 rps
+sin timeouts [E-114]. En toda la ejecución, la CPU de Postgres llegó a 84,5 %, y
+la del nodo, a 47,4 % [E-121] [E-117].
 
-*Escalar no aumentó el throughput.* Con 2 nodos, el último escalón completo
-bajó de 600 a 400 rps [E-138]. Cada nodo abre su propio pool de 10 conexiones a la DB, y
-las sesiones de Postgres que esperan un lock subieron de 8 a 12 [E-62] [E-122]
-[E-146].
+*Escalar no aumentó el throughput.* Con 2 nodos, el último escalón completo bajó
+de 600 a 400 rps [E-138]. Cada nodo abre su propio pool de 10 conexiones a la
+DB, y las sesiones de Postgres que esperan un lock subieron de 8 a 12 [E-62]
+[E-122] [E-146].
 
-*Reducir la cantidad de conexiones a la DB recuperó el throughput.* Con 5 conexiones por nodo, los
-dos nodos atendieron 681,8 respuestas por segundo a 800 rps, contra 573,2 con
-10 [E-305] [E-325]. A 600 rps, el p50 de `GET /rates` en el servidor bajó de
-131,1 a 5,2 ms [E-306] [E-326].
+*Reducir la cantidad de conexiones a la DB recuperó el throughput.* Con 5
+conexiones por nodo, los dos nodos atendieron 681,8 respuestas por segundo a 800
+rps, contra 573,2 con 10 [E-305] [E-325]. A 600 rps, el p50 de `GET /rates` en
+el servidor bajó de 131,1 a 5,2 ms [E-306] [E-326].
 
 *TLS cifró el tráfico sin cambiar la latencia.* Hasta 400 rps, la mediana en
 el cliente quedó a lo sumo 10,9 ms sobre la del caso escalado, dentro de la
@@ -30,10 +31,10 @@ tardó de 169 a 172,5 ms en el cliente, y la latencia de base es de 169 ms
 [E-114] [E-90]. Desde 600 rps, el generador usó toda su CPU en todas las
 ejecuciones [E-127] [E-152] [E-312] [E-332].
 
-*Recomendación.* Desplegar 2 nodos con el tope de 5 conexiones por nodo y
-TLS. Es la configuración que más respuestas atendió a 800 rps, contra 647,6 de
-1 nodo [E-325] [E-116]. Con este Postgres, más nodos no incrementan throughput, y
-cada cambio de `vmss_instances` exige recalcular `db_pool_max` (sección 9.2).
+*Recomendación.* Desplegar 2 nodos con el tope de 5 conexiones por nodo y TLS.
+Es la configuración que más respuestas atendió a 800 rps, contra 647,6 de 1 nodo
+[E-325] [E-116]. Con este Postgres, más nodos no incrementan throughput, y cada
+cambio de `vmss_instances` exige recalcular `db_pool_max` (sección 9.2).
 
 #tabla-resultados((
   (
