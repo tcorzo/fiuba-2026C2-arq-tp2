@@ -25,12 +25,11 @@ caso escalado. Terraform fija esa cantidad con la variable `vmss_instances`
     load balancer],
   [\[E-05\] \[E-60\]],
 
-  [exchange-service], [pm2 arranca un proceso de Node en cada nodo], [\[E-61\]],
-
-  [Transferencias],
-  [La dependencia de transferencias simulada: una espera de 200 a 400 ms
-    dentro del mismo proceso, no un servicio aparte],
-  [\[E-63\]],
+  [exchange-service],
+  [pm2 arranca un proceso de Node en cada nodo. Ese proceso también simula la
+    dependencia de transferencias: una espera de 200 a 400 ms que siempre
+    devuelve éxito, sin un servicio aparte],
+  [\[E-61\] \[E-63\]],
 
   [Agente de Datadog], [Ansible instala un agente en cada nodo], [\[E-07\]],
 
