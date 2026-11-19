@@ -16,9 +16,9 @@ rechazo es una respuesta de negocio; un `500` es una falla al azar del mock.
 == Implementación
 
 `POST /exchange` recibe un campo `dni` obligatorio, de tipo texto. El servicio
-lo valida antes de llamar a ARCA: debe tener siete u ocho dígitos, sin
-cero adelante [E-47] [E-48]. Un `dni` inválido responde `400` y no llega a
-ARCA [E-50] [E-53].
+lo valida antes de llamar a ARCA: debe ser un entero de 1.000.000 a
+99.999.999, escrito sin ceros adelante [E-47] [E-48]. Un `dni` inválido
+responde `400` y no llega a ARCA [E-50] [E-53].
 
 El generador de carga manda un `dni` válido y aleatorio en cada exchange
 [E-77]. Lo manda como texto: corrimos el escenario contra un servidor local que
